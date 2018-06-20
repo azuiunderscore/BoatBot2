@@ -23,18 +23,17 @@ module.exports = class LOLAPI {
 			}).catch(reject);
 		});
 	}
-	get(region, path, options, cachetime, maxage) {
+	get(path, options, cachetime, maxage) {
 		let that = this;
 		return new Promise((resolve, reject) => {
-			UTILS.assert(UTILS.exists(region));
 			UTILS.assert(UTILS.exists(cachetime));
 			UTILS.assert(UTILS.exists(maxage));
-			let url = "https://" + region + ".api.riotgames.com/lol/" + path + "?api_key=";
+			let url = this.CONFIG.OSU_SERVERS.OSU + path + "?k=";
 			for (let i in options) {
 				url += "&" + i + "=" + encodeURIComponent(options[i]);
 			}
 			//UTILS.output("IAPI req sent: " + url.replace(that.CONFIG.RIOT_API_KEY, ""));
-			url = this.address + ":" + this.port + "/lol/" + region + "/" + cachetime + "/" + maxage + "/" + this.request_id + "/?k=" + encodeURIComponent(this.CONFIG.API_KEY) +"&url=" + encodeURIComponent(url);
+			url = this.address + ":" + this.port + "/osu/" + cachetime + "/" + maxage + "/" + this.request_id + "/?k=" + encodeURIComponent(this.CONFIG.API_KEY) +"&url=" + encodeURIComponent(url);
 			this.request({ url, agentOptions }, (error, response, body) => {
 				if (UTILS.exists(error)) {
 					reject(error);
@@ -85,148 +84,6 @@ module.exports = class LOLAPI {
 					}
 				}
 			});
-		});
-	}
-	getStatic(path) {//data dragon
-		return new Promise((resolve, reject) => {
-			let url = "https://ddragon.leagueoflegends.com/" + path;
-			this.request(url, function (error, response, body) {
-				if (error != undefined && error != null) {
-					reject(error);
-				}
-				else {
-					try {
-						const answer = JSON.parse(body);
-						if (UTILS.exists(answer.status)) UTILS.output(url + " : " + body);
-						else UTILS.output(url);
-						resolve(answer);
-					}
-					catch (e) {
-						reject(e);
-					}
-				}
-			});
-		});
-	}
-	//get(path, options) {}
-	getSummonerIDFromName(region, username, maxage) {
-		return this.get(region, "summoner/v3/summoners/by-name/" + encodeURIComponent(username), {}, this.CONFIG.API_CACHETIME.GET_SUMMONER_ID_FROM_NAME, maxage);
-	}
-	getMultipleSummonerIDFromName(region, usernames, maxage) {
-		let that = this;
-		let requests = [];
-		if (this.CONFIG.API_SEQUENTIAL) {
-			for (let i in usernames) requests.push(function () { return that.getSummonerIDFromName(region, usernames[i], maxage); });
-			return UTILS.sequential(requests);
-		}
-		else {
-			for (let i in usernames) requests.push(that.getSummonerIDFromName(region, usernames[i], maxage));
-			return Promise.all(requests);
-		}
-	}
-	getSummonerFromSummonerID(region, id, maxage) {
-		if (id === null) return new Promise((resolve, reject) => { resolve({}); });
-		return this.get(region, "summoner/v3/summoners/" + id, {}, this.CONFIG.API_CACHETIME.GET_SUMMONER_FROM_SUMMONER_ID, maxage);
-	}
-	getMultipleSummonerFromSummonerID(region, ids, maxage) {
-		let that = this;
-		let requests = [];
-		if (this.CONFIG.API_SEQUENTIAL) {
-			for (let i in ids) requests.push(function () { return that.getSummonerFromSummonerID(region, ids[i], maxage); });
-			return UTILS.sequential(requests);
-		}
-		else {
-			for (let i in ids) requests.push(that.getSummonerFromSummonerID(region, ids[i], maxage));
-			return Promise.all(requests);
-		}
-	}
-	getRanks(region, summonerID, maxage) {
-		if (summonerID === null) return new Promise((resolve, reject) => { resolve([]); });
-		return this.get(region, "league/v3/positions/by-summoner/" + summonerID, {}, this.CONFIG.API_CACHETIME.GET_RANKS, maxage);
-	}
-	getMultipleRanks(region, summonerIDs, maxage) {
-		let that = this;
-		let requests = [];
-		for (let i in summonerIDs) requests.push(that.getRanks(region, summonerIDs[i], maxage));
-		return Promise.all(requests);
-	}
-	getChampionMastery(region, summonerID, maxage) {
-		if (summonerID === null) return new Promise((resolve, reject) => { resolve([]); });
-		return this.get(region, "champion-mastery/v3/champion-masteries/by-summoner/" + summonerID, {}, this.CONFIG.API_CACHETIME.GET_CHAMPION_MASTERY, maxage);
-	}
-	getMultipleChampionMastery(region, summonerIDs, maxage) {
-		let that = this;
-		let requests = [];
-		for (let i in summonerIDs) requests.push(that.getChampionMastery(region, summonerIDs[i], maxage));
-		return Promise.all(requests);
-	}
-	getStaticChampions(region) {
-		UTILS.output("STATIC CHAMPIONS: " + region);
-		return this.get(region, "static-data/v3/champions", { locale: "en_US", dataById: true, tags: "all" }, this.CONFIG.API_CACHETIME.STATIC_CHAMPIONS, this.CONFIG.API_CACHETIME.STATIC_CHAMPIONS);
-	}
-	getStaticSummonerSpells(region) {
-		UTILS.output("STATIC SPELLS: " + region);
-		return this.get(region, "static-data/v3/summoner-spells", { locale: "en_US", dataById: true, spellListData: "all", tags: "all" }, this.CONFIG.API_CACHETIME.STATIC_SPELLS, this.CONFIG.API_CACHETIME.STATIC_SPELLS);
-	}
-	getRecentGames(region, accountID, maxage) {
-		return this.get(region, "match/v3/matchlists/by-account/" + accountID, { endIndex: 20 }, this.CONFIG.API_CACHETIME.GET_RECENT_GAMES, maxage);
-	}
-	getMultipleRecentGames(region, accountIDs, maxage) {
-		let that = this;
-		let requests = [];
-		if (this.CONFIG.API_SEQUENTIAL) {
-			for (let i in accountIDs) requests.push(function () { return that.getRecentGames(region, accountIDs[i], maxage); });
-			return UTILS.sequential(requests);
-		}
-		else {
-			for (let i in accountIDs) requests.push(that.getRecentGames(region, accountIDs[i], maxage));
-			return Promise.all(requests);
-		}
-	}
-	getMatchInformation(region, gameID, maxage) {
-		return this.get(region, "match/v3/matches/" + gameID, {}, this.CONFIG.API_CACHETIME.GET_MATCH_INFORMATION, maxage);
-	}
-	getMultipleMatchInformation(region, gameIDs, maxage) {
-		let that = this;
-		let requests = [];
-		if (this.CONFIG.API_SEQUENTIAL) {
-			for (let i in gameIDs) requests.push(function () { return that.getMatchInformation(region, gameIDs[i], maxage); });
-			return UTILS.sequential(requests);
-		}
-		else {
-			for (let i in gameIDs) requests.push(that.getMatchInformation(region, gameIDs[i], maxage));
-			return Promise.all(requests);
-		}
-	}
-	getLiveMatch(region, summonerID, maxage) {
-		return this.get(region, "spectator/v3/active-games/by-summoner/" + summonerID, {}, this.CONFIG.API_CACHETIME.GET_LIVE_MATCH, maxage);
-	}
-	getMMR(region, summonerID, maxage) {
-		return this.get(region, "league/v3/mmr-af/by-summoner/" + summonerID, {}, this.CONFIG.API_CACHETIME.GET_MMR, maxage);
-	}
-	getStatus(region, maxage) {
-		return this.get(region, "status/v3/shard-data", {}, this.CONFIG.API_CACHETIME.GET_STATUS, maxage);
-	}
-	getChallengerRanks(region, queue, maxage) {
-		return this.get(region, "league/v3/challengerleagues/by-queue/" + queue, {}, this.CONFIG.API_CACHETIME.GET_CHALLENGERS, maxage);
-	}
-	getSummonerCard(region, username) {
-		const that = this;
-		return new Promise((resolve, reject) => {
-			that.getSummonerIDFromName(region, username, this.CONFIG.API_MAXAGE.SUMMONER_CARD.SUMMONER_ID).then(result => {
-				result.region = region;
-				result.guess = username;
-				if (!UTILS.exists(result.id)) reject();
-				that.getRanks(region, result.id, this.CONFIG.API_MAXAGE.SUMMONER_CARD.RANKS).then(result2 => {
-					Promise.all(result2.map(r => that.getChallengerRanks(region, r.queueType, this.CONFIG.API_MAXAGE.SUMMONER_CARD.CHALLENGERS))).then(result5 => {
-						that.getChampionMastery(region, result.id, this.CONFIG.API_MAXAGE.SUMMONER_CARD.CHAMPION_MASTERY).then(result3 => {
-							that.getLiveMatch(region, result.id, this.CONFIG.API_MAXAGE.SUMMONER_CARD.LIVE_MATCH).then(result4 => {
-								resolve([result, result2, result3, result4, result5]);
-							}).catch(reject);
-						}).catch(reject);
-					}).catch(reject);
-				}).catch(reject);
-			}).catch(reject);
 		});
 	}
 	clearCache() {

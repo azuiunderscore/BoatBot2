@@ -6,7 +6,7 @@ const argv_options = new (require("getopts"))(process.argv.slice(2), {
 let CONFIG;
 try {
 	CONFIG = JSON.parse(fs.readFileSync("../" + argv_options.config, "utf-8"));
-	CONFIG.VERSION = "v1.4.0b";//b for non-release (in development)
+	CONFIG.VERSION = "v2.0.0a";//b for non-release (in development)
 }
 catch (e) {
 	console.log("something's wrong with config.json");
@@ -72,15 +72,10 @@ let server_preferences_doc = new apicache.Schema({
 	enabled: { type: Boolean, required: true, default: true },//whether or not the bot is enabled on the server
 	slow: { type: Number, required: true, default: 0 },//self slow mode
 	region: { type: String, required: true, default: "" },//default server region, LoL ("" = disabled)
-	auto_opgg: { type: Boolean, required: true, default: true }//automatically embed respond to op.gg links
-	//music
-	/*
+	auto_opgg: { type: Boolean, required: true, default: true },//automatically embed respond to op.gg links
 	max_music_length: { type: Number, required: true, default: 360 },//in seconds
 	paused: { type: Boolean, required: true, default: false },//music paused (or not)
 	connected_playback: { type: Boolean, required: true, default: false },//requiring users to be connected in order to request songs
-	*/
-	//boatbot-only
-	/*
 	personalizations: { type: Boolean, required: true, default: false },//whether or not personalizations are enabled
 	personalized_commands: { type: apicache.Schema.Types.Mixed, default: {}, required: true },//
 	pro: { type: Number, required: true, default: 0 },//when their premium features expire (0 = disabled)
@@ -97,7 +92,6 @@ let server_preferences_doc = new apicache.Schema({
 	atcid: { type: String, required: true, default: "" },//autotrack channel id
 	scorecardmode: { type: Number, required: true, default: CONFIG.CONSTANTS.SCM_REDUCED },//scorecard mode
 	replaycount: { type: Boolean, required: true, default: true }//show replay count (or not)
-	*/
 }, { minimize: false });
 server_preferences_doc.index({ id: "hashed" });
 let server_preferences_model = apicache.model("server_preferences_doc", server_preferences_doc);
@@ -192,10 +186,10 @@ function getBans(user, callback) {
 		callback(bans);
 	});
 }
-serveWebRequest("/lol/:region/:cachetime/:maxage/:request_id/", function (req, res, next) {
+serveWebRequest("/osu/:cachetime/:maxage/:request_id/", function (req, res, next) {
 	if (!UTILS.exists(irs[req.params.request_id])) irs[req.params.request_id] = [0, 0, 0, 0, 0, new Date().getTime()];
 	++irs[req.params.request_id][0];
-	get(req.params.region, req.query.url, parseInt(req.params.cachetime), parseInt(req.params.maxage), req.params.request_id).then(result => res.json(result)).catch(e => {
+	get("OSU", req.query.url, parseInt(req.params.cachetime), parseInt(req.params.maxage), req.params.request_id).then(result => res.json(result)).catch(e => {
 		console.error(e);
 		res.status(500);
 	});

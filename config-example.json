@@ -61,5 +61,8 @@
 	},
 	"API_MAXAGE": {
 	},
-	"SHARD_COUNT": 3
+	"SHARD_COUNT": 3,
+	"OSU_SERVERS": {
+		"OSU": "https://osu.ppy.sh/api/"
+	}
 }

@@ -15,7 +15,7 @@ const client = new Discord.Client({ disabledEvents: ["TYPING_START"] });
 let CONFIG;
 try {
 	CONFIG = JSON.parse(fs.readFileSync("../" + argv_options.config, "utf-8"));
-	CONFIG.VERSION = "v1.4.0b";//b for non-release (in development)
+	CONFIG.VERSION = "v2.0.0a";//b for non-release (in development)
 	CONFIG.BANS = {};
 }
 catch (e) {
@@ -26,7 +26,6 @@ catch (e) {
 const mode = process.env.NODE_ENV === "production" ? "PRODUCTION:warning:" : process.env.NODE_ENV;
 const LOLAPI = new (require("./lolapi.js"))(CONFIG, 0);
 let STATUS = {
-	CHAMPION_EMOJIS: false
 };
 const wsapi = new (require("./wsapi.js"))(CONFIG, client, STATUS);
 loadAllStaticResources(() => {
@@ -43,10 +42,8 @@ client.on("ready", function () {
 	}
 	if (initial_start) sendToChannel(CONFIG.LOG_CHANNEL_ID, ":repeat:`$" + process.env.SHARD_ID + "`Bot started in " + UTILS.round((new Date().getTime() - start_time) / 1000, 0) + "s: version: " + CONFIG.VERSION + " mode: " + mode + " servers: " + client.guilds.size);
 	else sendToChannel(CONFIG.LOG_CHANNEL_ID, ":repeat:`$" + process.env.SHARD_ID + "`Bot reconnected");
-	wsapi.sendEmojis(allEmojis());
 	wsapi.getUserBans();
 	wsapi.getServerBans();
-	for (let b in CONFIG.STATIC.CHAMPIONS) CONFIG.STATIC.CHAMPIONS[b].emoji = CONFIG.STATIC.CHAMPIONS[b].name;
 	UTILS.output("default champion emojis set");
 	initial_start = false;
 });
@@ -76,22 +73,7 @@ function sendToChannel(cid, text) {//duplicated in discordcommands.js
 	wsapi.sendTextToChannel(cid, text);
 }
 function loadAllStaticResources(callback = () => {}) {
-	LOLAPI.getStatic("realms/na.json").then(result => {//load static dd version
-		UTILS.output("DD STATIC RESOURCES LOADED");
-		CONFIG.STATIC = result;
-		let temp_regions = [];
-		for (let i in CONFIG.REGIONS) temp_regions.push(CONFIG.REGIONS[i]);
-		Promise.all(temp_regions.map(tr => LOLAPI.getStaticChampions(tr))).then(results => {
-			CONFIG.STATIC.CHAMPIONS = results[0].data;
-			LOLAPI.getStaticSummonerSpells("na1").then(result => {
-				CONFIG.STATIC.SUMMONERSPELLS = result.data;
-				for (let b in CONFIG.STATIC.CHAMPIONS) CONFIG.STATIC.CHAMPIONS[b].emoji = CONFIG.STATIC.CHAMPIONS[b].name;
-				UTILS.output("API STATIC RESOURCES LOADED");
-				wsapi.sendEmojis(allEmojis());
-				callback();
-			});
-		}).catch(e => { throw e; });
-	}).catch(e => { throw e; });
+	callback();
 }
 setInterval(() => {//long term maintenance loop
 	loadAllStaticResources();
@@ -101,15 +83,10 @@ setInterval(() => {//long term maintenance loop
 		setStatus();
 	}
 }, 60000 * 15);
-function allEmojis() {
-	let all_emojis = [];//collects all emojis from emoji servers
-	for (let i in CONFIG.CHAMP_EMOJI_SERVERS) {
-		const candidate = client.guilds.get(CONFIG.CHAMP_EMOJI_SERVERS[i]);
-		if (UTILS.exists(candidate)) all_emojis = all_emojis.concat(candidate.emojis.array());
-	}
-	return all_emojis.map(e => { return { name: e.name.toLowerCase(), code: e.toString() }; });
-}
 function setStatus() {
+	client.user.setStatus("online").catch(console.error);
+	client.user.setActivity("osu!").catch(console.error);
+	/*
 	if (STATUS.CHAMPION_EMOJIS) {
 		client.user.setStatus("online").catch(console.error);
 		client.user.setActivity("League of Legends").catch(console.error);
@@ -118,5 +95,5 @@ function setStatus() {
 		for (let b in STATUS) UTILS.output("Service Degraded, check status: " + b);
 		client.user.setStatus("idle").catch(console.error);
 		client.user.setActivity("Service Degraded").catch(console.error);
-	}
+	}*/
 }
