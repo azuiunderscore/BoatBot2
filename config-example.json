@@ -11,91 +11,46 @@
 		"BOTOWNERS": 5
 	},
 	"DISCORD_API_KEY": "",
-	"RIOT_API_KEY": "",
+	"OSU_API_KEY": "",
+	"YOUTUBE_API_KEY": "",
+	"SOUNDCLOUD_API_KEY": "",
+	"TWITCH_API_KEY": "",
+	"CLEVERBOT_API_KEY": "",
 	"OWNER_DISCORD_IDS": {
 		"109894307070083072": {
 			"name": "iaace",
 			"active": true
 		},
-		"333384744483946508": {
-			"name": "routuro",
+		"137664238046019585": {
+			"name": "Dab",
 			"active": true
 		},
-		"250698693982945282": {
-			"name": "K-den",
+		"338489538320269323": {
+			"name": "Caleb",
 			"active": true
 		},
-		"175003640111693824": {
-			"name": "WastedYoTimeReadingThis",
+		"170613427893567488": {
+			"name": "dracrosinos",
 			"active": true
 		},
-		"66336882170015744": {
-			"name": "HiKomodo",
+		"150224199951187968": {
+			"name": "Proteus",
+			"active": true
+		},
+		"121052319025594371": {
+			"name": "nomi",
+			"active": true
+		},
+		"121626156720979968": {
+			"name": "Cyceph",
 			"active": true
 		}
 	},
-	"DISCORD_COMMAND_PREFIX": "l",
-	"REGIONS": {
-		"BR": "br1",
-		"EUNE": "eun1",
-		"EUW": "euw1",
-		"JP": "jp1",
-		"KR": "kr",
-		"LAN": "la1",
-		"LAS": "la2",
-		"NA": "na1",
-		"OCE": "oc1",
-		"TR": "tr1",
-		"RU": "ru",
-		"PBE": "pbe1"
-	},
-	"REGIONS_REVERSE": {
-		"br1": "BR",
-		"eun1": "EUNE",
-		"euw1": "EUW",
-		"jp1": "JP",
-		"kr": "KR",
-		"la1": "LAN",
-		"la2": "LAS",
-		"na1": "NA",
-		"oc1": "OCE",
-		"tr1": "TR",
-		"ru": "RU",
-		"pbe1": "PBE"
-	},
+	"DISCORD_COMMAND_PREFIX": "!",
 	"HELP_SERVER_INVITE_LINK": "https://discord.gg/",
 	"LOG_CHANNEL_ID": "insert discord channel id here",
 	"BOT_ADD_LINK": "",
-	"SPELL_EMOJIS": {
-		"1": "<:CL:433055677032693761>",
-		"3": "<:EX:433055784071593985>",
-		"4": "<:FL:433055894415081482>",
-		"6": "<:GH:433056089551011843>",
-		"7": "<:HL:433056178743017474>",
-		"11": "<:SM:433056279909498880>",
-		"12": "<:TP:433056350285856780>",
-		"13": "<:CA:433056460235079682>",
-		"14": "<:IG:433056559212527616>",
-		"21": "<:BR:433056659087294464>",
-		"32": "<:MK:433056963820257290>"
-	},
 	"EMOJIS": {
-		"op.gg": "<:opgg:433455497044295681>",
-		"win": "<:win:409617613161758741>",
-		"loss": "<:loss:409618158165688320>",
-		"lanes": ["<:Roaming:435800992668450817>",
-			"<:Top:435800816675192844>",
-			"<:Jungle:435800816293773334>",
-			"<:Middle:435800816776118272>",
-			"<:Support:435800816339779585>",
-			"<:Bottom:435800816448700419>"],
-		"ranks": ["<:Bronze:437262128131342346>",
-			"<:Silver:437262128265560074>",
-			"<:Gold:437262128316022784>",
-			"<:Platinum:437262128311828490>",
-			"<:Diamond:437262128395845633>",
-			"<:Master:437262128181673995>",
-			"<:Challenger:437262128282599424>"]
 	},
 	"API_PORT": 56831,
 	"API_ADDRESS": "127.0.0.1",
@@ -103,59 +58,8 @@
 	"API_KEY": "insert random string here",
 	"API_SEQUENTIAL": true,
 	"API_CACHETIME": {
-		"GET_SUMMONER_ID_FROM_NAME": 86400,
-		"GET_SUMMONER_FROM_SUMMONER_ID": 86400,
-		"GET_RANKS": 14400,
-		"GET_CHAMPION_MASTERY": 86400,
-		"GET_RECENT_GAMES": 1800,
-		"GET_MATCH_INFORMATION": 2592000,
-		"GET_LIVE_MATCH": 60,
-		"GET_MMR": 120,
-		"GET_STATUS": 60,
-		"STATIC_CHAMPIONS": 10800,
-		"STATIC_SPELLS": 10800,
-		"GET_CHALLENGERS": 14400
 	},
 	"API_MAXAGE": {
-		"SD": 60,
-		"LINK": 60,
-		"SUMMONER_CARD": {
-			"SUMMONER_ID": 3600,
-			"RANKS": 180,
-			"CHAMPION_MASTERY": 600,
-			"LIVE_MATCH": 60,
-			"CHALLENGERS": 3600
-		},
-		"MH": {
-			"SUMMONER_ID": 3600,
-			"RECENT_GAMES": 120,
-			"MULTIPLE_MATCH": 2592000
-		},
-		"LG": {
-			"SUMMONER_ID": 3600,
-			"LIVE_MATCH": 60,
-			"OTHER_SUMMONER_ID": 86400,
-			"RECENT_GAMES": 1800,
-			"MULTIPLE_MATCH": 2592000,
-			"MULTIPLE_RANKS": 14400,
-			"MULTIPLE_MASTERIES": 86400
-		},
-		"DMH": {
-			"SUMMONER_ID": 3600,
-			"RECENT_GAMES": 120,
-			"MATCH_INFORMATION": 2592000,
-			"MULTIPLE_RANKS": 86400,
-			"MULTIPLE_MASTERIES": 86400,
-			"OTHER_SUMMONER_ID": 86400
-		},
-		"MULTI": {
-			"MULTIPLE_SUMMONER_ID": 86400,
-			"MULTIPLE_RANKS": 14400,
-			"MULTIPLE_MASTERIES": 86400,
-			"MULTIPLE_RECENT_GAMES": 1800,
-			"MULTIPLE_MATCH": 2592000
-		}
 	},
-	"CHAMP_EMOJI_SERVERS": ["437263625980215316", "437271022560083968"],
 	"SHARD_COUNT": 3
 }
