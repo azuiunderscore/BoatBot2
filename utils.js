@@ -123,7 +123,7 @@ module.exports = class UTILS {
 		while (arr.indexOf(deletable) != -1) arr.splice(arr.indexOf(deletable), 1);
 	}
 	defaultChannelNames() {
-		return ["general", "bot", "bots", "bot-commands", "botcommands", "commands", "league", "lol", "games", "spam"];
+		return ["general", "bot", "bots", "bot-commands", "botcommands", "commands", "league", "osu", "games", "standard", "taiko", "mania", "ctb", "catch-the-beat", "fruit", "fruits", "spam"];
 	}
 	durationParse(duration) {
 		let multiplier = duration.substring(duration.length - 1, duration.length).toUpperCase();
