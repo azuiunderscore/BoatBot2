@@ -10,7 +10,7 @@
 			"restart_delay": 2500,
 			"env": {
 				"NODE_ENV": "development",
-				"DEBUG": false
+				"DEBUG": true
 			},
 			"node_args": "--trace-deprecation",
 			"args": "--config=devconfig.json"
