@@ -153,6 +153,6 @@ module.exports = class LOLAPI {
 		return complete ? this.getIAPI("getactions", { id: uid }) : this.getIAPI("getactions", { id: uid, limit: 10 });
 	}
 	osuGetUser(options, maxage) {
-		return new Promise((resolve, reject) => { this.get("get_user", options, this.CONFIG.API_CACHETIME.GET_USER, maxage).then(resolve(result => result[0])).catch(reject); });
+		return new Promise((resolve, reject) => { this.get("get_user", options, this.CONFIG.API_CACHETIME.GET_USER, maxage).then(result => resolve(result[0])).catch(reject); });
 	}
 }
