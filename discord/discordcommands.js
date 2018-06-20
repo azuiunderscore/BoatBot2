@@ -11,7 +11,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 	if (UTILS.exists(CONFIG.BANS.USERS[msg.author.id]) && (CONFIG.BANS.USERS[msg.author.id] == 0 || CONFIG.BANS.USERS[msg.author.id] > msg.createdTimestamp)) return;//ignore messages from banned users
 	if (UTILS.exists(msg.guild) && UTILS.exists(CONFIG.BANS.SERVERS[msg.guild.id])) {
 		if (CONFIG.BANS.SERVERS[msg.guild.id] == 0) {//permanent ban
-			reply(":no_entry: This server is banned from using SupportBot. Please visit " + CONFIG.HELP_SERVER_INVITE_LINK + " for assistance.", () => {
+			reply(":no_entry: This server is banned from using BoatBot. Please visit " + CONFIG.HELP_SERVER_INVITE_LINK + " for assistance.", () => {
 				msg.guild.leave().catch(console.error);//leave server
 			}, () => {
 				msg.guild.leave().catch(console.error);//leave server
@@ -217,10 +217,10 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 		}).catch(console.error);
 	});
 	command([CONFIG.DISCORD_COMMAND_PREFIX + "invite"], false, false, (original, index) => {
-		reply("This is the link to add SupportBot to other servers: <" + CONFIG.BOT_ADD_LINK + ">\nAdding it requires the \"Manage Server\" permission.");
+		reply("This is the link to add BoatBot to other servers: <" + CONFIG.BOT_ADD_LINK + ">\nAdding it requires the \"Manage Server\" permission.");
 	});
 	command([CONFIG.DISCORD_COMMAND_PREFIX + "help"], false, false, (original, index) => {
-		reply(":white_check_mark: A PM has been sent to you with information on how to use SupportBot.");
+		reply(":white_check_mark: A PM has been sent to you with information on how to use BoatBot.");
 		reply_embed_to_author(embedgenerator.help(CONFIG));
 	});
 	command([CONFIG.DISCORD_COMMAND_PREFIX + "setshortcut ", CONFIG.DISCORD_COMMAND_PREFIX + "ss ", CONFIG.DISCORD_COMMAND_PREFIX + "createshortcut ", CONFIG.DISCORD_COMMAND_PREFIX + "cs ", CONFIG.DISCORD_COMMAND_PREFIX + "addshortcut "], true, false, (original, index, parameter) => {

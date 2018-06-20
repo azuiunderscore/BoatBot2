@@ -13,11 +13,11 @@ module.exports = class EmbedGenerator {
 	help(CONFIG) {
 		let newEmbed = new Discord.RichEmbed();
 		newEmbed.setTitle("Discord Commands");
-		newEmbed.setDescription("Terms of Service:\n- Don't be a bot on a user account and use SupportBot.\n- Don't abuse bugs. If you find a bug, please report it to us.\n- Don't spam useless feedback\n- If you do not want to use SupportBot, let us know and we'll opt you out of our services.\n- We reserve the right to ban users and servers from using SupportBot at our discretion.\nFor additional help, please visit <" + CONFIG.HELP_SERVER_INVITE_LINK + ">\n\n<required parameter> [optional parameter]");
+		newEmbed.setDescription("Terms of Service:\n- Don't be a bot on a user account and use .\n- Don't abuse bugs. If you find a bug, please report it to us.\n- Don't spam useless feedback\n- If you do not want to use , let us know and we'll opt you out of our services.\n- We reserve the right to ban users and servers from using  at our discretion.\nFor additional help, please visit <" + CONFIG.HELP_SERVER_INVITE_LINK + ">\n\n<required parameter> [optional parameter]");
 		newEmbed.addField("`" + CONFIG.DISCORD_COMMAND_PREFIX + "help`", "Displays this information card.");
-		newEmbed.addField("`" + CONFIG.DISCORD_COMMAND_PREFIX + "invite`", "Provides information on how to add SupportBot to a different server.");
-		newEmbed.addField("`" + CONFIG.DISCORD_COMMAND_PREFIX + "link <region> <username>`", "If your LoL ign is different from your discord username, you can set your LoL ign using this command, and SupportBot will remember it.");
-		newEmbed.addField("`" + CONFIG.DISCORD_COMMAND_PREFIX + "unlink`", "Aliases:\n`" + CONFIG.DISCORD_COMMAND_PREFIX + "removelink`\n\nSupportBot forgets your preferred username and region.");
+		newEmbed.addField("`" + CONFIG.DISCORD_COMMAND_PREFIX + "invite`", "Provides information on how to add BoatBot to a different server.");
+		newEmbed.addField("`" + CONFIG.DISCORD_COMMAND_PREFIX + "link <region> <username>`", "If your LoL ign is different from your discord username, you can set your LoL ign using this command, and  will remember it.");
+		newEmbed.addField("`" + CONFIG.DISCORD_COMMAND_PREFIX + "unlink`", "Aliases:\n`" + CONFIG.DISCORD_COMMAND_PREFIX + "removelink`\n\n forgets your preferred username and region.");
 		newEmbed.addField("`<region> [username]`", "Aliases:\n`<op.gg link>`\n\nDisplays summoner information.");
 		newEmbed.addField("`matchhistory <region> [username]`", "Aliases:\n`mh <region> [username]`\n\nDisplays basic information about the 5 most recent games played.");
 		newEmbed.addField("`matchhistory<number> <region> [username]`", "Aliases:\n`mh<number> <region> [username]`\n\nDisplays detailed information about one of your most recently played games.");
@@ -25,13 +25,13 @@ module.exports = class EmbedGenerator {
 		newEmbed.addField("`service status <region>`", "Aliases:\n`servicestatus <region>`\n`status <region>`\n`ss <region>`\n\nShows information on the uptime of LoL services in a region.");
 		newEmbed.addField("multi <region> [comma separated list of usernames/lobby text]", "Aliases:\n`m <region> [list of usernames or lobby text]`\n\nCompares multiple summoners in a region against each other.");
 		newEmbed.addField("`" + CONFIG.DISCORD_COMMAND_PREFIX + "shortcuts`", "Displays a list of nicknames you've set for friends with hard to spell names. Visit https://supportbot.tk/ for more information on this family of commands.")
-		newEmbed.setFooter("SupportBot " + CONFIG.VERSION);
+		newEmbed.setFooter("BoatBot " + CONFIG.VERSION);
 		return newEmbed;
 	}
 	notify(CONFIG, content, username, displayAvatarURL) {
 		let newEmbed = new Discord.RichEmbed();
 		newEmbed.setColor([255, 255, 0]);
-		newEmbed.setTitle("Important message from SupportBot staff");
+		newEmbed.setTitle("Important message from BoatBot staff");
 		newEmbed.setURL(CONFIG.HELP_SERVER_INVITE_LINK);
 		newEmbed.setAuthor(username, displayAvatarURL);
 		newEmbed.setDescription(content);
@@ -70,19 +70,19 @@ module.exports = class EmbedGenerator {
 	serverBan(CONFIG, server, reason, date, issuer_tag, issuer_avatarURL) {
 		let newEmbed = new Discord.RichEmbed();
 		if (date == 0) {
-			newEmbed.setTitle("This server (" + server.name + ") has been permanently banned from using SupportBot");
+			newEmbed.setTitle("This server (" + server.name + ") has been permanently banned from using BoatBot");
 			newEmbed.setColor([1, 1, 1]);
 			newEmbed.addField("Duration", "Permanent", true);
 		}
 		else {
 			const date_date = new Date(date);
-			newEmbed.setTitle("This server (" + server.name + ") has been temporarily suspended from using SupportBot");
+			newEmbed.setTitle("This server (" + server.name + ") has been temporarily suspended from using BoatBot");
 			newEmbed.setColor([255, 0, 0]);
 			newEmbed.addField("Duration", UTILS.until(date_date), true);
 			newEmbed.setFooter("This suspension expires at");
 			newEmbed.setTimestamp(date_date);
 		}
-		newEmbed.addField("While this ban is effective", "SupportBot will ignore all messages sent from this server.", true);
+		newEmbed.addField("While this ban is effective", "BoatBot will ignore all messages sent from this server.", true);
 		newEmbed.addField("Help", "If you believe this is a mistake, please visit " + CONFIG.HELP_SERVER_INVITE_LINK, true);
 		newEmbed.setAuthor(issuer_tag, issuer_avatarURL);
 		newEmbed.setDescription("The reason given was: " + reason);
@@ -91,19 +91,19 @@ module.exports = class EmbedGenerator {
 	userBan(CONFIG, reason, date, issuer_tag, issuer_avatarURL) {
 		let newEmbed = new Discord.RichEmbed();
 		if (date == 0) {
-			newEmbed.setTitle("You have been permanently banned from using SupportBot");
+			newEmbed.setTitle("You have been permanently banned from using BoatBot");
 			newEmbed.setColor([1, 1, 1]);
 			newEmbed.addField("Duration", "Permanent", true);
 		}
 		else {
 			const date_date = new Date(date);
-			newEmbed.setTitle("You have been temporarily suspended from using SupportBot");
+			newEmbed.setTitle("You have been temporarily suspended from using BoatBot");
 			newEmbed.setColor([255, 0, 0]);
 			newEmbed.addField("Duration", UTILS.until(date_date), true);
 			newEmbed.setFooter("This suspension expires at");
 			newEmbed.setTimestamp(date_date);
 		}
-		newEmbed.addField("While this ban is effective", "SupportBot will ignore all messages sent from your account.", true);
+		newEmbed.addField("While this ban is effective", "BoatBot will ignore all messages sent from your account.", true);
 		newEmbed.addField("Help", "If you believe this is a mistake, please visit " + CONFIG.HELP_SERVER_INVITE_LINK + " and state your case to an admin.", true);
 		newEmbed.setAuthor(issuer_tag, issuer_avatarURL);
 		newEmbed.setDescription("The reason given was: " + reason);
@@ -114,7 +114,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setTitle("This is an official warning for your server (" + server.name + ")");
 		newEmbed.setTimestamp();
 		newEmbed.setColor([255, 255, 0]);
-		newEmbed.addField("This server can be temporarily or permanently banned from using SupportBot", "if you continue to violate our policies.", true);
+		newEmbed.addField("This server can be temporarily or permanently banned from using BoatBot", "if you continue to violate our policies.", true);
 		newEmbed.addField("No further action is required from anyone.", "Please ensure everyone is familiar with our Terms and Conditions, which you can read about by sending `" + CONFIG.DISCORD_COMMAND_PREFIX + "help`. For more assistance, please visit " + CONFIG.HELP_SERVER_INVITE_LINK + " .", true);
 		newEmbed.setAuthor(issuer_tag, issuer_avatarURL);
 		newEmbed.setDescription("The reason given was: " + reason);
@@ -125,7 +125,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setTitle("This is an official warning");
 		newEmbed.setColor([255, 255, 0]);
 		newEmbed.setTimestamp();
-		newEmbed.addField("You can be temporarily or permanently banned from using SupportBot", "if you continue to violate our policies.", true);
+		newEmbed.addField("You can be temporarily or permanently banned from using BoatBot", "if you continue to violate our policies.", true);
 		newEmbed.addField("No further action is required from you.", "Please ensure you are familiar with our Terms and Conditions, which you can read about by sending `" + CONFIG.DISCORD_COMMAND_PREFIX + "help`. For more assistance, please visit " + CONFIG.HELP_SERVER_INVITE_LINK + " .", true);
 		newEmbed.setAuthor(issuer_tag, issuer_avatarURL);
 		newEmbed.setDescription("The reason given was: " + reason);
