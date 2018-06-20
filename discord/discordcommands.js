@@ -170,24 +170,19 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 		reply_embed(embedgenerator.test());
 	});
 	command([CONFIG.DISCORD_COMMAND_PREFIX + "link "], true, false, (original, index, parameter) => {
-		let region = assert_region(parameter.substring(0, parameter.indexOf(" ")));
 		if (msg.mentions.users.size == 0) {
-			lolapi.getSummonerIDFromName(region, parameter.substring(parameter.indexOf(" ") + 1), CONFIG.API_MAXAGE.LINK).then(summoner => {
-				summoner.region = region;
-				summoner.guess = parameter.substring(parameter.indexOf(" ") + 1);
-				if (UTILS.exists(summoner.status)) return reply(":x: The username appears to be invalid.");
-				lolapi.setLink(msg.author.id, summoner.name).then(result => {
-					result.success ? reply(":white_check_mark: Your discord account is now linked to " + summoner.name) : reply(":x: Something went wrong.");
+			lolapi.osuGetUser({ u: parameter, t: "string" }, CONFIG.API_MAXAGE.LINK).then(result => {
+				if (!UTILS.exists(result)) return reply(":x: The username appears to be invalid.");
+				lolapi.setLink(msg.author.id, result.username).then(result => {
+					result.success ? reply(":white_check_mark: Your discord account is now linked to osu!:" + result.username) : reply(":x: Something went wrong.");
 				}).catch(console.error);
 			}).catch(console.error);
 		}
 		else if (msg.mentions.users.size == 1 && isOwner()) {
-			lolapi.getSummonerIDFromName(region, parameter.substring(parameter.indexOf(" ") + 1, parameter.indexOf(" <")), CONFIG.API_MAXAGE.LINK).then(summoner => {
-				summoner.region = region;
-				summoner.guess = parameter.substring(parameter.indexOf(" ") + 1, parameter.indexOf(" <"));
-				if (UTILS.exists(summoner.status)) return reply(":x: The username appears to be invalid. Follow the format: `" + CONFIG.DISCORD_COMMAND_PREFIX + "link <region> <username> <@mention>`");
-				lolapi.setLink(msg.mentions.users.first().id, summoner.name).then(result => {
-					result.success ? reply(":white_check_mark: " + msg.mentions.users.first().tag + "'s discord account is now linked to " + summoner.name) : reply(":x: Something went wrong.");
+			lolapi.osuGetUser({ u: parameter.substring(0, parameter.indexOf(" <")), t: "string" }, CONFIG.API_MAXAGE.LINK).then(result => {
+				if (!UTILS.exists(result)) return reply(":x: The username appears to be invalid. Follow the format: `" + CONFIG.DISCORD_COMMAND_PREFIX + "link <username> <@mention>`");
+				lolapi.setLink(msg.mentions.users.first().id, result.username).then(result => {
+					result.success ? reply(":white_check_mark: " + msg.mentions.users.first().tag + "'s discord account is now linked to osu!:" + result.username) : reply(":x: Something went wrong.");
 				}).catch(console.error);
 			}).catch(console.error);
 		}
@@ -255,13 +250,14 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 		}).catch(console.error);
 	});
 	command(["http://"], true, false, (original, index, parameter) => {
+		/*
 		const region = assert_region(parameter.substring(0, parameter.indexOf(".")), false);
 		if (parameter.substring(parameter.indexOf(".") + 1, parameter.indexOf(".") + 6) == "op.gg") {
 			let username = decodeURIComponent(msg.content.substring(msg.content.indexOf("userName=") + "userName=".length));
 			lolapi.getSummonerCard(region, username).then(result => {
 				reply_embed(embedgenerator.detailedSummoner(CONFIG, result[0], result[1], result[2], parameter.substring(0, parameter.indexOf(".")), result[3]));
 			}).catch();
-		}
+		}*/
 	});
 
 	if (UTILS.exists(msg.guild)) {//respondable server message only
@@ -490,15 +486,6 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 		if (UTILS.exists(msg.guild)) UTILS.output("received server message :: " + basic + "\nguild: " + msg.guild.name + " :: " + msg.guild.id);
 		else {
 			UTILS.output("received PM/DM message :: " + basic);
-		}
-	}
-	function assert_region(test_string, notify = true) {
-		if (!UTILS.exists(CONFIG.REGIONS[test_string.toUpperCase()])) {
-			if (notify) reply(":x: You need to specify a region.");
-			throw new Error("Region not specified");
-		}
-		else {
-			return CONFIG.REGIONS[test_string.toUpperCase()];
 		}
 	}
 	function shutdown() {
