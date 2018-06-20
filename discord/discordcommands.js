@@ -152,7 +152,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 	command([CONFIG.DISCORD_COMMAND_PREFIX + "ping "], true, false, function (original, index, parameter) {
 		reply("you said: " + parameter);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "eval "], true, true, function (original, index, parameter) {
+	command(["eval "], true, true, function (original, index, parameter) {
 		try {
 			reply("```" + eval(parameter) + "```");
 		}
