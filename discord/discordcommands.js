@@ -172,7 +172,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 	command([CONFIG.DISCORD_COMMAND_PREFIX + "link "], true, false, (original, index, parameter) => {
 		if (msg.mentions.users.size == 0) {
 			lolapi.osuGetUser({ u: parameter, t: "string" }, CONFIG.API_MAXAGE.LINK).then(user => {
-				if (!UTILS.exists(result)) return reply(":x: The username appears to be invalid.");
+				if (!UTILS.exists(user)) return reply(":x: The username appears to be invalid.");
 				lolapi.setLink(msg.author.id, user.username).then(result => {
 					result.success ? reply(":white_check_mark: Your discord account is now linked to osu!:" + user.username) : reply(":x: Something went wrong.");
 				}).catch(console.error);
@@ -180,7 +180,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 		}
 		else if (msg.mentions.users.size == 1 && isOwner()) {
 			lolapi.osuGetUser({ u: parameter.substring(0, parameter.indexOf(" <")), t: "string" }, CONFIG.API_MAXAGE.LINK).then(user => {
-				if (!UTILS.exists(result)) return reply(":x: The username appears to be invalid. Follow the format: `" + CONFIG.DISCORD_COMMAND_PREFIX + "link <username> <@mention>`");
+				if (!UTILS.exists(user)) return reply(":x: The username appears to be invalid. Follow the format: `" + CONFIG.DISCORD_COMMAND_PREFIX + "link <username> <@mention>`");
 				lolapi.setLink(msg.mentions.users.first().id, user.username).then(result => {
 					result.success ? reply(":white_check_mark: " + msg.mentions.users.first().tag + "'s discord account is now linked to osu!:" + user.username) : reply(":x: Something went wrong.");
 				}).catch(console.error);
