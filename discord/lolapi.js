@@ -41,7 +41,7 @@ module.exports = class LOLAPI {
 				else {
 					try {
 						const answer = JSON.parse(body);
-						UTILS.debug(url + " : " + body);
+						UTILS.output(url + " : " + body);
 						resolve(answer);
 					}
 					catch (e) {
