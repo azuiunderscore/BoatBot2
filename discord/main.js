@@ -26,5 +26,5 @@ const manager = new ShardingManager("./shard.js",
 manager.on("launch", shard => {
 	UTILS.output("Launched shard " + shard.id);
 });
-manager.spawn(undefined, 10000);
+manager.spawn(undefined, 5000);
 UTILS.output("Sharding Manager started");
