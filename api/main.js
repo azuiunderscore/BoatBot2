@@ -275,7 +275,7 @@ function get(region, url, cachetime, maxage, request_id) {
 	//maxage in seconds, if maxage is 0, force refresh
 	let that = this;
 	return new Promise((resolve, reject) => {
-		const url_with_key = url.replace("?api_key=", "?api_key=" + CONFIG.RIOT_API_KEY);
+		const url_with_key = url.replace("?k=", "?k=" + CONFIG.OSU_API_KEY);
 		if (cachetime != 0) {//cache
 			checkCache(url, maxage, request_id).then((cached_result) => {
 				//UTILS.output("\tcache hit: " + url);

@@ -7,8 +7,8 @@ module.exports = class LOLAPI {
 	constructor(INIT_CONFIG, request_id) {
 		this.CONFIG = INIT_CONFIG;
 		this.request_id = request_id;
-		if (!UTILS.exists(this.CONFIG)) throw new Error("config.json required to access riot api.");
-		else if (!UTILS.exists(this.CONFIG.RIOT_API_KEY) || this.CONFIG.RIOT_API_KEY === "") throw new Error("config.json RIOT_API_KEY required to access riot api.");
+		if (!UTILS.exists(this.CONFIG)) throw new Error("config.json required to access osu api.");
+		else if (!UTILS.exists(this.CONFIG.OSU_API_KEY) || this.CONFIG.OSU_API_KEY === "") throw new Error("config.json OSU_API_KEY required to access osu api.");
 		this.request = REQUEST;
 		this.address = "https://" + this.CONFIG.API_ADDRESS;
 		this.port = this.CONFIG.API_PORT;
@@ -32,7 +32,7 @@ module.exports = class LOLAPI {
 			for (let i in options) {
 				url += "&" + i + "=" + encodeURIComponent(options[i]);
 			}
-			//UTILS.output("IAPI req sent: " + url.replace(that.CONFIG.RIOT_API_KEY, ""));
+			//UTILS.output("IAPI req sent: " + url.replace(that.CONFIG.OSU_API_KEY, ""));
 			url = this.address + ":" + this.port + "/osu/" + cachetime + "/" + maxage + "/" + this.request_id + "/?k=" + encodeURIComponent(this.CONFIG.API_KEY) +"&url=" + encodeURIComponent(url);
 			this.request({ url, agentOptions }, (error, response, body) => {
 				if (UTILS.exists(error)) {
