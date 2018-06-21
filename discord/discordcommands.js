@@ -328,9 +328,17 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 		command(trigger_array, true, elevated_permissions, (original, index, parameter) => {
 			if (parameter.length != 0) {//username explicitly provided
 				if (parameter.length < 70) {//longest query should be less than 70 characters
-					if (parameter.substring(0, 2) == " $") {//shortcut
+					if (msg.mentions.users.size == 1) {
+						lolapi.getLink(msg.mentions.users.first().id).then(result => {
+							let username = msg.mentions.users.first().username;//suppose the link doesn't exist in the database
+							if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
+							callback(index, false, username, parameter);
+						}).catch(console.error);
+					}
+					else if (parameter.substring(0, 2) == " $") {//shortcut
 						lolapi.getShortcut(msg.author.id, parameter.toLowerCase().substring(2)).then(result => {
 							callback(index, false, result[parameter.toLowerCase().substring(2)], parameter);
+
 						}).catch(e => {
 							if (e) reply(":x: An error has occurred. The shortcut may not exist.");
 						});
