@@ -328,14 +328,14 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 		command(trigger_array, true, elevated_permissions, (original, index, parameter) => {
 			if (parameter.length != 0) {//username explicitly provided
 				if (parameter.length < 70) {//longest query should be less than 70 characters
-					if (parameter[0] == "$") {//shortcut
+					if (parameter.substring(0, 2) == " $") {//shortcut
 						lolapi.getShortcut(msg.author.id, parameter.toLowerCase().substring(1)).then(result => {
 							callback(index, false, result[parameter.toLowerCase().substring(1)], parameter);
 						}).catch(e => {
 							if (e) reply(":x: An error has occurred. The shortcut may not exist.");
 						});
 					}
-					else if (parameter.substring(1) == "^") {//pull from recent command
+					else if (parameter.substring(0, 2) == " ^") {//pull from recent command
 						msg.channel.fetchMessages({ before: msg.id, limit: 30 }).then(msgs => {
 							msgs = msgs.array();
 							let user_id;
