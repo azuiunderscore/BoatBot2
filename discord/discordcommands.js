@@ -169,9 +169,6 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 	command([CONFIG.DISCORD_COMMAND_PREFIX + "testembed"], false, false, () => {
 		reply_embed(embedgenerator.test());
 	});
-	commandGuessUsername([CONFIG.DISCORD_COMMAND_PREFIX + "guessusername", CONFIG.DISCORD_COMMAND_PREFIX + "gu"], false, (index, id, user, parameter) => {
-		reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + "` parameter: `" + parameter + "`");
-	});
 	command([CONFIG.DISCORD_COMMAND_PREFIX + "link "], true, false, (original, index, parameter) => {
 		if (msg.mentions.users.size == 0) {
 			lolapi.osuGetUser({ u: parameter, t: "string" }, CONFIG.API_MAXAGE.LINK).then(user => {
@@ -261,6 +258,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 				reply_embed(embedgenerator.detailedSummoner(CONFIG, result[0], result[1], result[2], parameter.substring(0, parameter.indexOf(".")), result[3]));
 			}).catch();
 		}*/
+	});
+	commandGuessUsername([CONFIG.DISCORD_COMMAND_PREFIX + "d1"], false, (index, id, user, parameter) => {
+		reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + "` parameter: `" + parameter + "`");
+	});
+	commandGuessUsernameNumber([CONFIG.DISCORD_COMMAND_PREFIX + "d2"], false, (index, id, user, parameter, number) => {
+		reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + "` parameter: `" + parameter + "`" + " number: `" + number + "`");
 	});
 
 	if (UTILS.exists(msg.guild)) {//respondable server message only
@@ -384,11 +387,27 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 		//returns (index, boolean: user_id = true / username = false, user_id or username, parameter, number)
 		//this command does not validate the existance of a username on the server
 		command(trigger_array, true, elevated_permissions, (original, index, parameter) => {
+			let number = UTILS.arbitraryLengthInt(parameter);
+			if (number === "") number = 1;//number not specified
+			else {//number specified
+				number = parseInt(number);
+				const space_index = parameter.indexOf(" ");
+				if (space_index == -1) parameter = "";
+				else parameter = parameter.substring(space_index);
+			}
 			if (parameter.length != 0) {//username explicitly provided
 				if (parameter.length < 70) {//longest query should be less than 70 characters
-					if (parameter.substring(0, 2) == " $") {//shortcut
+					if (msg.mentions.users.size == 1) {
+						lolapi.getLink(msg.mentions.users.first().id).then(result => {
+							let username = msg.mentions.users.first().username;//suppose the link doesn't exist in the database
+							if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
+							callback(index, false, username, parameter, number);
+						}).catch(console.error);
+					}
+					else if (parameter.substring(0, 2) == " $") {//shortcut
 						lolapi.getShortcut(msg.author.id, parameter.toLowerCase().substring(2)).then(result => {
-							callback(index, false, result[parameter.toLowerCase().substring(2)], parameter);
+							callback(index, false, result[parameter.toLowerCase().substring(2)], parameter, number);
+
 						}).catch(e => {
 							if (e) reply(":x: An error has occurred. The shortcut may not exist.");
 						});
@@ -409,20 +428,20 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 								}
 							}
 							if (!UTILS.exists(user_id)) reply(":x: Could not find a recent username queried.");
-							else callback(index, true, user_id, parameter);
+							else callback(index, true, user_id, parameter, number);
 						}).catch(e => {
 							console.error(e);
 							reply(":x: Could not find a recent username queried.");
 						});
 					}
-					else if (parameter[0] == " ") callback(index, false, parameter.substring(1).trim(), parameter);//explicit (required trailing space after command trigger)
+					else if (parameter[0] == " ") callback(index, false, parameter.substring(1).trim(), parameter, number);//explicit (required trailing space after command trigger)
 				}
 			}
 			else {//username not provided
 				lolapi.getLink(msg.author.id).then(result => {
 					let username = msg.author.username;//suppose the link doesn't exist in the database
 					if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
-					callback(index, false, username, parameter);
+					callback(index, false, username, parameter, number);
 				}).catch(console.error);
 			}
 		});
