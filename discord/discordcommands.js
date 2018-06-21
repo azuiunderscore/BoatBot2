@@ -273,13 +273,14 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 		command([CONFIG.DISCORD_COMMAND_PREFIX + "restart"], false, true, () => {
 			reply(":white_check_mark: restart initiated", restart, restart);
 		});
+		/*
 		command([CONFIG.DISCORD_COMMAND_PREFIX + "refresh", CONFIG.DISCORD_COMMAND_PREFIX + "clearcache"], false, true, () => {
 			reply(":white_check_mark: restart initiated + clearing cache", step2, step2);
 			function step2() {
 				lolapi.clearCache();
 				restart();
 			}
-		});
+		});*/
 	}
 	else {//PM/DM only
 	}
