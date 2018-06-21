@@ -169,8 +169,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 	command([CONFIG.DISCORD_COMMAND_PREFIX + "testembed"], false, false, () => {
 		reply_embed(embedgenerator.test());
 	});
-	commandGuessUsername([CONFIG.DISCORD_COMMAND_PREFIX + "guessusername "], false, (index, id, user, parameter) => {
-		reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + "` parameter: `" + "`");
+	commandGuessUsername([CONFIG.DISCORD_COMMAND_PREFIX + "guessusername", CONFIG.DISCORD_COMMAND_PREFIX + "gu"], false, (index, id, user, parameter) => {
+		reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + "` parameter: `" + parameter + "`");
 	});
 	command([CONFIG.DISCORD_COMMAND_PREFIX + "link "], true, false, (original, index, parameter) => {
 		if (msg.mentions.users.size == 0) {
@@ -328,14 +328,14 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 		command(trigger_array, true, elevated_permissions, (original, index, parameter) => {
 			if (parameter.length != 0) {//username explicitly provided
 				if (parameter.length < 70) {//longest query should be less than 70 characters
-					if (parameter[0] == "$") {
+					if (parameter[0] == "$") {//shortcut
 						lolapi.getShortcut(msg.author.id, parameter.toLowerCase().substring(1)).then(result => {
-							callback(index, result[parameter.toLowerCase().substring(1)], parameter);
+							callback(index, false, result[parameter.toLowerCase().substring(1)], parameter);
 						}).catch(e => {
 							if (e) reply(":x: An error has occurred. The shortcut may not exist.");
 						});
 					}
-					else if (parameter.substring(1) == "^") {
+					else if (parameter.substring(1) == "^") {//pull from recent command
 						msg.channel.fetchMessages({ before: msg.id, limit: 30 }).then(msgs => {
 							msgs = msgs.array();
 							let user_id;
@@ -357,7 +357,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 							reply(":x: Could not find a recent username queried.");
 						});
 					}
-					else callback(index, false, parameter, parameter);
+					else if (parameter[0] == " ") callback(index, false, parameter.substring(1).trim(), parameter);//explicit (required trailing space after command trigger)
 				}
 			}
 			else {//username not provided
