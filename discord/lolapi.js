@@ -155,6 +155,7 @@ module.exports = class LOLAPI {
 	osuGetUser(options, maxage) {
 		let that = this;
 		options.u = options.u.toLowerCase();
+		if (!UTILS.exists(options.m)) options.m = 0;
 		return new Promise((resolve, reject) => { that.get("get_user", options, that.CONFIG.API_CACHETIME.GET_USER, maxage).then(result => resolve(result[0])).catch(reject); });
 	}
 }
