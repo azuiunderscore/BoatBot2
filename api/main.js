@@ -91,7 +91,8 @@ let server_preferences_doc = new apicache.Schema({
 	atpp: { type: Number, required: true, default: 0 },//autotrack pp threshold (0 = disabled)
 	atcid: { type: String, required: true, default: "" },//autotrack channel id
 	scorecardmode: { type: Number, required: true, default: CONFIG.CONSTANTS.SCM_REDUCED },//scorecard mode
-	replaycount: { type: Boolean, required: true, default: true }//show replay count (or not)
+	replaycount: { type: Boolean, required: true, default: true },//show replay count (or not)
+	abi: { type: Boolean, required: true, default: true }//automatic beatmap information
 }, { minimize: false });
 server_preferences_doc.index({ id: "hashed" });
 let server_preferences_model = apicache.model("server_preferences_doc", server_preferences_doc);
