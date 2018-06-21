@@ -138,4 +138,12 @@ module.exports = class UTILS {
 	conditionalFormat(text, surrounds, condition = true) {
 		return condition ? surrounds + text + surrounds : text;
 	}
+	arbitraryLengthInt(text) {//returns string
+		let answer = "";
+		for (let i = 0; i < text.length; ++i) {
+			if (!isNaN(parseInt(text[i]))) answer += text[i];
+			else break;
+		}
+		return answer;
+	}
 }
