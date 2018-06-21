@@ -373,50 +373,49 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 	function commandGuessUsernameNumber(trigger_array,//array of command aliases, prefix needs to be included
 		elevated_permissions,//requires owner permissions
 		callback) {//optional callback only if successful
-		//returns (region, username, number)
+		//returns (index, boolean: user_id = true / username = false, user_id or username, parameter, number)
+		//this command does not validate the existance of a username on the server
 		command(trigger_array, true, elevated_permissions, (original, index, parameter) => {
-			const number = parseInt(parameter.substring(0, parameter.indexOf(" ")));
-			if (isNaN(number)) return;
-			try {//username explicitly provided
-				const region = assert_region(parameter.substring(UTILS.indexOfInstance(parameter, " ", 1) + 1, UTILS.indexOfInstance(parameter, " ", 2)), false);//see if there is a region
-				if (parameter.substring(UTILS.indexOfInstance(parameter, " ", 2) + 1).length < 35) {//longest query should be less than 35 characters
-					if (parameter.substring(UTILS.indexOfInstance(parameter, " ", 2) + 1)[0] == "$") {
-						lolapi.getShortcut(msg.author.id, parameter.substring(UTILS.indexOfInstance(parameter, " ", 2) + 1).toLowerCase().substring(1)).then(result => {
-							callback(region, result[parameter.substring(UTILS.indexOfInstance(parameter, " ", 2) + 1).toLowerCase().substring(1)], number);
+			if (parameter.length != 0) {//username explicitly provided
+				if (parameter.length < 70) {//longest query should be less than 70 characters
+					if (parameter.substring(0, 2) == " $") {//shortcut
+						lolapi.getShortcut(msg.author.id, parameter.toLowerCase().substring(2)).then(result => {
+							callback(index, false, result[parameter.toLowerCase().substring(2)], parameter);
 						}).catch(e => {
 							if (e) reply(":x: An error has occurred. The shortcut may not exist.");
 						});
 					}
-					else if (parameter.substring(parameter.indexOf(" ") + 1) == "^") {
+					else if (parameter.substring(0, 2) == " ^") {//pull from recent command
 						msg.channel.fetchMessages({ before: msg.id, limit: 30 }).then(msgs => {
 							msgs = msgs.array();
-							let username;
+							let user_id;
 							for (let i = 0; i < msgs.length; ++i) {
 								if (msg[i].author.id == client.user.id && //message was sent by bot
 									msgs[i].embeds.length == 1 && //embedded response
-									UTILS.exists(msgs[i].embeds[0].url) && //url present
-									msgs[i].embeds[0].url.substring(msgs[i].embeds[0].url.indexOf(".") + 1, msgs[i].embeds[0].url.indexOf(".") + 25) == "op.gg/summoner/userName=") {//http://na.op.gg/summoner/userName=iaace
-									username = decodeURIComponent(msgs[i].embeds[0].url.substring(msgs[i].embeds[0].url.indexOf("/summoner/userName=") + 19));
+									UTILS.exists(msgs[i].embeds[0].author) && //author present
+									UTILS.exists(msgs[i].embeds[0].author.url) && //url present
+									msgs[i].embeds[0].author.url.substring(0, 25) === "https://osu.ppy.sh/users/") {//https://osu.ppy.sh/users/4374286
+									const candidate = UTILS.arbitraryLengthInt(msgs[i].embeds[0].author.url.substring(25));
+									if (candidate !== "") user_id = parseInt(candidate);
 									break;
 								}
 							}
-							if (!UTILS.exists(username)) reply(":x: Could not find a recent username queried.");
-							else callback(region, username, number);
-						}).catch(console.error);
+							if (!UTILS.exists(user_id)) reply(":x: Could not find a recent username queried.");
+							else callback(index, true, user_id, parameter);
+						}).catch(e => {
+							console.error(e);
+							reply(":x: Could not find a recent username queried.");
+						});
 					}
-					else callback(region, parameter.substring(UTILS.indexOfInstance(parameter, " ", 2) + 1), number);
+					else if (parameter[0] == " ") callback(index, false, parameter.substring(1).trim(), parameter);//explicit (required trailing space after command trigger)
 				}
 			}
-			catch (e) {//username not provided
-				try {
-					const region = assert_region(parameter.substring(parameter.indexOf(" ") + 1), false);
-					lolapi.getLink(msg.author.id).then(result => {
-						let username = msg.author.username;//suppose the link doesn't exist in the database
-						if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
-						callback(region, username, number);
-					}).catch(console.error);
-				}
-				catch (e) { }
+			else {//username not provided
+				lolapi.getLink(msg.author.id).then(result => {
+					let username = msg.author.username;//suppose the link doesn't exist in the database
+					if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
+					callback(index, false, username, parameter);
+				}).catch(console.error);
 			}
 		});
 	}
