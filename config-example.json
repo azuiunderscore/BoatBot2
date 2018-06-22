@@ -51,6 +51,11 @@
 	"LOG_CHANNEL_ID": "insert discord channel id here",
 	"BOT_ADD_LINK": "",
 	"EMOJIS": {
+		"webXH": "<:webXH:459584230650019841>",
+		"webX": "<:webX:365508211022888962>",
+		"webSH": "<:webSH:459584292520198174>",
+		"webS": "<:webS:365508345521766400>",
+		"webA": "<:webA:365508382796546058>"
 	},
 	"API_PORT": 56831,
 	"API_ADDRESS": "localhost",
