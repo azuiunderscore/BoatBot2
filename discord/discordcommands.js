@@ -364,7 +364,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 							msgs = msgs.array();
 							let user_id;
 							for (let i = 0; i < msgs.length; ++i) {
-								if (msg[i].author.id == client.user.id && //message was sent by bot
+								if (msgs[i].author.id == client.user.id && //message was sent by bot
 									msgs[i].embeds.length == 1 && //embedded response
 									UTILS.exists(msgs[i].embeds[0].author) && //author present
 									UTILS.exists(msgs[i].embeds[0].author.url) && //url present
@@ -430,7 +430,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 							msgs = msgs.array();
 							let user_id;
 							for (let i = 0; i < msgs.length; ++i) {
-								if (msg[i].author.id == client.user.id && //message was sent by bot
+								if (msgs[i].author.id == client.user.id && //message was sent by bot
 									msgs[i].embeds.length == 1 && //embedded response
 									UTILS.exists(msgs[i].embeds[0].author) && //author present
 									UTILS.exists(msgs[i].embeds[0].author.url) && //url present
