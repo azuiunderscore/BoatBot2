@@ -227,7 +227,6 @@ module.exports = class EmbedGenerator {
 		let cpp = (totalHits + misses) / parseInt(user_stats.playcount);
 		aim_acc.pfm = aim_acc.pfm + "\tbonus: >`" +UTILS.round(bonusPP, 1) + "`pp";
 		aim_acc.pfmp = aim_acc.pfmp + "\tbonus: >`" +UTILS.round(bonusPP * 100 / user_stats.pp_raw, 1) + "%`";
-		let newEmbed = new Discord.RichEmbed();
 		if (mode == 0) newEmbed.setColor(16777215);
 		else if (mode == 1) newEmbed.setColor(16711680);
 		else if (mode == 2) newEmbed.setColor(65280);
