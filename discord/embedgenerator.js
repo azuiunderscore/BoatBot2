@@ -215,4 +215,52 @@ module.exports = class EmbedGenerator {
 		}
 		return newEmbed;
 	}
+	statsPlus(CONFIG, mode, user_stats, user_best, php_profile_leader, user_page, php_profile_general) {
+		let newEmbed = new Discord.RichEmbed();
+		let totalHits = parseInt(user_stats.count300) + parseInt(user_stats.count100) + parseInt(user_stats.count50);
+		let efficiency = (parseInt(user_stats.ranked_score) / parseInt(user_stats.total_score)) * 100;
+		let bonusPP = 416.6667 * (1 - Math.pow(.9994, (parseInt(user_stats.count_rank_ss) + parseInt(user_stats.count_rank_s) + parseInt(user_stats.count_rank_a))));
+		let apw =UTILS.round((parseFloat(user_stats.pp_raw) - bonusPP) / 20.0, 2);
+		const aim_acc = UTILS.calcAimAcc(user_best, user_stats.pp_raw);
+		const misses = (totalHits / aim_acc.aimAccuracy) - totalHits;
+		let missRate = 100 - (aim_acc.aimAccuracy * 100);
+		let cpp = (totalHits + misses) / parseInt(user_stats.playcount);
+		aim_acc.pfm = aim_acc.pfm + "\tbonus: >`" +UTILS.round(bonusPP, 1) + "`pp";
+		aim_acc.pfmp = aim_acc.pfmp + "\tbonus: >`" +UTILS.round(bonusPP * 100 / user_stats.pp_raw, 1) + "%`";
+		let newEmbed = new Discord.RichEmbed();
+		if (mode == 0) newEmbed.setColor(16777215);
+		else if (mode == 1) newEmbed.setColor(16711680);
+		else if (mode == 2) newEmbed.setColor(65280);
+		else if (mode == 3) newEmbed.setColor(255);
+		let accs = [];
+		while (php_profile_leader.indexOf("</b> (") != -1) {
+			if (responsetext.indexOf("%)", php_profile_leader.indexOf("</b> (") + "</b> (".length) < php_profile_leader.indexOf("<", php_profile_leader.indexOf("</b> (") + "</b> (".length)) {
+				accs.push(parseFloat(php_profile_leader.substring(php_profile_leader.indexOf("</b> (") + "</b> (".length, php_profile_leader.indexOf("%)", php_profile_leader.indexOf("</b> (") + "</b> (".length))));
+			}
+			php_profile_leader = php_profile_leader.substring(php_profile_leader.indexOf("</b> (") + "</b> (".length);
+		}
+		const accdev = UTILS.round(mathjs.std(accs, "uncorrected"), 3);
+		//UTILS.output(accs);
+		const playstyle = pickPlaystyle(user_page.indexOf("playstyle mouse using") != -1, user_page.indexOf("playstyle keyboard using") != -1, user_page.indexOf("playstyle tablet using") != -1, user_page.indexOf("playstyle touch using") != -1);
+		const playHours = parseInt(php_profile_general.substring(php_profile_general.indexOf("<b>Play Time</b>: ") + "<b>Play Time</b>: ".length, php_profile_general.indexOf(" hours", php_profile_general.indexOf("<b>Play Time</b>: ") + "<b>Play Time</b>: ".length)).replace(/,/g, ""));
+		newEmbed.setAuthor("Stats for " + user_stats.username, "", "https://osu.ppy.sh/u/" + user_stats.user_id);
+		newEmbed.setThumbnail("https://a.ppy.sh/" + user_stats.user_id);
+		newEmbed.setTitle("Performance: " + user_stats.pp_raw + "pp    (#" +UTILS.numberWithCommas(user_stats.pp_rank) + ")    :flag_" + user_stats.country.toLowerCase() + ": #" +UTILS.numberWithCommas(user_stats.pp_country_rank));
+		newEmbed.setDescription(playstyle + "\nRanked Score: " +UTILS.numberWithCommas(user_stats.ranked_score) + "\nHit Accuracy: " +UTILS.round(user_stats.accuracy, 3) + " ± " + accdev + "%\nPlay Count: " +UTILS.numberWithCommas(user_stats.playcount) + "\nPlay Time: " +UTILS.numberWithCommas(playHours) + " hours\nTotal Score: " +UTILS.numberWithCommas(round(parseInt(user_stats.total_score), 2)) + "\nCurrent Level: " +UTILS.round(parseFloat(user_stats.level), 2) + "\nTotal Hits: " +UTILS.numberWithCommas(totalHits) + "\n<:webX:365508211022888962>: " + user_stats.count_rank_ss + "    <:webS:365508345521766400>: " + user_stats.count_rank_s + "    <:webA:365508382796546058>: " + user_stats.count_rank_a);
+
+		newEmbed.addField("For mod information", "add `-m` to the command. `!sp-m`, `!spt-m`, `!spc-m`, `!spm-m`");
+		/*
+		newEmbed.addField("Favorite Mods", fms);
+		newEmbed.addField("pp sources (pp)", pfm);
+		newEmbed.addField("pp sources (%)", pfmp);
+		*/
+		user_stats.countmiss = misses;
+		newEmbed.addField("Interpolated Information", "Unweighted Hit Accuracy: `" + UTILS.calcAcc(0, user_stats) + "%`\nAverage play worth: `" + apw + "` ± " + aim_acc.ppstddev + "pp\nCumulative unweighted pp, top 100: `" + aim_acc.ppTotal + "` pp\nPP range: " + aim_acc.maxPP + " - " + aim_acc.minPP + " = `" + UTILS.round(aim_acc.ppRange, 3) + "`\nScoring Efficiency: `" + UTILS.round(efficiency, 2) + "%`\tObjects per play: `" + UTILS.round(cpp, 2) + "`\nAppx.Misses: `" + UTILS.numberWithCommas(UTILS.round(misses, 0)) + "`\tMiss rate: `" + UTILS.round(missRate, 3) + "%` or 1 miss every `" + UTILS.round(100 / missRate, 0) + "` hits\nRatio of 0 miss plays in the top 100: `" + aim_acc.sRatio + "%` >0 miss plays: `" + (100 - aim_acc.sRatio) + "%`\nAverage Career Hits per second: `" + UTILS.round(totalHits / (playHours * 3600), 2) + "`");
+		//newEmbed.addField("For mod information", "add `-m` to the command. `!sp-m`, `!spt-m`, `!spc-m`, `!spm-m`");
+		newEmbed.addField("More about " + user_stats.username, "[osu!track](https://ameobea.me/osutrack/user/" + encodeURIComponent(user_stats.username) + ")\t[osu!stats](http://osustats.ppy.sh/u/" + encodeURIComponent(user_stats.username) + ")\t[osu!skills](http://osuskills.tk/user/" + encodeURIComponent(user_stats.username) + ")\t[osu!chan](https://syrin.me/osuchan/u/" + user_stats.user_id + "/?m=" + mode + ")\t[pp+](https://syrin.me/pp+/u/" + user_stats.user_id + "/)\t[osu!spectate](osu://spectate/" + user_stats.user_id + ")");
+		newEmbed.setTimestamp(new Date());
+		newEmbed.setFooter("Requested at local time", "https://s.ppy.sh/images/flags/" + user_stats.country.toLowerCase() + ".gif");
+		//output(pfm);
+		return newEmbed;
+	}
 }

@@ -171,7 +171,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 	});
 	command([CONFIG.DISCORD_COMMAND_PREFIX + "link "], true, false, (original, index, parameter) => {
 		if (msg.mentions.users.size == 0) {
-			lolapi.osuGetUser({ u: parameter, t: "string" }, CONFIG.API_MAXAGE.LINK).then(user => {
+			lolapi.osuGetUser(parameter, 0, false, CONFIG.API_MAXAGE.LINK).then(user => {
 				if (!UTILS.exists(user)) return reply(":x: The username appears to be invalid.");
 				lolapi.setLink(msg.author.id, user.username).then(result => {
 					result.success ? reply(":white_check_mark: Your discord account is now linked to osu!:" + user.username) : reply(":x: Something went wrong.");
@@ -179,7 +179,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 			}).catch(console.error);
 		}
 		else if (msg.mentions.users.size == 1 && isOwner()) {
-			lolapi.osuGetUser({ u: parameter.substring(0, parameter.indexOf(" <")), t: "string" }, CONFIG.API_MAXAGE.LINK).then(user => {
+			lolapi.osuGetUser(parameter.substring(0, parameter.indexOf(" <"), 0, false, CONFIG.API_MAXAGE.LINK).then(user => {
 				if (!UTILS.exists(user)) return reply(":x: The username appears to be invalid. Follow the format: `" + CONFIG.DISCORD_COMMAND_PREFIX + "link <username> <@mention>`");
 				lolapi.setLink(msg.mentions.users.first().id, user.username).then(result => {
 					result.success ? reply(":white_check_mark: " + msg.mentions.users.first().tag + "'s discord account is now linked to osu!:" + user.username) : reply(":x: Something went wrong.");
@@ -249,21 +249,33 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 			reply(":white_check_mark: All shortcuts were removed.")
 		}).catch(console.error);
 	});
-	command(["http://"], true, false, (original, index, parameter) => {
-		/*
-		const region = assert_region(parameter.substring(0, parameter.indexOf(".")), false);
-		if (parameter.substring(parameter.indexOf(".") + 1, parameter.indexOf(".") + 6) == "op.gg") {
-			let username = decodeURIComponent(msg.content.substring(msg.content.indexOf("userName=") + "userName=".length));
-			lolapi.getSummonerCard(region, username).then(result => {
-				reply_embed(embedgenerator.detailedSummoner(CONFIG, result[0], result[1], result[2], parameter.substring(0, parameter.indexOf(".")), result[3]));
-			}).catch();
-		}*/
+	command(["http://", "https://"], true, false, (original, index, parameter) => {
 	});
 	commandGuessUsername([CONFIG.DISCORD_COMMAND_PREFIX + "d1"], false, (index, id, user, parameter) => {
 		reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + "` parameter: `" + parameter + "`");
 	});
 	commandGuessUsernameNumber([CONFIG.DISCORD_COMMAND_PREFIX + "d2"], false, (index, id, user, parameter, number) => {
 		reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + "` parameter: `" + parameter + "`" + " number: `" + number + "`");
+	});
+	commandGuessUsername([CONFIG.DISCORD_COMMAND_PREFIX + "statsplus", CONFIG.DISCORD_COMMAND_PREFIX + "sp", CONFIG.DISCORD_COMMAND_PREFIX + "osu", CONFIG.DISCORD_COMMAND_PREFIX + "std", CONFIG.DISCORD_COMMAND_PREFIX + "taiko", CONFIG.DISCORD_COMMAND_PREFIX + "sptaiko", CONFIG.DISCORD_COMMAND_PREFIX + "spt", CONFIG.DISCORD_COMMAND_PREFIX + "ctb", CONFIG.DISCORD_COMMAND_PREFIX + "spctb", CONFIG.DISCORD_COMMAND_PREFIX + "spc", CONFIG.DISCORD_COMMAND_PREFIX + "mania", CONFIG.DISCORD_COMMAND_PREFIX + "spmania", CONFIG.DISCORD_COMMAND_PREFIX + "spm"], false, (index, id, user, parameter) => {
+		let mode;
+		if (index < 4) mode = 0;
+		else if (index < 7) mode = 1;
+		else if (index < 10) mode = 2;
+		else mode = 3;
+		lolapi.osuGetUser(user, mode, id, CONFIG.API_MAXAGE.SP.GET_USER).then(user_stats => {
+			if (!UTILS.exists(user_stats)) return reply(":x: This user could not be found.");
+			lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.SP.GET_USER_BEST).then(user_best => {
+				Promise.all([lolapi.osuPHPProfileLeader(user_stats.user_id, mode, 0, CONFIG.API_MAXAGE.SP.PHP_PROFILE_LEADER), lolapi.osuPHPProfileLeader(user_stats.user_id, mode, 1, CONFIG.API_MAXAGE.SP.PHP_PROFILE_LEADER)]).then(php_profile_leader => {
+					php_profile_leader = php_profile_leader.join("");
+					lolapi.osuOldUserPage(user_stats.user_id, CONFIG.API_MAXAGE.SP.OLD_USER_PAGE).then(user_page => {
+						lolapi.osuPHPProfileGeneral(user_stats.user_id, mode, CONFIG.API_MAXAGE.SP.PHP_PROFILE_GENERAL).then(php_profile_general => {
+							reply_embed(embedgenerator.statsPlus(CONFIG, mode, user_stats, user_best, php_profile_leader, user_page, php_profile_general));
+						}).catch(console.error)
+					}).catch(console.error);
+				}).catch(console.error);
+			}).catch(console.error);
+		}).catch(console.error);
 	});
 
 	if (UTILS.exists(msg.guild)) {//respondable server message only

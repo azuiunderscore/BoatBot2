@@ -146,4 +146,147 @@ module.exports = class UTILS {
 		}
 		return answer;
 	}
+	calcAimAcc(parsed, pp_raw) {
+		let topHits = 0;
+		let topMisses = 0;
+		let fms = "";
+		let pfm = "";
+		let pfmp = "";
+		let modCount = {};//counts the frequency of mods
+		let modObject = [];//array of strings which contain the mod identifier and frequency by percentage
+		let modPP = {};//let p in modPP where p is modID and modPP[p] is weighted sum
+		let ppObject = [];//array of strings which contain the mod identifier and sum of pp
+		let pppObject = [];//array of strings which contain the mod identifier and share of pp
+		let modFrequency = 0;
+		let minPP = parsed[parsed.length - 1].pp;
+		let maxPP = parsed[0].pp;
+		let ppRange = parseFloat(maxPP) - parseFloat(minPP);
+		let sRatio = 0;
+		let modsegregated = {};
+		let ppstddev = [];
+		let ppTotal = 0;
+
+		//output("parsed.length is " + parsed.length);
+		for (let i = 0; i < parsed.length; i++) {
+			topHits = topHits + parseInt(parsed[i].count50) + parseInt(parsed[i].count100) + parseInt(parsed[i].count300);
+			topMisses = topMisses + parseInt(parsed[i].countmiss);
+			//output (topHits + " m: " + topMisses);
+			if (!exists(modPP[parsed[i].enabled_mods])) modPP[parsed[i].enabled_mods] = parseFloat(parsed[i].pp) * Math.pow(0.95, i);
+			else modPP[parsed[i].enabled_mods] = modPP[parsed[i].enabled_mods] + (parseFloat(parsed[i].pp) * Math.pow(0.95, i));
+			if (!exists(modCount[parsed[i].enabled_mods])) modCount[parsed[i].enabled_mods] = 1;
+			else ++modCount[parsed[i].enabled_mods];
+			++modFrequency;
+			if (parsed[i].rank == "S" || parsed[i].rank == "X" || parsed[i].rank == "SH" || parsed[i].rank == "XH") sRatio = sRatio + 1;
+			if (!exists(modsegregated[parsed[i].enabled_mods])) modsegregated[parsed[i].enabled_mods] = 1;
+			else ++modsegregated[parsed[i].enabled_mods];
+			ppstddev.push(parseFloat(parsed[i].pp));
+			ppTotal += parseFloat(parsed[i].pp);
+		}
+		sRatio = round((sRatio / modFrequency) * 100, 1);
+		let aimAccuracy = (topHits) / (topHits + topMisses);
+		for (let i in modCount) {//stringifying modCount to modObject
+			if (i == "0") modObject.push(["\tNone: `" + round((modCount[i] / modFrequency) * 100, 1) + "%`", modCount[i]]);
+			else modObject.push(["\t" + getMods(i) + ":`" + round((modCount[i] / modFrequency) * 100, 1) + "%`", modCount[i]]);
+		}
+		for (let i in modPP) {//stringifying modPP to ppObject
+			if (i == "0") {
+				ppObject.push(["\tNone: `" + round(modPP[i], 1) + "`pp", modPP[i]]);
+				pppObject.push(["\tNone: `" + round(modPP[i] * 100 / parseFloat(pp_raw), 1) + "%`", modPP[i] / parseFloat(pp_raw)])
+			}
+			else {
+				ppObject.push(["\t" + getMods(i) + ":`" + round(modPP[i], 1) + "`pp", modPP[i]]);
+				pppObject.push(["\t" + getMods(i) + ":`" + round(modPP[i] * 100 / parseFloat(pp_raw), 1) + "%`", modPP[i] / parseFloat(pp_raw)]);
+			}
+		}
+		let mns = {};
+		for (let i in modsegregated) {
+			if (i != "0") {
+				const gml = getMods(i).length - 1;
+				for (let c = 1; c < gml + 1; c += 2) {
+					//output(getMods(i) + ":" + getMods(i).substring(c, c + 2));
+					if (exists(mns[getMods(i).substring(c, c + 2)])) mns[getMods(i).substring(c, c + 2)] += modsegregated[i];
+					else mns[getMods(i).substring(c, c + 2)] = modsegregated[i];
+				}
+			}
+			else {
+				if (exists(mns[i])) mns[i] += modsegregated[i];
+				else mns[i] = modsegregated[i];
+			}
+		}
+		let msarray = [];
+		for (let i in mns) {
+			if (i == "0") msarray.push(["\tNone: `" + round((mns[i] * 100) / modFrequency, 1) + "%`", mns[i]]);
+			else msarray.push(["\t+" + i + ": `" + round((mns[i] * 100) / modFrequency, 1) + "%`", mns[i]]);
+		}
+		msarray.sort((a, b) => b[1] - a[1]);
+		let ms = msarray.map(a => a[0]).join("");
+		let modMax = modObject.length;
+		for (let i = 0; i < modMax; i++) {
+			let currentMaxFrequency = 0;
+			let indexMaxFrequency = 0;
+			for (let j in modObject) {
+				if (modObject[j][1] > currentMaxFrequency) {
+					indexMaxFrequency = j;
+					currentMaxFrequency = modObject[j][1];
+				}
+			}
+			fms = fms + modObject[indexMaxFrequency][0];
+			modObject.splice(indexMaxFrequency, 1);
+		}
+		modMax = ppObject.length;
+		for (let i = 0; i < modMax; i++) {
+			let currentMaxFrequency = 0;
+			let indexMaxFrequency = 0;
+			for (let j in ppObject) {
+				if (ppObject[j][1] > currentMaxFrequency) {
+					indexMaxFrequency = j;
+					currentMaxFrequency = ppObject[j][1];
+				}
+			}
+			pfm = pfm + ppObject[indexMaxFrequency][0];
+			ppObject.splice(indexMaxFrequency, 1);
+		}
+		modMax = pppObject.length;
+		for (let i = 0; i < modMax; i++) {
+			let currentMaxFrequency = 0;
+			let indexMaxFrequency = 0;
+			for (let j in pppObject) {
+				if (pppObject[j][1] > currentMaxFrequency) {
+					indexMaxFrequency = j;
+					currentMaxFrequency = pppObject[j][1];
+				}
+			}
+			pfmp = pfmp + pppObject[indexMaxFrequency][0];
+			pppObject.splice(indexMaxFrequency, 1);
+		}
+		//this.output(aimAccuracy);
+		return { aimAccuracy, fms, minPP, maxPP, ppRange, sRatio, pfm, pfmp, ms, ppstddev: this.round(mathjs.std(ppstddev, "uncorrected"), 2), ppTotal: this.numberWithCommas(round(ppTotal, 2)) };
+	}
+	calcAcc(mode, scoreObject) {
+		let hits = (parseInt(scoreObject.count300) * 300) + (parseInt(scoreObject.count100) * 100) + (parseInt(scoreObject.count50) * 50);
+		//output("hits are " + hits);
+		let objects_hit = parseInt(scoreObject.count300) + parseInt(scoreObject.count100) + parseInt(scoreObject.count50) + parseInt(scoreObject.countmiss);//objects encountered
+		let total = objects_hit * 300;
+		//output("total is " + total);
+		let acc = this.round(hits * 100 / total, 2);
+		if (mode == 1) {
+			hits = (parseInt(scoreObject.count300) + (parseInt(scoreObject.count100) * .5)) * 300;
+			total = (parseInt(scoreObject.count300) + parseInt(scoreObject.count100) + parseInt(scoreObject.countmiss)) * 300;
+			objects_hit = parseInt(scoreObject.count300) + parseInt(scoreObject.count100) + parseInt(scoreObject.countmiss);
+			acc = this.round((hits * 100) / total, 2);
+		}
+		else if (mode == 2) {
+			hits = parseInt(scoreObject.count50) + parseInt(scoreObject.count100) + parseInt(scoreObject.count300);
+			total = parseInt(scoreObject.countkatu) + parseInt(scoreObject.count50) + parseInt(scoreObject.count100) + parseInt(scoreObject.count300) + parseInt(scoreObject.countmiss);
+			objects_hit = parseInt(scoreObject.countkatu) + parseInt(scoreObject.count50) + parseInt(scoreObject.count100) + parseInt(scoreObject.count300) + parseInt(scoreObject.countmiss);
+			acc = this.round((hits * 100) / total, 2);
+		}
+		else if (mode == 3) {
+			hits = (parseInt(scoreObject.count300) * 300) + (parseInt(scoreObject.count100) * 100) + (parseInt(scoreObject.count50) * 50) + (parseInt(scoreObject.countgeki) * 300) + (parseInt(scoreObject.countkatu) * 200);
+			total = (parseInt(scoreObject.count300) + parseInt(scoreObject.count100) + parseInt(scoreObject.count50) + parseInt(scoreObject.countmiss) + parseInt(scoreObject.countgeki) + parseInt(scoreObject.countkatu)) * 300;
+			objects_hit = parseInt(scoreObject.count300) + parseInt(scoreObject.count100) + parseInt(scoreObject.count50) + parseInt(scoreObject.countmiss) + parseInt(scoreObject.countgeki) + parseInt(scoreObject.countkatu);
+			acc = this.round(hits * 100 / total, 2);
+		}
+		return acc;
+	}
 }

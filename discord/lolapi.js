@@ -51,6 +51,37 @@ module.exports = class LOLAPI {
 			});
 		});
 	}
+	getOffAPI(path, options, cachetime, maxage) {
+		let that = this;
+		return new Promise((resolve, reject) => {
+			UTILS.assert(UTILS.exists(cachetime));
+			UTILS.assert(UTILS.exists(maxage));
+			let url = path;
+			let paramcount = 0;
+			for (let i in options) {
+				if (paramcount == 0) url += "?" + i + "=" + encodeURIComponent(options[i]);
+				else url += "&" + i + "=" + encodeURIComponent(options[i]);
+				++paramcount;
+			}
+			//UTILS.output("IAPI req sent: " + url.replace(that.CONFIG.OSU_API_KEY, ""));
+			url = this.address + ":" + this.port + "/osu/" + cachetime + "/" + maxage + "/" + this.request_id + "/?k=" + encodeURIComponent(this.CONFIG.API_KEY) +"&url=" + encodeURIComponent(url);
+			this.request({ url, agentOptions }, (error, response, body) => {
+				if (UTILS.exists(error)) {
+					reject(error);
+				}
+				else {
+					try {
+						const answer = JSON.parse(body);
+						UTILS.output(url + " : " + body);
+						resolve(answer);
+					}
+					catch (e) {
+						reject(e);
+					}
+				}
+			});
+		});
+	}
 	getIAPI(path, options, response_expected = true) {//get internal API
 		let that = this;
 		options.k = this.CONFIG.API_KEY;
@@ -152,10 +183,29 @@ module.exports = class LOLAPI {
 	getActions(uid, complete = false) {
 		return complete ? this.getIAPI("getactions", { id: uid }) : this.getIAPI("getactions", { id: uid, limit: 10 });
 	}
-	osuGetUser(options, maxage) {
+	osuGetUser(u, m = 0, id, maxage) {
 		let that = this;
-		options.u = options.u.toLowerCase();
-		if (!UTILS.exists(options.m)) options.m = 0;
-		return new Promise((resolve, reject) => { that.get("get_user", options, that.CONFIG.API_CACHETIME.GET_USER, maxage).then(result => resolve(result[0])).catch(reject); });
+		const type = id ? "id" : "string";
+		u = u.toLowerCase();
+		return new Promise((resolve, reject) => { that.get("get_user", { u, m, type }, that.CONFIG.API_CACHETIME.GET_USER, maxage).then(result => resolve(result[0])).catch(reject); });
+	}
+	osuGetUserBest(u, m = 0, limit = 100, id, maxage) {
+		let that = this;
+		const type = id ? "id" : "string";
+		u = u.toLowerCase();
+		return new Promise((resolve, reject) => { that.get("get_user_best", { u, m, type }, that.CONFIG.API_CACHETIME.GET_USER_BEST, maxage).then(result => resolve(result[0])).catch(reject); });
+	}
+	osuPHPProfileLeader(user_id, m = 0, pp = 0, maxage) {
+		return this.getOffAPI("https://osu.ppy.sh/pages/include/profile-leader.php", { u: user_id, m, pp }, this.CONFIG.API_CACHETIME.PHP_PROFILE_LEADER, maxage);
+	}
+	osuOldUserPage(user_id, maxage) {
+		return this.getOffAPI("https://osu.ppy.sh/u/" + user_id, {}, this.CONFIG.API_CACHETIME.OLD_USER_PAGE, maxage);
+	}
+	osuUserPage(user_id, mode = 0, maxage) {
+		mode = ["osu", "taiko", "fruits", "mania"][mode]
+		return this.getOffAPI("https://osu.ppy.sh/users/" + user_id + "/" + mode, {}, this.CONFIG.API_CACHETIME.USER_PAGE, maxage);
+	}
+	osuPHPProfileGeneral(user_id, m = 0, maxage) {
+		return this.getOffAPI("https://osu.ppy.sh/pages/include/profile-general.php", { u: user_id, m }, this.CONFIG.API_CACHETIME.PHP_PROFILE_GENERAL, maxage);
 	}
 }
