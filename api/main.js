@@ -190,7 +190,7 @@ function getBans(user, callback) {
 serveWebRequest("/osu/:cachetime/:maxage/:request_id/", function (req, res, next) {
 	if (!UTILS.exists(irs[req.params.request_id])) irs[req.params.request_id] = [0, 0, 0, 0, 0, new Date().getTime()];
 	++irs[req.params.request_id][0];
-	get("OSU", req.query.url, parseInt(req.params.cachetime), parseInt(req.params.maxage), req.params.request_id).then(result => res.json(result)).catch(e => {
+	get("OSU", req.query.url, parseInt(req.params.cachetime), parseInt(req.params.maxage), req.params.request_id).then(result => res.send(result)).catch(e => {
 		console.error(e);
 		res.status(500);
 	});
@@ -290,15 +290,9 @@ function get(region, url, cachetime, maxage, request_id) {
 					request(url_with_key, (error, response, body) => {
 						if (UTILS.exists(error)) reject(error);
 						else {
-							try {
-								const answer = JSON.parse(body);
-								//UTILS.output("\tcache miss: " + url);
-								addCache(url, body, cachetime);
-								resolve(answer);
-							}
-							catch (e) {
-								reject(e);
-							}
+							//UTILS.output("\tcache miss: " + url);
+							addCache(url, body, cachetime);
+							resolve(body);
 						}
 					});
 				}, null, () => {});
@@ -310,16 +304,10 @@ function get(region, url, cachetime, maxage, request_id) {
 				request(url_with_key, (error, response, body) => {
 					if (UTILS.exists(error)) reject(error);
 					else {
-						try {
-							const answer = JSON.parse(body);
-							//UTILS.output("\tuncached: " + url);
-							load_average[1].add();
-							if (UTILS.exists(irs[request_id])) ++irs[request_id][1];
-							resolve(answer);
-						}
-						catch (e) {
-							reject(e);
-						}
+						//UTILS.output("\tuncached: " + url);
+						load_average[1].add();
+						if (UTILS.exists(irs[request_id])) ++irs[request_id][1];
+						resolve(body);
 					}
 				});
 			}, null, () => {});

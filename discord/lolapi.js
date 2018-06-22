@@ -63,22 +63,11 @@ module.exports = class LOLAPI {
 				else url += "&" + i + "=" + encodeURIComponent(options[i]);
 				++paramcount;
 			}
-			//UTILS.output("IAPI req sent: " + url.replace(that.CONFIG.OSU_API_KEY, ""));
+			UTILS.output("IAPI req sent: " + url.replace(that.CONFIG.OSU_API_KEY, ""));
 			url = this.address + ":" + this.port + "/osu/" + cachetime + "/" + maxage + "/" + this.request_id + "/?k=" + encodeURIComponent(this.CONFIG.API_KEY) +"&url=" + encodeURIComponent(url);
 			this.request({ url, agentOptions }, (error, response, body) => {
-				if (UTILS.exists(error)) {
-					reject(error);
-				}
-				else {
-					try {
-						const answer = JSON.parse(body);
-						UTILS.output(url + " : " + body);
-						resolve(answer);
-					}
-					catch (e) {
-						reject(e);
-					}
-				}
+				if (UTILS.exists(error)) reject(error);
+				else resolve(body);
 			});
 		});
 	}
