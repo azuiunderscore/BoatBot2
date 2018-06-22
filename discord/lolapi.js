@@ -179,10 +179,9 @@ module.exports = class LOLAPI {
 		return new Promise((resolve, reject) => { that.get("get_user", { u, m, type }, that.CONFIG.API_CACHETIME.GET_USER, maxage).then(result => resolve(result[0])).catch(reject); });
 	}
 	osuGetUserBest(u, m = 0, limit = 100, id, maxage) {
-		let that = this;
 		const type = id ? "id" : "string";
 		u = u.toLowerCase();
-		return new Promise((resolve, reject) => { that.get("get_user_best", { u, m, type }, that.CONFIG.API_CACHETIME.GET_USER_BEST, maxage).then(result => resolve(result[0])).catch(reject); });
+		return this.get("get_user_best", { u, m, type }, this.CONFIG.API_CACHETIME.GET_USER_BEST, maxage);
 	}
 	osuPHPProfileLeader(user_id, m = 0, pp = 0, maxage) {
 		return this.getOffAPI("https://osu.ppy.sh/pages/include/profile-leader.php", { u: user_id, m, pp }, this.CONFIG.API_CACHETIME.PHP_PROFILE_LEADER, maxage);
