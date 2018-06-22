@@ -181,7 +181,7 @@ module.exports = class LOLAPI {
 	osuGetUserBest(u, m = 0, limit = 100, id, maxage) {
 		const type = id ? "id" : "string";
 		u = u.toLowerCase();
-		return this.get("get_user_best", { u, m, type }, this.CONFIG.API_CACHETIME.GET_USER_BEST, maxage);
+		return this.get("get_user_best", { u, m, limit, type }, this.CONFIG.API_CACHETIME.GET_USER_BEST, maxage);
 	}
 	osuPHPProfileLeader(user_id, m = 0, pp = 0, maxage) {
 		return this.getOffAPI("https://osu.ppy.sh/pages/include/profile-leader.php", { u: user_id, m, pp }, this.CONFIG.API_CACHETIME.PHP_PROFILE_LEADER, maxage);
