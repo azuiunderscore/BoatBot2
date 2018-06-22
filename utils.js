@@ -1,6 +1,7 @@
 "use strict";
 let ta = require("./timeago.js");
 let seq = require("./promise-sequential.js");
+const mathjs = require("mathjs");
 String.prototype.replaceAll = function(search, replacement) {
 	let target = this;
 	return target.replace(new RegExp(search, 'g'), replacement);
@@ -10,6 +11,75 @@ Number.prototype.pad = function(size) {
 	while (s.length < (size || 2)) {s = "0" + s;}
 	return s;
 }
+const modnames = [
+	{ val: 1, name: "NoFail", short: "NF" },
+	{ val: 2, name: "Easy", short: "EZ" },
+	//{ val: 4, name: "NoVideo", short: "NV" },//no video or touchscreen
+	{ val: 4, name: "TouchScreen", short: "TS" },//no video or touchscreen
+	{ val: 8, name: "Hidden", short: "HD" },
+	{ val: 16, name: "HardRock", short: "HR" },
+	{ val: 32, name: "SuddenDeath", short: "SD" },
+	{ val: 64, name: "DoubleTime", short: "DT" },
+	{ val: 128, name: "Relax", short: "RX" },
+	{ val: 256, name: "HalfTime", short: "HT" },
+	{ val: 512, name: "Nightcore", short: "NC" },
+	{ val: 1024, name: "Flashlight", short: "FL" },
+	{ val: 2048, name: "Autoplay", short: "AT" },
+	{ val: 4096, name: "SpunOut", short: "SO" },
+	{ val: 8192, name: "Autopilot", short: "AP" },
+	{ val: 16384, name: "Perfect", short: "PF" },
+	{ val: 32768, name: "Key4", short: "4K" },
+	{ val: 65536, name: "Key5", short: "5K" },
+	{ val: 131072, name: "Key6", short: "6K" },
+	{ val: 262144, name: "Key7", short: "7K" },
+	{ val: 524288, name: "Key8", short: "8K" },
+	{ val: 1048576, name: "FadeIn", short: "FI" },
+	{ val: 2097152, name: "Random", short: "RD" },
+	{ val: 4194304, name: "LastMod", short: "LM" },
+	{ val: 16777216, name: "Key9", short: "9K" },
+	{ val: 33554432, name: "Key10", short: "XK" },
+	{ val: 67108864, name: "Key1", short: "1K" },
+	{ val: 134217728, name: "Key3", short: "3K" },
+	{ val: 268435456, name: "Key2", short: "2K" },
+	{ val: 268435456 * 2, name: "ScoreV2", short: "V2" },
+];
+const doublemods = [
+	["NC", "DT"],
+	["PF", "SD"]
+];
+const short_mod_values = {
+	"NF": 1,
+	"EZ": 2,
+	"NV": 4,
+	"TS": 4,
+	"HD": 8,
+	"HR": 16,
+	"SD": 32,
+	"DT": 64,
+	"RX": 128,
+	"RL": 128,
+	"HT": 256,
+	"NC": 512,
+	"FL": 1024,
+	"AT": 2048,
+	"SO": 4096,
+	"AP": 8192,
+	"PF": 16384,
+	"4K": 32768,
+	"5K": 65536,
+	"6K": 131072,
+	"7K": 262144,
+	"8K": 524288,
+	"FI": 1048576,
+	"RD": 2097152,
+	"LM": 4194304,
+	"9K": 16777216,
+	"XK": 33554432,
+	"1K": 67108864,
+	"3K": 134217728,
+	"2K": 268435456,
+	"V2": 268435456 * 2
+};
 module.exports = class UTILS {
 	output(t) {//general utility function
 		if (this.exists(t)) {
@@ -171,52 +241,52 @@ module.exports = class UTILS {
 			topHits = topHits + parseInt(parsed[i].count50) + parseInt(parsed[i].count100) + parseInt(parsed[i].count300);
 			topMisses = topMisses + parseInt(parsed[i].countmiss);
 			//output (topHits + " m: " + topMisses);
-			if (!exists(modPP[parsed[i].enabled_mods])) modPP[parsed[i].enabled_mods] = parseFloat(parsed[i].pp) * Math.pow(0.95, i);
+			if (!this.exists(modPP[parsed[i].enabled_mods])) modPP[parsed[i].enabled_mods] = parseFloat(parsed[i].pp) * Math.pow(0.95, i);
 			else modPP[parsed[i].enabled_mods] = modPP[parsed[i].enabled_mods] + (parseFloat(parsed[i].pp) * Math.pow(0.95, i));
-			if (!exists(modCount[parsed[i].enabled_mods])) modCount[parsed[i].enabled_mods] = 1;
+			if (!this.exists(modCount[parsed[i].enabled_mods])) modCount[parsed[i].enabled_mods] = 1;
 			else ++modCount[parsed[i].enabled_mods];
 			++modFrequency;
 			if (parsed[i].rank == "S" || parsed[i].rank == "X" || parsed[i].rank == "SH" || parsed[i].rank == "XH") sRatio = sRatio + 1;
-			if (!exists(modsegregated[parsed[i].enabled_mods])) modsegregated[parsed[i].enabled_mods] = 1;
+			if (!this.exists(modsegregated[parsed[i].enabled_mods])) modsegregated[parsed[i].enabled_mods] = 1;
 			else ++modsegregated[parsed[i].enabled_mods];
 			ppstddev.push(parseFloat(parsed[i].pp));
 			ppTotal += parseFloat(parsed[i].pp);
 		}
-		sRatio = round((sRatio / modFrequency) * 100, 1);
+		sRatio = this.round((sRatio / modFrequency) * 100, 1);
 		let aimAccuracy = (topHits) / (topHits + topMisses);
 		for (let i in modCount) {//stringifying modCount to modObject
-			if (i == "0") modObject.push(["\tNone: `" + round((modCount[i] / modFrequency) * 100, 1) + "%`", modCount[i]]);
-			else modObject.push(["\t" + getMods(i) + ":`" + round((modCount[i] / modFrequency) * 100, 1) + "%`", modCount[i]]);
+			if (i == "0") modObject.push(["\tNone: `" + this.round((modCount[i] / modFrequency) * 100, 1) + "%`", modCount[i]]);
+			else modObject.push(["\t" + this.getMods(i) + ":`" + this.round((modCount[i] / modFrequency) * 100, 1) + "%`", modCount[i]]);
 		}
 		for (let i in modPP) {//stringifying modPP to ppObject
 			if (i == "0") {
-				ppObject.push(["\tNone: `" + round(modPP[i], 1) + "`pp", modPP[i]]);
-				pppObject.push(["\tNone: `" + round(modPP[i] * 100 / parseFloat(pp_raw), 1) + "%`", modPP[i] / parseFloat(pp_raw)])
+				ppObject.push(["\tNone: `" + this.round(modPP[i], 1) + "`pp", modPP[i]]);
+				pppObject.push(["\tNone: `" + this.round(modPP[i] * 100 / parseFloat(pp_raw), 1) + "%`", modPP[i] / parseFloat(pp_raw)])
 			}
 			else {
-				ppObject.push(["\t" + getMods(i) + ":`" + round(modPP[i], 1) + "`pp", modPP[i]]);
-				pppObject.push(["\t" + getMods(i) + ":`" + round(modPP[i] * 100 / parseFloat(pp_raw), 1) + "%`", modPP[i] / parseFloat(pp_raw)]);
+				ppObject.push(["\t" + this.getMods(i) + ":`" + this.round(modPP[i], 1) + "`pp", modPP[i]]);
+				pppObject.push(["\t" + this.getMods(i) + ":`" + this.round(modPP[i] * 100 / parseFloat(pp_raw), 1) + "%`", modPP[i] / parseFloat(pp_raw)]);
 			}
 		}
 		let mns = {};
 		for (let i in modsegregated) {
 			if (i != "0") {
-				const gml = getMods(i).length - 1;
+				const gml = this.getMods(i).length - 1;
 				for (let c = 1; c < gml + 1; c += 2) {
 					//output(getMods(i) + ":" + getMods(i).substring(c, c + 2));
-					if (exists(mns[getMods(i).substring(c, c + 2)])) mns[getMods(i).substring(c, c + 2)] += modsegregated[i];
-					else mns[getMods(i).substring(c, c + 2)] = modsegregated[i];
+					if (this.exists(mns[this.getMods(i).substring(c, c + 2)])) mns[this.getMods(i).substring(c, c + 2)] += modsegregated[i];
+					else mns[this.getMods(i).substring(c, c + 2)] = modsegregated[i];
 				}
 			}
 			else {
-				if (exists(mns[i])) mns[i] += modsegregated[i];
+				if (this.exists(mns[i])) mns[i] += modsegregated[i];
 				else mns[i] = modsegregated[i];
 			}
 		}
 		let msarray = [];
 		for (let i in mns) {
-			if (i == "0") msarray.push(["\tNone: `" + round((mns[i] * 100) / modFrequency, 1) + "%`", mns[i]]);
-			else msarray.push(["\t+" + i + ": `" + round((mns[i] * 100) / modFrequency, 1) + "%`", mns[i]]);
+			if (i == "0") msarray.push(["\tNone: `" + this.round((mns[i] * 100) / modFrequency, 1) + "%`", mns[i]]);
+			else msarray.push(["\t+" + i + ": `" + this.round((mns[i] * 100) / modFrequency, 1) + "%`", mns[i]]);
 		}
 		msarray.sort((a, b) => b[1] - a[1]);
 		let ms = msarray.map(a => a[0]).join("");
@@ -260,7 +330,7 @@ module.exports = class UTILS {
 			pppObject.splice(indexMaxFrequency, 1);
 		}
 		//this.output(aimAccuracy);
-		return { aimAccuracy, fms, minPP, maxPP, ppRange, sRatio, pfm, pfmp, ms, ppstddev: this.round(mathjs.std(ppstddev, "uncorrected"), 2), ppTotal: this.numberWithCommas(round(ppTotal, 2)) };
+		return { aimAccuracy, fms, minPP, maxPP, ppRange, sRatio, pfm, pfmp, ms, ppstddev: this.round(mathjs.std(ppstddev, "uncorrected"), 2), ppTotal: this.numberWithCommas(this.round(ppTotal, 2)) };
 	}
 	calcAcc(mode, scoreObject) {
 		let hits = (parseInt(scoreObject.count300) * 300) + (parseInt(scoreObject.count100) * 100) + (parseInt(scoreObject.count50) * 50);
@@ -288,5 +358,50 @@ module.exports = class UTILS {
 			acc = this.round(hits * 100 / total, 2);
 		}
 		return acc;
+	}
+	getModNumber(mod_string) {
+		let answer = 0;
+		let answer_object = {};
+		for (let b in short_mod_values) {
+			answer_object[b] = false;
+		}
+		for (let i = 0; i < mod_string.length; i += 2) {
+			if (this.exists(short_mod_values[mod_string.substring(i, i + 2).toUpperCase()])) {
+				answer += short_mod_values[mod_string.substring(i, i + 2).toUpperCase()];
+				answer_object[mod_string.substring(i, i + 2).toUpperCase()] = true;
+			}
+		}
+		let answerstring = this.getMods(answer);
+		answer_object.value = answer;
+		answer_object.string = answerstring;
+		return answer_object;
+	}
+	getMods(modnum) {
+		modnum = parseInt(modnum);
+		let mods = [];
+		for (let i = modnames.length - 1; i >= 0; i--) {
+			if (modnames[i].val <= modnum) {
+				if (modnames[i].short !== "") {
+					mods.push(modnames[i].short);
+				}
+				modnum -= modnames[i].val;
+			}
+		}
+		// handle doublemods
+		for (let i = 0; i < doublemods.length; i++) {
+			if (mods.indexOf(doublemods[i][0]) >= 0) {
+				mods.splice(mods.indexOf(doublemods[i][1]), 1);
+			}
+		}
+		if (mods.length === 0) return "";
+		else return "+" + mods.reverse().join("");
+	}
+	pickPlaystyle(mouse, keyboard, tablet, touchscreen) {
+		let answer = "";
+		if (mouse) answer += "<:mouse:382248628259127307>";
+		if (keyboard) answer += "<:keyboard:382247276422103040>";
+		if (tablet) answer += "<:tablet:382246804449918977>";
+		if (touchscreen) answer += "<:touchscreen:382248053895200780>";
+		return answer;
 	}
 }

@@ -1,6 +1,7 @@
 "use strict";
 const Discord = require("discord.js");
 const UTILS = new (require("../utils.js"))();
+const mathjs = require("mathjs");
 module.exports = class EmbedGenerator {
 	constructor() { }
 	test() {
@@ -233,19 +234,19 @@ module.exports = class EmbedGenerator {
 		else if (mode == 3) newEmbed.setColor(255);
 		let accs = [];
 		while (php_profile_leader.indexOf("</b> (") != -1) {
-			if (responsetext.indexOf("%)", php_profile_leader.indexOf("</b> (") + "</b> (".length) < php_profile_leader.indexOf("<", php_profile_leader.indexOf("</b> (") + "</b> (".length)) {
+			if (php_profile_leader.indexOf("%)", php_profile_leader.indexOf("</b> (") + "</b> (".length) < php_profile_leader.indexOf("<", php_profile_leader.indexOf("</b> (") + "</b> (".length)) {
 				accs.push(parseFloat(php_profile_leader.substring(php_profile_leader.indexOf("</b> (") + "</b> (".length, php_profile_leader.indexOf("%)", php_profile_leader.indexOf("</b> (") + "</b> (".length))));
 			}
 			php_profile_leader = php_profile_leader.substring(php_profile_leader.indexOf("</b> (") + "</b> (".length);
 		}
 		const accdev = UTILS.round(mathjs.std(accs, "uncorrected"), 3);
 		//UTILS.output(accs);
-		const playstyle = pickPlaystyle(user_page.indexOf("playstyle mouse using") != -1, user_page.indexOf("playstyle keyboard using") != -1, user_page.indexOf("playstyle tablet using") != -1, user_page.indexOf("playstyle touch using") != -1);
+		const playstyle = UTILS.pickPlaystyle(user_page.indexOf("playstyle mouse using") != -1, user_page.indexOf("playstyle keyboard using") != -1, user_page.indexOf("playstyle tablet using") != -1, user_page.indexOf("playstyle touch using") != -1);
 		const playHours = parseInt(php_profile_general.substring(php_profile_general.indexOf("<b>Play Time</b>: ") + "<b>Play Time</b>: ".length, php_profile_general.indexOf(" hours", php_profile_general.indexOf("<b>Play Time</b>: ") + "<b>Play Time</b>: ".length)).replace(/,/g, ""));
 		newEmbed.setAuthor("Stats for " + user_stats.username, "", "https://osu.ppy.sh/u/" + user_stats.user_id);
 		newEmbed.setThumbnail("https://a.ppy.sh/" + user_stats.user_id);
 		newEmbed.setTitle("Performance: " + user_stats.pp_raw + "pp    (#" +UTILS.numberWithCommas(user_stats.pp_rank) + ")    :flag_" + user_stats.country.toLowerCase() + ": #" +UTILS.numberWithCommas(user_stats.pp_country_rank));
-		newEmbed.setDescription(playstyle + "\nRanked Score: " +UTILS.numberWithCommas(user_stats.ranked_score) + "\nHit Accuracy: " +UTILS.round(user_stats.accuracy, 3) + " ± " + accdev + "%\nPlay Count: " +UTILS.numberWithCommas(user_stats.playcount) + "\nPlay Time: " +UTILS.numberWithCommas(playHours) + " hours\nTotal Score: " +UTILS.numberWithCommas(round(parseInt(user_stats.total_score), 2)) + "\nCurrent Level: " +UTILS.round(parseFloat(user_stats.level), 2) + "\nTotal Hits: " +UTILS.numberWithCommas(totalHits) + "\n<:webX:365508211022888962>: " + user_stats.count_rank_ss + "    <:webS:365508345521766400>: " + user_stats.count_rank_s + "    <:webA:365508382796546058>: " + user_stats.count_rank_a);
+		newEmbed.setDescription(playstyle + "\nRanked Score: " + UTILS.numberWithCommas(user_stats.ranked_score) + "\nHit Accuracy: " + UTILS.round(user_stats.accuracy, 3) + " ± " + accdev + "%\nPlay Count: " + UTILS.numberWithCommas(user_stats.playcount) + "\nPlay Time: " + UTILS.numberWithCommas(playHours) + " hours\nTotal Score: " + UTILS.numberWithCommas(UTILS.round(parseInt(user_stats.total_score), 2)) + "\nCurrent Level: " + UTILS.round(parseFloat(user_stats.level), 2) + "\nTotal Hits: " + UTILS.numberWithCommas(totalHits) + "\n<:webX:365508211022888962>: " + user_stats.count_rank_ss + "    <:webS:365508345521766400>: " + user_stats.count_rank_s + "    <:webA:365508382796546058>: " + user_stats.count_rank_a);
 
 		newEmbed.addField("For mod information", "add `-m` to the command. `!sp-m`, `!spt-m`, `!spc-m`, `!spm-m`");
 		/*
