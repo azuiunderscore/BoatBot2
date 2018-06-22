@@ -228,8 +228,8 @@ module.exports = class UTILS {
 		let ppObject = [];//array of strings which contain the mod identifier and sum of pp
 		let pppObject = [];//array of strings which contain the mod identifier and share of pp
 		let modFrequency = 0;
-		let minPP = parsed[parsed.length - 1].pp;
-		let maxPP = parsed[0].pp;
+		let minPP = parsed.length === 0 ? 0 : parsed[parsed.length - 1].pp;
+		let maxPP = parsed.length === 0 ? 0 : parsed[0].pp;
 		let ppRange = parseFloat(maxPP) - parseFloat(minPP);
 		let sRatio = 0;
 		let modsegregated = {};
@@ -330,7 +330,7 @@ module.exports = class UTILS {
 			pppObject.splice(indexMaxFrequency, 1);
 		}
 		//this.output(aimAccuracy);
-		return { aimAccuracy, fms, minPP, maxPP, ppRange, sRatio, pfm, pfmp, ms, ppstddev: this.round(mathjs.std(ppstddev, "uncorrected"), 2), ppTotal: this.numberWithCommas(this.round(ppTotal, 2)) };
+		return { aimAccuracy, fms, minPP, maxPP, ppRange, sRatio, pfm, pfmp, ms, ppstddev: (parsed.length === 0 ? 0 : this.round(mathjs.std(ppstddev, "uncorrected"), 2)), ppTotal: this.numberWithCommas(this.round(ppTotal, 2)) };
 	}
 	calcAcc(mode, scoreObject) {
 		let hits = (parseInt(scoreObject.count300) * 300) + (parseInt(scoreObject.count100) * 100) + (parseInt(scoreObject.count50) * 50);

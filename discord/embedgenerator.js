@@ -239,7 +239,7 @@ module.exports = class EmbedGenerator {
 			}
 			php_profile_leader = php_profile_leader.substring(php_profile_leader.indexOf("</b> (") + "</b> (".length);
 		}
-		const accdev = UTILS.round(mathjs.std(accs, "uncorrected"), 3);
+		const accdev = accs.length === 0 ? 0 : UTILS.round(mathjs.std(accs, "uncorrected"), 3);
 		//UTILS.output(accs);
 		const playstyle = UTILS.pickPlaystyle(user_page.indexOf("playstyle mouse using") != -1, user_page.indexOf("playstyle keyboard using") != -1, user_page.indexOf("playstyle tablet using") != -1, user_page.indexOf("playstyle touch using") != -1);
 		const playHours = parseInt(php_profile_general.substring(php_profile_general.indexOf("<b>Play Time</b>: ") + "<b>Play Time</b>: ".length, php_profile_general.indexOf(" hours", php_profile_general.indexOf("<b>Play Time</b>: ") + "<b>Play Time</b>: ".length)).replace(/,/g, ""));
