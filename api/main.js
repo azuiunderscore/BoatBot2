@@ -282,7 +282,7 @@ function get(region, url, cachetime, maxage, request_id) {
 				//UTILS.output("\tcache hit: " + url);
 				load_average[2].add();
 				if (UTILS.exists(irs[request_id])) ++irs[request_id][2];
-				resolve(JSON.parse(cached_result));
+				resolve(cached_result);
 			}).catch((e) => {
 				if (UTILS.exists(e)) console.error(e);
 				region_limiters[region].submit((no_use, cb) => {
