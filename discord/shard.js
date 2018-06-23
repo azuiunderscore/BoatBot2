@@ -53,7 +53,7 @@ client.on("disconnect", function () {
 });
 client.on("message", function (msg) {
 	try {
-		const server_preferences = new Preferences(CONFIG, LOLAPI, msg.guild.id);
+		const server_preferences = new Preferences(CONFIG, LOLAPI, msg.guild);
 		const ACCESS_LEVEL = UTILS.accessLevel(CONFIG, msg);
 		discordcommands(CONFIG, client, msg, wsapi, sendToChannel, server_preferences, ACCESS_LEVEL);
 	}

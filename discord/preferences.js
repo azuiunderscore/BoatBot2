@@ -96,34 +96,34 @@ const newPreferences = {//new server defaults
 	"replaycount": true
 };
 module.exports = class Preferences {
-	constructor(INIT_CONFIG, lolapi, sid) {
+	constructor(INIT_CONFIG, lolapi, guild) {
 		this.CONFIG = INIT_CONFIG;
 		this.lolapi = lolapi;
 		if (!UTILS.exists(this.CONFIG)) throw new Error("config.json required.");
 		this.request = REQUEST;
 		this.address = "https://" + this.CONFIG.API_ADDRESS;
 		this.port = this.CONFIG.API_PORT;
-		this.sid = sid;
+		this.sid = UTILS.exists(guild) ? guild.id : undefined;
 		this.path = "/home/iaace/bbs/data/public/" + sid + ".json";
-		if (UTILS.exists(sid)) {//server message
+		if (UTILS.exists(this.sid)) {//server message
 			this.server_message = true;
-			if (!UTILS.exists(cache[sid])) {//doesn't exist in cache
-				UTILS.debug(sid + " preferences: cache miss");
+			if (!UTILS.exists(cache[this.sid])) {//doesn't exist in cache
+				UTILS.debug(this.sid + " preferences: cache miss");
 				if (fs.existsSync(this.path)) {//check if db entry exists
 					try {//read
-						cache[sid] = JSON.parse(fs.readFileSync(this.path));
-						UTILS.debug(sid + " preferences: loaded into cache");
+						cache[this.sid] = JSON.parse(fs.readFileSync(this.path));
+						UTILS.debug(this.sid + " preferences: loaded into cache");
 					}
 					catch (e) {
 						console.error(e);
 					}
 				}
 				else {//otherwise make a new one
-					UTILS.debug(sid + " preferences: preferences file not found");
+					UTILS.debug(this.sid + " preferences: preferences file not found");
 					console.error(new Error("Default preferences could not be written."));
 				}
 			}
-			else UTILS.debug(sid + " preferences: cache hit");//exists in cache and nothing needs to be done
+			else UTILS.debug(this.sid + " preferences: cache hit");//exists in cache and nothing needs to be done
 		}
 		else this.server_message = false;//PM
 	}
@@ -131,13 +131,13 @@ module.exports = class Preferences {
 		;
 	}
 	get(prop) {
-		return this.server_message ? cache[sid][prop] : newPreferences[prop];
+		return this.server_message ? cache[this.sid][prop] : newPreferences[prop];
 	}
 	set(prop, val) {
-		UTILS.debug("Attempting to set preferences[" + sid + "][" + prop + "] = " + val + ";");
+		UTILS.debug("Attempting to set preferences[" + this.sid + "][" + prop + "] = " + val + ";");
 		if (!this.server_message || !UTILS.exists(preferencesFormat[prop]) || typeof(val) !== preferencesFormat[prop]) return false;
-		cache[sid][prop] = val;
-		fs.writeFile(this.path, JSON.stringify(cache[sid]), console.error);
+		cache[this.sid][prop] = val;
+		fs.writeFile(this.path, JSON.stringify(cache[this.sid]), console.error);
 		return true;
 	}
 	clearAllCache() {
