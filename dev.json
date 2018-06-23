@@ -1,7 +1,7 @@
 {
 	"apps": [
 		{
-			"name": "apidev",
+			"name": "v2apidev",
 			"script": "./api/main.js",
 			"cwd": "./api/",
 			"watch": false,
@@ -16,7 +16,7 @@
 			"args": "--config=devconfig.json"
 		},
 		{
-			"name": "maindev",
+			"name": "v2maindev",
 			"script": "./discord/main.js",
 			"cwd": "./discord/",
 			"watch": false,

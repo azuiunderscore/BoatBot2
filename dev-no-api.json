@@ -1,7 +1,7 @@
 {
 	"apps": [
 		{
-			"name": "maindev",
+			"name": "v2maindev",
 			"script": "./discord/main.js",
 			"cwd": "./discord/",
 			"watch": false,

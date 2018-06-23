@@ -1,7 +1,7 @@
 {
 	"apps": [
 		{
-			"name": "apidev",
+			"name": "v2apidev",
 			"script": "./api/main.js",
 			"cwd": "./api/",
 			"watch": false,
