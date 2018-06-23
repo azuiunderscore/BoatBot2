@@ -92,7 +92,7 @@ const newPreferences = {//new server defaults
 	"attop": 0,//auto track top (0 = disabled)
 	"atpp": 0,//auto track pp (0 = disabled)
 	"atcid": "",//auto track channel id
-	"scorecardmode": SCM_REDUCED,
+	"scorecardmode": 1,//SCM_REDUCED
 	"replaycount": true
 };
 module.exports = class Preferences {
