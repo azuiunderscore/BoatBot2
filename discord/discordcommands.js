@@ -254,7 +254,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 		preferences.set("prefix", parameter) ? reply(":white_check_mark: The prefix to use this bot has been changed to:" + parameter) : reply(":x: An error has occurred while setting the prefix.");
 	});
 	command(["boatsetprefix"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
-		preferences.set("prefix", CONFIG.DISCORD_COMMAND_PREFIX) ? reply(":white_check_mark: The prefix to use this bot has been changed to:" + CONFIG.DISCORD_COMMAND_PREFIX) : reply(":x: An error has occurred while setting the prefix.");
+		preferences.set("prefix", "") ? reply(":white_check_mark: The prefix to use this bot has been removed. No prefix is needed to use commands.") : reply(":x: An error has occurred while setting the prefix.");
 	});
 	command(["http://", "https://"], true, false, (original, index, parameter) => {
 	});
