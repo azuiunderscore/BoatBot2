@@ -55,7 +55,7 @@ const newPreferences = {//new server defaults
 	"enabled": true,
 	"protected": [],
 	"warning": [],
-	"personalizationCommands": defaultPersonalizations,
+	"personalizationCommands": {},
 	"maxMusicLength": 360,
 	"nowPlayingString": "",
 	"originalSongRequester": "",
