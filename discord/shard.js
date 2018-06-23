@@ -28,6 +28,7 @@ const LOLAPI = new (require("./lolapi.js"))(CONFIG, 0);
 let STATUS = {
 };
 const wsapi = new (require("./wsapi.js"))(CONFIG, client, STATUS);
+const Preferences = require("./preferences.js");
 loadAllStaticResources(() => {
 	UTILS.output(process.env.NODE_ENV === "production" ? "PRODUCTION LOGIN" : "DEVELOPMENT LOGIN");
 	client.login().catch(console.error);
@@ -52,7 +53,8 @@ client.on("disconnect", function () {
 });
 client.on("message", function (msg) {
 	try {
-		discordcommands(CONFIG, client, msg, wsapi, sendToChannel);
+		const server_preferences = new Preferences(CONFIG, LOLAPI, msg.guild.id);
+		discordcommands(CONFIG, client, msg, wsapi, sendToChannel, server_preferences);
 	}
 	catch (e) {
 		console.error(e);
