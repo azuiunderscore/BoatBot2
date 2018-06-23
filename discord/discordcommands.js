@@ -170,6 +170,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 		reply_embed(embedgenerator.test());
 	});
 	command([preferences.get("prefix") + "migratelinks"], false, CONFIG.CONSTANTS.BOTOWNERS, (original, index) => {
+		const fs = require("fs");
 		const prev_links = JSON.parse(fs.readFileSync("/home/iaace/bbs/data/local/userlinks.json"));
 		let tasks = [];
 		for (let b in prev_links) tasks.push(function () { return lolapi.setLink(b, prev_links[b]); });
