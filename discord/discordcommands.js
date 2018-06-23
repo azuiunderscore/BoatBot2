@@ -143,7 +143,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 	command([preferences.get("prefix") + "stats"], false, CONFIG.CONSTANTS.BOTOWNERS, () => {
 		reply("This is shard " + process.env.SHARD_ID);
 	});
-	command([preferences.get("prefix") + "ping"], false, false, () => {
+	command([preferences.get("prefix") + "ping", preferences.get("prefix") + "latency"], false, false, () => {
 		reply("command to response time: ", nMsg => textgenerator.ping_callback(msg, nMsg));
 	});
 	command(["iping"], false, false, () => {
