@@ -169,6 +169,16 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 	command([preferences.get("prefix") + "testembed"], false, false, () => {
 		reply_embed(embedgenerator.test());
 	});
+	command([preferences.get("prefix") + "migratelinks"], false, CONFIG.CONSTANTS.BOTOWNERS, (original, index) => {
+		const prev_links = JSON.parse(fs.readFileSync("/home/iaace/bbs/data/local/userlinks.json"));
+		let tasks = [];
+		for (let b in prev_links) tasks.push(function () { return lolapi.setLink(b, prev_links[b]); });
+		UTILS.sequential(tasks).then(results => {
+			let errors = 0, successes = 0;
+			for (let b in results) results[b] ? ++successes : ++errors;
+			reply("There were " + successes + " successes and " + errors + " failures.");
+		}).catch(console.error);
+	});
 	command([preferences.get("prefix") + "link "], true, false, (original, index, parameter) => {
 		if (msg.mentions.users.size == 0) {
 			lolapi.osuGetUser(parameter, 0, false, CONFIG.API_MAXAGE.LINK).then(user => {
