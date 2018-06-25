@@ -183,7 +183,7 @@ module.exports = class LOLAPI {
 		if (typeof(u) == "string") u = u.toLowerCase();
 		return this.get("get_user_best", { u, m, limit, type }, this.CONFIG.API_CACHETIME.GET_USER_BEST, maxage);
 	}
-	osuGetUserRecent(u, m = 0, limit = 100, id, maxage) {
+	osuGetUserRecent(u, m = 0, limit = 50, id, maxage) {
 		const type = id ? "id" : "string";
 		if (typeof(u) == "string") u = u.toLowerCase();
 		return this.get("get_user_recent", { u, m, limit, type }, this.CONFIG.API_CACHETIME.GET_USER_RECENT, maxage);
@@ -192,7 +192,7 @@ module.exports = class LOLAPI {
 		const type = id ? "id" : "string";
 		if (typeof(u) == "string") u = u.toLowerCase();
 		return new Promise((resolve, reject) => {
-			Promise.all([this.osuGetUserRecent(u, 0, 100, id, maxage), this.osuGetUserRecent(u, 1, 100, id, maxage), this.osuGetUserRecent(u, 2, 100, id, maxage), this.osuGetUserRecent(u, 3, 100, id, maxage)]).then(values => {
+			Promise.all([this.osuGetUserRecent(u, 0, 50, id, maxage), this.osuGetUserRecent(u, 1, 50, id, maxage), this.osuGetUserRecent(u, 2, 50, id, maxage), this.osuGetUserRecent(u, 3, 50, id, maxage)]).then(values => {
 				let latest = 0;
 				let latest_index = -1;
 				for (let b in values) {
