@@ -140,7 +140,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 		if (msg.mentions.users.size != 1) return reply(":x: A user must be mentioned.");
 		reply(msg.mentions.users.first().tag + " has " + (isOwner(msg.mentions.users.first().id, false) ? "owner" : "normal") + " permissions.");
 	});
-	command([preferences.get("prefix") + "stats"], false, CONFIG.CONSTANTS.BOTOWNERS, () => {
+	command([preferences.get("prefix") + "cs"], false, CONFIG.CONSTANTS.BOTOWNERS, () => {
 		reply("This is shard " + process.env.SHARD_ID);
 	});
 	command([preferences.get("prefix") + "ping", preferences.get("prefix") + "latency"], false, false, () => {
@@ -222,13 +222,14 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 			else reply(":x: No records for user id " + msg.mentions.users.first().id);
 		}).catch(console.error);
 	});
+	/*
 	command([preferences.get("prefix") + "invite"], false, false, (original, index) => {
 		reply("This is the link to add BoatBot to other servers: <" + CONFIG.BOT_ADD_LINK + ">\nAdding it requires the \"Manage Server\" permission.");
 	});
 	command([preferences.get("prefix") + "help"], false, false, (original, index) => {
 		reply(":white_check_mark: A PM has been sent to you with information on how to use BoatBot.");
 		reply_embed_to_author(embedgenerator.help(CONFIG));
-	});
+	});*/
 	command([preferences.get("prefix") + "setshortcut ", preferences.get("prefix") + "ss ", preferences.get("prefix") + "createshortcut ", preferences.get("prefix") + "cs ", preferences.get("prefix") + "addshortcut "], true, false, (original, index, parameter) => {
 		if (parameter[0] !== "$") return reply(":x: The shortcut must begin with an `$`. Please try again.");
 		if (parameter.indexOf(" ") === -1) return reply(":x: The shortcut word and the username must be separated by a space. Please try again.");
@@ -297,13 +298,13 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 	});
 
 	if (UTILS.exists(msg.guild)) {//respondable server message only
+		/*
 		command([preferences.get("prefix") + "shutdown"], false, CONFIG.CONSTANTS.BOTOWNERS, () => {
 			reply(":white_check_mark: shutdown initiated", shutdown, shutdown);
 		});
 		command([preferences.get("prefix") + "restart"], false, CONFIG.CONSTANTS.BOTOWNERS, () => {
 			reply(":white_check_mark: restart initiated", restart, restart);
 		});
-		/*
 		command([preferences.get("prefix") + "refresh", preferences.get("prefix") + "clearcache"], false, CONFIG.CONSTANTS.BOTOWNERS, () => {
 			reply(":white_check_mark: restart initiated + clearing cache", step2, step2);
 			function step2() {
