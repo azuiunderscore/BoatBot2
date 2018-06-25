@@ -263,4 +263,33 @@ module.exports = class EmbedGenerator {
 		//output(pfm);
 		return newEmbed;
 	}
+	signature(CONFIG, mode, user_stats) {
+		let newEmbed = new Discord.RichEmbed();
+		let wordMode;
+		let modeCommand;
+		if (mode == 0) {
+			wordMode = "Standard";
+			modeCommand = "!sp";
+			newEmbed.setColor(16777215);
+		}
+		else if (mode == 1) {
+			wordMode = "Taiko";
+			modeCommand = "!spt";
+			newEmbed.setColor(16711680);
+		}
+		else if (mode == 2) {
+			wordMode = "CtB";
+			modeCommand = "!spm";
+			newEmbed.setColor(65280);
+		}
+		else if (mode == 3) {
+			wordMode = "Mania";
+			modeCommand = "!spm";
+			newEmbed.setColor(255);
+		}
+		newEmbed.setAuthor(user_stats.username + "'s " + wordMode + " Profile", null, "https://osu.ppy.sh/users/" + user_stats.user_id);
+		newEmbed.setImage("https://lemmmy.pw/osusig/sig.php?colour=pink&uname=" + user_stats.user_id + "&pp=2&countryrank&removeavmargin&darktriangles&onlineindicator=undefined&xpbar&xpbarhex&mode=" + mode + "&random=" + UTILS.map(Math.random(), 0, 1, 0, 10000));
+		newEmbed.setFooter("use " + modeCommand + " " + user_stats.username + " for more information");
+		return newEmbed;
+	}
 }

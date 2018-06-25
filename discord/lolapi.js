@@ -183,6 +183,72 @@ module.exports = class LOLAPI {
 		if (typeof(u) == "string") u = u.toLowerCase();
 		return this.get("get_user_best", { u, m, limit, type }, this.CONFIG.API_CACHETIME.GET_USER_BEST, maxage);
 	}
+	osuGetUserRecent(u, m = 0, limit = 100, id, maxage) {
+		const type = id ? "id" : "string";
+		if (typeof(u) == "string") u = u.toLowerCase();
+		return this.get("get_user_recent", { u, m, limit, type }, this.CONFIG.API_CACHETIME.GET_USER_RECENT, maxage);
+	}
+	osuMostRecentMode(u, id, timeout = false, maxage) {
+		const type = id ? "id" : "string";
+		if (typeof(u) == "string") u = u.toLowerCase();
+		return new Promise((resolve, reject) => {
+			Promise.all([this.osuGetUserRecent(u, 0, 100, id, maxage), this.osuGetUserRecent(u, 1, 100, id, maxage), this.osuGetUserRecent(u, 2, 100, id, maxage), this.osuGetUserRecent(u, 3, 100, id, maxage)]).then(values => {
+				let latest = 0;
+				let latest_index = -1;
+				for (let b in values) {
+					if (UTILS.exists(values[b][0])) {
+						const candidate = new Date(new Date(values[b][0].date) - 28800000);
+						if (candidate.getTime() > latest) {
+							latest = candidate.getTime();
+							//UTILS.debug("found higher value for latest: " + latest);
+							latest_index = b;
+						}
+					}
+				}
+				if (timeout) {
+					if (latest != 0 && latest_index != -1) {
+						if (latest > new Date().getTime() - 90000) {
+							UTILS.debug("latest play is valid");
+							if (latest_index != -1) {
+								resolve(latest_index);
+							}
+							else {
+								reject();
+							}
+						}
+						else {
+							UTILS.debug("latest play is expired");
+							UTILS.debug("typeof(latest) is " + typeof (latest));
+							UTILS.debug("latest is " + (latest));
+							UTILS.debug("latest_index is " + latest_index);
+							UTILS.debug("current time is " + new Date().getTime());
+							UTILS.debug("1.5 min ago was " + (new Date().getTime() - 90000));
+							reject();
+						}
+					}
+					else {
+						UTILS.debug("typeof(latest) is " + typeof (latest));
+						UTILS.debug("latest is " + (latest));
+						UTILS.debug("latest_index is " + latest_index);
+						UTILS.debug("current time is " + new Date().getTime());
+						UTILS.debug("1.5 min ago was " + (new Date().getTime() - 90000));
+						reject();
+					}
+				}
+				else {
+					if (latest_index != -1) {
+						resolve(latest_index);
+					}
+					else {
+						reject();
+					}
+				}
+			}).catch(e => {
+				console.error(e);
+				reject(null);
+			});
+		});
+	}
 	osuPHPProfileLeader(user_id, m = 0, pp = 0, maxage) {
 		return this.getOffAPI("https://osu.ppy.sh/pages/include/profile-leader.php", { u: user_id, m, pp }, this.CONFIG.API_CACHETIME.PHP_PROFILE_LEADER, maxage);
 	}

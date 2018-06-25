@@ -296,6 +296,29 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 			}).catch(console.error);
 		}).catch(console.error);
 	});
+	command(["https://osu.ppy.sh/u/", "http://osu.ppy.sh/u/", "https://osu.ppy.sh/users/", "http://osu.ppy.sh/users/"], true, false, (original, index, parameter) => {
+		const id = UTILS.arbitraryLengthInt(parameter);
+		lolapi.osuMostRecentMode(id, true, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER_RECENT).then(mrm => {
+			lolapi.osuGetUser(id, mrm, true, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
+				reply_embed(embedgenerator.signature(CONFIG, mrm, user_stats));
+			}).catch(console.error);
+		}).catch(e => {
+			lolapi.osuGetUser(id, 0, true, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
+				reply_embed(embedgenerator.signature(CONFIG, 0, user_stats));
+			}).catch(console.error);
+		});
+	});
+	commandGuessUsername([preferences.get("prefix") + "osusignature", preferences.get("prefix") + "osusign", preferences.get("prefix") + "osusig"], false, (index, id, user, parameter) => {
+		lolapi.osuMostRecentMode(user, id, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER_RECENT).then(mrm => {
+			lolapi.osuGetUser(user, mrm, id, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
+				reply_embed(embedgenerator.signature(CONFIG, mrm, user_stats));
+			}).catch(console.error);
+		}).catch(e => {
+			lolapi.osuGetUser(user, 0, id, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
+				reply_embed(embedgenerator.signature(CONFIG, 0, user_stats));
+			}).catch(console.error);
+		});
+	});
 
 	if (UTILS.exists(msg.guild)) {//respondable server message only
 		/*
