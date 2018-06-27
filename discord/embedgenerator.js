@@ -292,4 +292,41 @@ module.exports = class EmbedGenerator {
 		newEmbed.setFooter("use " + modeCommand + " " + user_stats.username + " for more information");
 		return newEmbed;
 	}
+	statsPlusMods(CONFIG, user_stats) {
+		let totalHits = parseInt(parsed[0].count300) + parseInt(parsed[0].count100) + parseInt(parsed[0].count50);
+		let efficiency = (parseInt(parsed[0].ranked_score) / parseInt(parsed[0].total_score)) * 100;
+		let bonusPP = 416.6667 * (1 - Math.pow(.9994, (parseInt(parsed[0].count_rank_ss) + parseInt(parsed[0].count_rank_s) + parseInt(parsed[0].count_rank_a))));
+		let apw = round((parseFloat(parsed[0].pp_raw) - bonusPP) / 20.0, 2);
+		calcAimAcc(statsUser, parsed[0].pp_raw, mode, function (aimAccuracy, fms, minPP, maxPP, ppRange, sRatio, pfm, pfmp, ms, ppstddev, ppTotal) {
+			let misses = (totalHits / aimAccuracy) - totalHits;
+			let missRate = 100 - (aimAccuracy * 100);
+			let cpp = (totalHits + misses) / parseInt(parsed[0].playcount);
+			pfm = pfm + "\tbonus: >`" + round(bonusPP, 1) + "`pp";
+			pfmp = pfmp + "\tbonus: >`" + round(bonusPP * 100 / parsed[0].pp_raw, 1) + "%`";
+			let newEmbed = new Discord.RichEmbed();
+			if (mode == 0) {
+				newEmbed.setColor(16777215);
+			}
+			else if (mode == 1) {
+				newEmbed.setColor(16711680);
+			}
+			else if (mode == 2) {
+				newEmbed.setColor(65280);
+			}
+			else if (mode == 3) {
+				newEmbed.setColor(255);
+			}
+			newEmbed.setAuthor("Stats for " + parsed[0].username, "", "https://osu.ppy.sh/u/" + parsed[0].user_id);
+			newEmbed.setThumbnail("https://a.ppy.sh/" + parsed[0].user_id);
+			newEmbed.setTitle("Performance: " + parsed[0].pp_raw + "pp    (#" + numberWithCommas(parsed[0].pp_rank) + ")    :flag_" + parsed[0].country.toLowerCase() + ": #" + numberWithCommas(parsed[0].pp_country_rank));
+			newEmbed.addField("Favorite Mods, combined", fms);
+			newEmbed.addField("Favorite Mods, segregated", ms);
+			newEmbed.addField("pp sources (pp)", pfm);
+			newEmbed.addField("pp sources (%)", pfmp);
+			newEmbed.setTimestamp(new Date());
+			newEmbed.setFooter("Requested at local time", "https://s.ppy.sh/images/flags/" + parsed[0].country.toLowerCase() + ".gif");
+			//output(pfm);
+			callback(newEmbed);
+		});
+	}
 }

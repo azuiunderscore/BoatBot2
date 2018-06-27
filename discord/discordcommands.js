@@ -297,6 +297,26 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 			}).catch(console.error);
 		}).catch(console.error);
 	});
+	commandGuessUsername([preferences.get("prefix") + "statsplus-m", preferences.get("prefix") + "sp-m", preferences.get("prefix") + "osu-m", preferences.get("prefix") + "std-m", preferences.get("prefix") + "taiko-m", preferences.get("prefix") + "sptaiko-m", preferences.get("prefix") + "spt-m", preferences.get("prefix") + "ctb-m", preferences.get("prefix") + "spctb-m", preferences.get("prefix") + "spc-m", preferences.get("prefix") + "mania-m", preferences.get("prefix") + "spmania-m", preferences.get("prefix") + "spm-m"], false, (index, id, user, parameter) => {
+		let mode;
+		if (index < 4) mode = 0;
+		else if (index < 7) mode = 1;
+		else if (index < 10) mode = 2;
+		else mode = 3;
+		lolapi.osuGetUser(user, mode, id, CONFIG.API_MAXAGE.SP.GET_USER).then(user_stats => {
+			if (!UTILS.exists(user_stats)) return reply(":x: This user could not be found.");
+			lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.SP.GET_USER_BEST).then(user_best => {
+				Promise.all([lolapi.osuPHPProfileLeader(user_stats.user_id, mode, 0, CONFIG.API_MAXAGE.SP.PHP_PROFILE_LEADER), lolapi.osuPHPProfileLeader(user_stats.user_id, mode, 1, CONFIG.API_MAXAGE.SP.PHP_PROFILE_LEADER)]).then(php_profile_leader => {
+					php_profile_leader = php_profile_leader.join("");
+					lolapi.osuOldUserPage(user_stats.user_id, CONFIG.API_MAXAGE.SP.OLD_USER_PAGE).then(user_page => {
+						lolapi.osuPHPProfileGeneral(user_stats.user_id, mode, CONFIG.API_MAXAGE.SP.PHP_PROFILE_GENERAL).then(php_profile_general => {
+							reply_embed(embedgenerator.statsPlus(CONFIG, mode, user_stats, user_best, php_profile_leader, user_page, php_profile_general));
+						}).catch(console.error)
+					}).catch(console.error);
+				}).catch(console.error);
+			}).catch(console.error);
+		}).catch(console.error);
+	});
 	command(["https://osu.ppy.sh/u/", "http://osu.ppy.sh/u/", "https://osu.ppy.sh/users/", "http://osu.ppy.sh/users/"], true, false, (original, index, parameter) => {
 		const id = UTILS.arbitraryLengthInt(parameter);
 		lolapi.osuMostRecentMode(id, true, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER_RECENT).then(mrm => {
