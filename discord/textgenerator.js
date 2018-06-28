@@ -15,4 +15,24 @@ module.exports = class TextGenerator {
 		for (let b in obj.shortcuts) answer += "\n$" + b + " -> " + obj.shortcuts[b];
 		return answer + "```" + post_desc;
 	}
+	roll(parameter, author) {
+		const step1 = parameter;
+		let num;
+		if (isNaN(step1)) {
+			num = 100;
+			return author + " rolls " + (Math.floor(Math.random() * num) + 1) + " point(s)";
+		}
+		else if (step1 < 0) {}
+		else if (step1 == 0) return author + " rolls " + 1 + " point(s)";
+		else {
+			num = step1;
+			return author + " rolls " + (Math.floor(Math.random() * num) + 1) + " point(s)";
+		}
+	}
+	coin() {
+		const chance = Math.random();
+		if (chance < .49) return "`HEADS` the coin landed heads up";
+		else if (chance < .98) return "`TAILS` the coin landed tails up";
+		else return "`SIDE` the coin landed on its side";
+	}
 }

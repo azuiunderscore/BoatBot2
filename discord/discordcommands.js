@@ -333,6 +333,15 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 			}).catch(console.error);
 		});
 	});
+	command([preferences.get("prefix") + "roll"], false, false, (original, index) => {
+		reply(textgenerator.roll(100, msg.author));
+	});
+	command([preferences.get("prefix") + "roll "], true, false, (original, index, parameter) => {
+		reply(textgenerator.roll(parameter, msg.author));
+	});
+	command([preferences.get("prefix") + "coinflip", preferences.get("prefix") + "flipcoin", preferences.get("prefix") + "coin"], false, false, (original, index) => {
+		reply(textgenerator.coin());
+	});
 
 	if (UTILS.exists(msg.guild)) {//respondable server message only
 		/*
