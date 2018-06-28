@@ -87,6 +87,10 @@
 		"SIGNATURE_MANUAL": {
 			"GET_USER_RECENT": 20,
 			"GET_USER": 3600
+		},
+		"SPM": {
+			"GET_USER": 120,
+			"GET_USER_BEST": 120
 		}
 	},
 	"SHARD_COUNT": 3,

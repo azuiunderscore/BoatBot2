@@ -291,7 +291,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 					lolapi.osuOldUserPage(user_stats.user_id, CONFIG.API_MAXAGE.SP.OLD_USER_PAGE).then(user_page => {
 						lolapi.osuPHPProfileGeneral(user_stats.user_id, mode, CONFIG.API_MAXAGE.SP.PHP_PROFILE_GENERAL).then(php_profile_general => {
 							reply_embed(embedgenerator.statsPlus(CONFIG, mode, user_stats, user_best, php_profile_leader, user_page, php_profile_general));
-						}).catch(console.error)
+						}).catch(console.error);
 					}).catch(console.error);
 				}).catch(console.error);
 			}).catch(console.error);
@@ -303,17 +303,10 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 		else if (index < 7) mode = 1;
 		else if (index < 10) mode = 2;
 		else mode = 3;
-		lolapi.osuGetUser(user, mode, id, CONFIG.API_MAXAGE.SP.GET_USER).then(user_stats => {
+		lolapi.osuGetUser(user, mode, id, CONFIG.API_MAXAGE.SPM.GET_USER).then(user_stats => {
 			if (!UTILS.exists(user_stats)) return reply(":x: This user could not be found.");
-			lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.SP.GET_USER_BEST).then(user_best => {
-				Promise.all([lolapi.osuPHPProfileLeader(user_stats.user_id, mode, 0, CONFIG.API_MAXAGE.SP.PHP_PROFILE_LEADER), lolapi.osuPHPProfileLeader(user_stats.user_id, mode, 1, CONFIG.API_MAXAGE.SP.PHP_PROFILE_LEADER)]).then(php_profile_leader => {
-					php_profile_leader = php_profile_leader.join("");
-					lolapi.osuOldUserPage(user_stats.user_id, CONFIG.API_MAXAGE.SP.OLD_USER_PAGE).then(user_page => {
-						lolapi.osuPHPProfileGeneral(user_stats.user_id, mode, CONFIG.API_MAXAGE.SP.PHP_PROFILE_GENERAL).then(php_profile_general => {
-							reply_embed(embedgenerator.statsPlus(CONFIG, mode, user_stats, user_best, php_profile_leader, user_page, php_profile_general));
-						}).catch(console.error)
-					}).catch(console.error);
-				}).catch(console.error);
+			lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.SPM.GET_USER_BEST).then(user_best => {
+				reply_embed(embedgenerator.statsPlusMods(CONFIG, mode, user_stats, user_best));
 			}).catch(console.error);
 		}).catch(console.error);
 	});
