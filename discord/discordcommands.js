@@ -342,6 +342,22 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 	command([preferences.get("prefix") + "coinflip", preferences.get("prefix") + "flipcoin", preferences.get("prefix") + "coin"], false, false, (original, index) => {
 		reply(textgenerator.coin());
 	});
+	command([preferences.get("prefix") + "stats ", preferences.get("prefix") + "stat "], true, false, (original, index, parameter) => {
+		lolapi.osuMostRecentMode(parameter, false, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER_RECENT).then(mrm => {
+			lolapi.osuGetUser(parameter, mrm, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
+				reply(textgenerator.stats(mrm, user_stats));
+			}).catch(console.error);
+		}).catch(e => {
+			lolapi.osuGetUser(parameter, 0, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
+				reply(textgenerator.stats(0, user_stats));
+			}).catch(console.error);
+		});
+	});
+	command([preferences.get("prefix") + "where "], true, false, (original, index, parameter) => {
+		lolapi.osuGetUser(parameter, 0, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
+			reply(textgenerator.where(user_stats));
+		}).catch(console.error);
+	});
 
 	if (UTILS.exists(msg.guild)) {//respondable server message only
 		/*
@@ -358,6 +374,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 				restart();
 			}
 		});*/
+		
 	}
 	else {//PM/DM only
 	}

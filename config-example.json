@@ -91,7 +91,8 @@
 		"SPM": {
 			"GET_USER": 120,
 			"GET_USER_BEST": 120
-		}
+		},
+		"STATS": 60
 	},
 	"SHARD_COUNT": 3,
 	"OSU_SERVERS": {

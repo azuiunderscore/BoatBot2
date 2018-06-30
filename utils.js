@@ -2,6 +2,8 @@
 let ta = require("./timeago.js");
 let seq = require("./promise-sequential.js");
 const mathjs = require("mathjs");
+const fs = require("fs");
+const countries = JSON.parse(fs.readFileSync("../data/countries.json", "utf-8"));
 String.prototype.replaceAll = function(search, replacement) {
 	let target = this;
 	return target.replace(new RegExp(search, 'g'), replacement);
@@ -414,5 +416,8 @@ module.exports = class UTILS {
 		else if (MEMBER.hasPermission(["KICK_MEMBERS", "MANAGE_MESSAGES"])) return CONFIG.CONSTANTS.MODERATORS;
 		else if (this.exists(MEMBER.roles.find(r => r.name.toLowerCase() === "bot commander"))) return CONFIG.CONSTANTS.BOTCOMMANDERS;
 		else return CONFIG.CONSTANTS.NORMALMEMBERS;
+	}
+	getCountryName(country_code) {
+		return this.exists(countries[country_code]) ? countries[country_code] : country_code;
 	}
 }
