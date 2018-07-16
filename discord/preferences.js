@@ -47,7 +47,8 @@ const preferencesFormat = {
 	"atpp": "number",//auto track pp (0 = disabled)
 	"atcid": "string",//auto track channel id
 	"scorecardmode": "number",
-	"replaycount": "boolean"
+	"replaycount": "boolean",
+	"abi": "boolean"
 };
 const newPreferences = {//new server defaults
 	"personalizations": false,
@@ -93,7 +94,8 @@ const newPreferences = {//new server defaults
 	"atpp": 0,//auto track pp (0 = disabled)
 	"atcid": "",//auto track channel id
 	"scorecardmode": 1,//SCM_REDUCED
-	"replaycount": true
+	"replaycount": true,
+	"abi": true
 };
 module.exports = class Preferences {
 	constructor(INIT_CONFIG, lolapi, guild) {
