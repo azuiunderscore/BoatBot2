@@ -104,13 +104,13 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 	command([preferences.get("prefix") + "userhistory "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		//Luserhistory <uid>
 		lolapi.userHistory(parameter).then(results => {
-			reply_embed(embedgenerator.disciplinaryHistory(CONFIG, parameter, true, results[parameter]));
+			replyEmbed(embedgenerator.disciplinaryHistory(CONFIG, parameter, true, results[parameter]));
 		}).catch();
 	});
 	command([preferences.get("prefix") + "serverhistory "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		//Lserverhistory <sid>
 		lolapi.serverHistory(parameter).then(results => {
-			reply_embed(embedgenerator.disciplinaryHistory(CONFIG, parameter, false, results[parameter]));
+			replyEmbed(embedgenerator.disciplinaryHistory(CONFIG, parameter, false, results[parameter]));
 		}).catch();
 	});
 	command([preferences.get("prefix") + "unbanserver "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
@@ -131,7 +131,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 		//Lactionreport <uid>
 		if (!UTILS.exists(CONFIG.OWNER_DISCORD_IDS[parameter])) return reply(":x: This user is not a current or previously registered admin.");
 		lolapi.getActions(parameter).then(results => {
-			reply_embed(embedgenerator.actionReport(CONFIG, parameter, results[parameter]));
+			replyEmbed(embedgenerator.actionReport(CONFIG, parameter, results[parameter]));
 		}).catch();
 	});
 	command([preferences.get("prefix") + "permissionstest", preferences.get("prefix") + "pt"], false, false, () => {
@@ -231,7 +231,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 		reply(":white_check_mark: A PM has been sent to you with information on how to use BoatBot.");
 		reply_embed_to_author(embedgenerator.help(CONFIG));
 	});*/
-	command([preferences.get("prefix") + "setshortcut ", preferences.get("prefix") + "ss ", preferences.get("prefix") + "createshortcut ", preferences.get("prefix") + "cs ", preferences.get("prefix") + "addshortcut "], true, false, (original, index, parameter) => {
+	command([preferences.get("prefix") + "setshortcut ", preferences.get("prefix") + "ss ", preferences.get("prefix") + "createshortcut ", preferences.get("prefix") + "addshortcut "], true, false, (original, index, parameter) => {
 		if (parameter[0] !== "$") return reply(":x: The shortcut must begin with an `$`. Please try again.");
 		if (parameter.indexOf(" ") === -1) return reply(":x: The shortcut word and the username must be separated by a space. Please try again.");
 		if (parameter.length > 60) return reply(":x: The shortcut name or the username is too long.");
@@ -374,7 +374,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 				restart();
 			}
 		});*/
-		
+
 	}
 	else {//PM/DM only
 	}
@@ -420,6 +420,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 		callback) {//optional callback only if successful
 		//returns (index, boolean: user_id = true / username = false, user_id or username, parameter)
 		//this command does not validate the existance of a username on the server
+		/*returns (region, username, parameter, username guess method)
+		username guess method 0: username provided
+		username guess method 1: shortcut provided
+		username guess method 2: link
+		username guess method 3: discord username
+		*/
 		command(trigger_array, true, elevated_permissions, (original, index, parameter) => {
 			if (parameter.length != 0) {//username explicitly provided
 				if (parameter.length < 70) {//longest query should be less than 70 characters
@@ -478,6 +484,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 		callback) {//optional callback only if successful
 		//returns (index, boolean: user_id = true / username = false, user_id or username, parameter, number)
 		//this command does not validate the existance of a username on the server
+		/*returns (region, username, number, username guess method)
+		username guess method 0: username provided
+		username guess method 1: shortcut provided
+		username guess method 2: link
+		username guess method 3: discord username
+		*/
 		command(trigger_array, true, elevated_permissions, (original, index, parameter) => {
 			let number = UTILS.arbitraryLengthInt(parameter);
 			if (number === "") number = 1;//number not specified
@@ -560,66 +572,66 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 		const answer = UTILS.exists(CONFIG.OWNER_DISCORD_IDS[candidate]) && CONFIG.OWNER_DISCORD_IDS[candidate].active;
 		if (!answer) {
 			UTILS.output("insufficient permissions");
-			print_message();
+			printMessage();
 			if (notify) msg.channel.send(":x: Owner permissions required. Ask for help at " + CONFIG.HELP_SERVER_INVITE_LINK + " .").catch(console.error);
 		}
 		return answer;
 	}
-	function reply(reply_text, callback, error_callback) {
-		print_message();
+	function reply(reply_text, callback, errorCallback) {
+		printMessage();
 		lolapi.terminate();
 		console.log("reply (" + (new Date().getTime() - msg_receive_time) + "ms): " + reply_text + "\n");
 		msg.channel.send(reply_text, { split: true }).then((nMsg) => {
 			if (UTILS.exists(callback)) callback(nMsg);
 		}).catch((e) => {
 			console.error(e);
-			if (UTILS.exists(error_callback)) error_callback(e);
+			if (UTILS.exists(errorCallback)) errorCallback(e);
 		});
 	}
 
-	function reply_to_author(reply_text, callback, error_callback) {
-		print_message();
+	function replyToAuthor(reply_text, callback, errorCallback) {
+		printMessage();
 		lolapi.terminate();
 		console.log("reply to author (" + (new Date().getTime() - msg_receive_time) + "ms): " + reply_text + "\n");
 		msg.author.send(reply_text, { split: true }).then((nMsg) => {
 			if (UTILS.exists(callback)) callback(nMsg);
 		}).catch((e) => {
 			console.error(e);
-			if (UTILS.exists(error_callback)) error_callback(e);
+			if (UTILS.exists(errorCallback)) errorCallback(e);
 		});
 	}
 
-	function reply_embed(reply_embed, callback, error_callback) {
+	function replyEmbed(reply_embed, callback, errorCallback) {
 		if (UTILS.exists(msg.guild) && !msg.channel.permissionsFor(client.user).has(["EMBED_LINKS"])) {//doesn't have permission to embed links in server
 			lolapi.terminate();
 			reply(":x: I cannot respond to your request without the \"embed links\" permission.");
 		}
 		else {//has permission to embed links, or is a DM/PM
-			print_message();
+			printMessage();
 			lolapi.terminate();
 			console.log("reply embedded (" + (new Date().getTime() - msg_receive_time) + "ms)\n");
 			msg.channel.send("", { embed: reply_embed }).then((nMsg) => {
 				if (UTILS.exists(callback)) callback(nMsg);
 			}).catch((e) => {
 				console.error(e);
-				if (UTILS.exists(error_callback)) error_callback(e);
+				if (UTILS.exists(errorCallback)) errorCallback(e);
 			});
 		}
 	}
 
-	function reply_embed_to_author(reply_embed, callback, error_callback) {
-		print_message();
+	function replyEmbedToAuthor(reply_embed, callback, errorCallback) {
+		printMessage();
 		lolapi.terminate();
 		console.log("reply embedded to author (" + (new Date().getTime() - msg_receive_time) + "ms)\n");
 		msg.author.send("", { embed: reply_embed }).then((nMsg) => {
 			if (UTILS.exists(callback)) callback(nMsg);
 		}).catch((e) => {
 			console.error(e);
-			if (UTILS.exists(error_callback)) error_callback(e);
+			if (UTILS.exists(errorCallback)) errorCallback(e);
 		});
 	}
 
-	function print_message() {
+	function printMessage() {
 		const basic = msg.id + "\ncontent: " + msg.content +
 			"\nauthor: " + msg.author.tag + " :: " + msg.author.id +
 			"\nchannel: " + msg.channel.name + " :: " + msg.channel.id;
@@ -627,6 +639,9 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 		else {
 			UTILS.output("received PM/DM message :: " + basic);
 		}
+	}
+	function suggestLink(guess_method) {
+		return guess_method === 3 ? " We tried using your discord username but could not find a player with the same name. Let us know what your osu username is using `" + CONFIG.DISCORD_COMMAND_PREFIX + "link <ign>` and we'll remember it for next time!" : "";
 	}
 	function shutdown() {
 		sendToChannel(CONFIG.LOG_CHANNEL_ID, ":x: Shutdown initiated.");
