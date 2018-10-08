@@ -4,12 +4,16 @@ alpha testing, forked from supportbot @ iaace-NA/SupportBot
 (c) 2018; source available, all rights reserved
 
 ## Dependencies
+- mongodb 3.x
+## npm Dependencies
+- pm2 (global)
 - discord.js 11.3.2
 - mongoose 5.0.0-rc1
 - request 2.83.0
+- mathjs 5.1.0
 ## Minimum System Requirements
-- RAM: 512 MB+
-- HDD: 512 MB+
+- RAM: 1 GB
+- HDD: 1 GB
 - CPU: 4 Thread, Base clock 1.2GHz+
 - LAN: 12 Mbps Down/4 Mbps Up
 ## Commands

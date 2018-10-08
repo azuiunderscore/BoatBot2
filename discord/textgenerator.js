@@ -41,4 +41,9 @@ module.exports = class TextGenerator {
 	where(user_stats) {
 		return UTILS.exists(user_stats) ? user_stats.username + " is in " + UTILS.getCountryName(user_stats.country) : "The user is currently not online.";
 	}
+	owners(CONFIG) {
+		let answer = "Here are my bot owners:\n`user id:name`";
+		for (let b in CONFIG.OWNER_DISCORD_IDS) if (CONFIG.OWNER_DISCORD_IDS[b].active) answer += "\n`" + b + ":" + CONFIG.OWNER_DISCORD_IDS[b].name + "`";
+		return answer;
+	}
 }

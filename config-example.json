@@ -97,5 +97,13 @@
 	"SHARD_COUNT": 3,
 	"OSU_SERVERS": {
 		"OSU": "https://osu.ppy.sh/api/"
-	}
+	},
+	"RATE_LIMIT": {
+		"CHANNEL_ID": "channel id here",
+		"USER_MESSAGES": 4,
+		"USER_TIME_S": 60,
+		"SERVER_MESSAGES": 6,
+		"SERVER_TIME_S": 60
+	},
+	"FEEDBACK_CHANNEL_ID": "channel id here"
 }

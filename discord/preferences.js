@@ -1,10 +1,12 @@
 "use strict";
 const UTILS = new (require("../utils.js"))();
-const REQUEST = require("request");
 const fs = require("fs");
-const agentOptions = { ca: fs.readFileSync("../data/keys/ca.crt") };
+const argv_options = new (require("getopts"))(process.argv.slice(2), {
+	alias: { c: ["config"] },
+	default: { c: "config.json" }});
 let cache = {};
 const preferencesFormat = {
+	"id": "string",
 	"personalizations": "boolean",
 	"autoModerator": "boolean",
 	"enabled": "boolean",//server BoatBot enable
@@ -48,9 +50,11 @@ const preferencesFormat = {
 	"atcid": "string",//auto track channel id
 	"scorecardmode": "number",
 	"replaycount": "boolean",
-	"abi": "boolean"
+	"abi": "boolean",
+	"force_prefix": "boolean"
 };
 const newPreferences = {//new server defaults
+	"id": "",
 	"personalizations": false,
 	"autoModerator": false,
 	"enabled": true,
@@ -95,11 +99,20 @@ const newPreferences = {//new server defaults
 	"atcid": "",//auto track channel id
 	"scorecardmode": 1,//SCM_REDUCED
 	"replaycount": true,
-	"abi": true
+	"abi": true,
+	"force_prefix": false
 };
+let CONFIG;
+try {
+	CONFIG = JSON.parse(fs.readFileSync("../" + argv_options.config, "utf-8"));
+}
+catch (e) {
+	UTILS.output("something's wrong with config.json");
+	console.error(e);
+	process.exit(1);
+}
 module.exports = class Preferences {
-	constructor(INIT_CONFIG, lolapi, guild) {
-		this.CONFIG = INIT_CONFIG;
+	constructor(lolapi, guild, callback) {
 		this.lolapi = lolapi;
 		if (!UTILS.exists(this.CONFIG)) throw new Error("config.json required.");
 		this.request = REQUEST;

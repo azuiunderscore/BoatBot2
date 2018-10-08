@@ -27,6 +27,17 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 	let lolapi = new LOLAPI(CONFIG, msg.id);
 	request_profiler.mark("lolapi instantiated");
 
+	command(["supportbotprefix "], true, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index, parameter) => {
+		const candidate = parameter.trim().toLowerCase();
+		if (candidate.length > 100) return reply(":x: This prefix is too long.");
+		preferences.set("prefix", candidate).then(() => reply(":white_check_mark: The prefix was set to " + candidate)).catch(reply);
+	});
+	command(["supportbotprefix"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
+		preferences.set("prefix", "").then(() => reply(":white_check_mark: Prefixless operation enabled")).catch(reply);
+	});
+	command([preferences.get("prefix") + "owner", preferences.get("prefix") + "owners"], false, false, (original, index) => {
+		reply(textgenerator.owners(CONFIG));
+	});
 	//respondable server message or PM
 	command([preferences.get("prefix") + "banuser "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		//Lbanuser <uid> <duration> <reason>
@@ -244,7 +255,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 			else reply(":x: You can only have up to 50 shortcuts. Please remove some and try again.");
 		}).catch(console.error);
 	});
-	command([preferences.get("prefix") + "removeshortcut ", preferences.get("prefix") + "deleteshortcut ", preferences.get("prefix") + "ds "], true, false, (original, index, parameter) => {
+	command([preferences.get("prefix") + "removeshortcut ", preferences.get("prefix") + "rs ", preferences.get("prefix") + "deleteshortcut ", preferences.get("prefix") + "ds "], true, false, (original, index, parameter) => {
 		if (parameter[0] !== "$") return reply(":x: The shortcut must begin with an `$`. Please try again.");
 		const from = parameter.substring(1).toLowerCase();
 		if (from.length === 0) return reply(":x: The shortcut name was not specified. Please try again.");
@@ -374,7 +385,11 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 				restart();
 			}
 		});*/
-
+		command([preferences.get("prefix") + "setting force-prefix on", preferences.get("prefix") + "setting force-prefix off"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
+			const new_setting = index === 0 ? true : false;
+			UTILS.debug("index is " + index + ", type of index is " + typeof(index) + ", new_setting is " + new_setting);
+			preferences.set("force_prefix", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "SupportBot will require prefixes on all LoL commands." : "SupportBot will not require prefixes on all LoL commands."))).catch(reply);
+		});
 	}
 	else {//PM/DM only
 	}
@@ -383,11 +398,11 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 		parameters_expected,//boolean
 		elevated_permissions,//requires owner permissions
 		callback) {//optional callback only if successful
-		for (let i in trigger_array) {
+		for (let i = 0; i < trigger_array.length; ++i) {
 			if (parameters_expected && msg.content.trim().toLowerCase().substring(0, trigger_array[i].length) === trigger_array[i].toLowerCase()) {
 				if (elevated_permissions && !is(elevated_permissions)) return false;
 				else {
-					if (elevated_permissions) sendToChannel(CONFIG.LOG_CHANNEL_ID, msg.author.tag + " used " + msg.cleanContent);
+					if (elevated_permissions === CONFIG.CONSTANTS.BOTOWNERS) sendToChannel(CONFIG.LOG_CHANNEL_ID, msg.author.tag + " used " + msg.cleanContent);
 					if (UTILS.exists(callback)) {
 						try {
 							callback(trigger_array[i], i, msg.content.trim().substring(trigger_array[i].length));
@@ -401,7 +416,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 			else if (!parameters_expected && msg.content.trim().toLowerCase() === trigger_array[i].toLowerCase()) {
 				if (elevated_permissions && !is(elevated_permissions)) return false;
 				else {
-					if (elevated_permissions) sendToChannel(CONFIG.LOG_CHANNEL_ID, msg.author.tag + " used " + msg.cleanContent);
+					if (elevated_permissions === CONFIG.CONSTANTS.BOTOWNERS) sendToChannel(CONFIG.LOG_CHANNEL_ID, msg.author.tag + " used " + msg.cleanContent);
 					if (UTILS.exists(callback)) {
 						try {
 							callback(trigger_array[i], i);
@@ -424,7 +439,9 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 		username guess method 0: username provided
 		username guess method 1: shortcut provided
 		username guess method 2: link
-		username guess method 3: discord username
+		username guess method 3: implicit discord username
+		username guess method 4: explicit discord mention
+		username guess method 5: recently used command
 		*/
 		command(trigger_array, true, elevated_permissions, (original, index, parameter) => {
 			if (parameter.length != 0) {//username explicitly provided
@@ -444,7 +461,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 							if (e) reply(":x: An error has occurred. The shortcut may not exist.");
 						});
 					}
-					else if (parameter.substring(0, 2) == " ^") {//pull from recent command
+					else if (parameter.substring(parameter.indexOf(" ") + 1) == "^") {
 						msg.channel.fetchMessages({ before: msg.id, limit: 30 }).then(msgs => {
 							msgs = msgs.array();
 							let user_id;
@@ -488,7 +505,9 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 		username guess method 0: username provided
 		username guess method 1: shortcut provided
 		username guess method 2: link
-		username guess method 3: discord username
+		username guess method 3: implicit discord username
+		username guess method 4: explicit discord mention
+		username guess method 5: recently used command
 		*/
 		command(trigger_array, true, elevated_permissions, (original, index, parameter) => {
 			let number = UTILS.arbitraryLengthInt(parameter);
@@ -516,7 +535,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 							if (e) reply(":x: An error has occurred. The shortcut may not exist.");
 						});
 					}
-					else if (parameter.substring(0, 2) == " ^") {//pull from recent command
+					else if (parameter.substring(parameter.indexOf(" ") + 1) == "^") {//pull from recent command
 						msg.channel.fetchMessages({ before: msg.id, limit: 30 }).then(msgs => {
 							msgs = msgs.array();
 							let user_id;
@@ -642,6 +661,9 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, preference
 	}
 	function suggestLink(guess_method) {
 		return guess_method === 3 ? " We tried using your discord username but could not find a player with the same name. Let us know what your osu username is using `" + CONFIG.DISCORD_COMMAND_PREFIX + "link <ign>` and we'll remember it for next time!" : "";
+	}
+	function forcePrefix(triggers) {
+		return preferences.get("force_prefix") ? triggers.map(t => preferences.get("prefix") + t) : triggers;
 	}
 	function shutdown() {
 		sendToChannel(CONFIG.LOG_CHANNEL_ID, ":x: Shutdown initiated.");

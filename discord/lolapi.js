@@ -262,4 +262,10 @@ module.exports = class LOLAPI {
 	osuPHPProfileGeneral(user_id, m = 0, maxage) {
 		return this.getOffAPI("https://osu.ppy.sh/pages/include/profile-general.php", { u: user_id, m }, this.CONFIG.API_CACHETIME.PHP_PROFILE_GENERAL, maxage);
 	}
+	getPreferences(sid) {
+		return this.getIAPI("getpreferences", { id: sid });
+	}
+	setPreferences(sid, prop, val, type) {
+		return this.getIAPI("setpreferences", { id: sid, prop, val, type });
+	}
 }
