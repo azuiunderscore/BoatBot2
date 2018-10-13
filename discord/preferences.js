@@ -116,7 +116,6 @@ module.exports = class Preferences {
 	constructor(lolapi, guild, callback) {
 		this.lolapi = lolapi;
 		if (!UTILS.exists(CONFIG)) throw new Error("config.json required.");
-		this.request = REQUEST;
 		this.address = "https://" + CONFIG.API_ADDRESS;
 		this.port = CONFIG.API_PORT;
 		this.sid = UTILS.exists(guild) ? guild.id : undefined;
