@@ -207,7 +207,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		wsapi.lnotify(msg.author.username, msg.author.displayAvatarURL, parameter, true);
 	});
 	command([preferences.get("prefix") + "testembed"], false, false, () => {
-		reply_embed(embedgenerator.test());
+		replyEmbed(embedgenerator.test());
 	});
 	command([preferences.get("prefix") + "migratelinks"], false, CONFIG.CONSTANTS.BOTOWNERS, (original, index) => {
 		const fs = require("fs");
@@ -268,7 +268,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	});
 	command([preferences.get("prefix") + "help"], false, false, (original, index) => {
 		reply(":white_check_mark: A PM has been sent to you with information on how to use BoatBot.");
-		reply_embed_to_author(embedgenerator.help(CONFIG));
+		replyEmbedToAuthor(embedgenerator.help(CONFIG));
 	});*/
 	command([preferences.get("prefix") + "setshortcut ", preferences.get("prefix") + "ss ", preferences.get("prefix") + "createshortcut ", preferences.get("prefix") + "addshortcut "], true, false, (original, index, parameter) => {
 		if (parameter[0] !== "$") return reply(":x: The shortcut must begin with an `$`. Please try again.");
@@ -329,7 +329,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 					php_profile_leader = php_profile_leader.join("");
 					lolapi.osuOldUserPage(user_stats.user_id, CONFIG.API_MAXAGE.SP.OLD_USER_PAGE).then(user_page => {
 						lolapi.osuPHPProfileGeneral(user_stats.user_id, mode, CONFIG.API_MAXAGE.SP.PHP_PROFILE_GENERAL).then(php_profile_general => {
-							reply_embed(embedgenerator.statsPlus(CONFIG, mode, user_stats, user_best, php_profile_leader, user_page, php_profile_general));
+							replyEmbed(embedgenerator.statsPlus(CONFIG, mode, user_stats, user_best, php_profile_leader, user_page, php_profile_general));
 						}).catch(console.error);
 					}).catch(console.error);
 				}).catch(console.error);
@@ -345,7 +345,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		lolapi.osuGetUser(user, mode, id, CONFIG.API_MAXAGE.SPM.GET_USER).then(user_stats => {
 			if (!UTILS.exists(user_stats)) return reply(":x: This user could not be found.");
 			lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.SPM.GET_USER_BEST).then(user_best => {
-				reply_embed(embedgenerator.statsPlusMods(CONFIG, mode, user_stats, user_best));
+				replyEmbed(embedgenerator.statsPlusMods(CONFIG, mode, user_stats, user_best));
 			}).catch(console.error);
 		}).catch(console.error);
 	});
@@ -353,22 +353,22 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		const id = UTILS.arbitraryLengthInt(parameter);
 		lolapi.osuMostRecentMode(id, true, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER_RECENT).then(mrm => {
 			lolapi.osuGetUser(id, mrm, true, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
-				reply_embed(embedgenerator.signature(CONFIG, mrm, user_stats));
+				replyEmbed(embedgenerator.signature(CONFIG, mrm, user_stats));
 			}).catch(console.error);
 		}).catch(e => {
 			lolapi.osuGetUser(id, 0, true, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
-				reply_embed(embedgenerator.signature(CONFIG, 0, user_stats));
+				replyEmbed(embedgenerator.signature(CONFIG, 0, user_stats));
 			}).catch(console.error);
 		});
 	});
 	commandGuessUsername([preferences.get("prefix") + "osusignature", preferences.get("prefix") + "osusign", preferences.get("prefix") + "osusig"], false, (index, id, user, parameter) => {
 		lolapi.osuMostRecentMode(user, id, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER_RECENT).then(mrm => {
 			lolapi.osuGetUser(user, mrm, id, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
-				reply_embed(embedgenerator.signature(CONFIG, mrm, user_stats));
+				replyEmbed(embedgenerator.signature(CONFIG, mrm, user_stats));
 			}).catch(console.error);
 		}).catch(e => {
 			lolapi.osuGetUser(user, 0, id, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
-				reply_embed(embedgenerator.signature(CONFIG, 0, user_stats));
+				replyEmbed(embedgenerator.signature(CONFIG, 0, user_stats));
 			}).catch(console.error);
 		});
 	});
