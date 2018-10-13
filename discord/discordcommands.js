@@ -32,12 +32,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	let lolapi = new LOLAPI(CONFIG, msg.id);
 	request_profiler.mark("lolapi instantiated");
 
-	command(["supportbotprefix "], true, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index, parameter) => {
+	command(["boatsetprefix "], true, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index, parameter) => {
 		const candidate = parameter.trim().toLowerCase();
 		if (candidate.length > 100) return reply(":x: This prefix is too long.");
 		preferences.set("prefix", candidate).then(() => reply(":white_check_mark: The prefix was set to " + candidate)).catch(reply);
 	});
-	command(["supportbotprefix"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
+	command(["boatsetprefix"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
 		preferences.set("prefix", "").then(() => reply(":white_check_mark: Prefixless operation enabled")).catch(reply);
 	});
 	command([preferences.get("prefix") + "owner", preferences.get("prefix") + "owners"], false, false, (original, index) => {
@@ -166,7 +166,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			else step2(null);
 			function step2(gH) {
 				sendEmbedToChannel(CONFIG.FEEDBACK.EXTERNAL_CID, embedgenerator.feedback(CONFIG, 4, 1, msg, uH[msg.author.id], gH));
-				reply(":white_check_mark: Thank you for your question! Someone from our staff will respond by SupportBot PM as soon as possible.");
+				reply(":white_check_mark: Thank you for your question! Someone from our staff will respond by BoatBot PM as soon as possible.");
 			}
 		});
 	});
@@ -415,14 +415,14 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		});*/
 		command([preferences.get("prefix") + "setting force-prefix on", preferences.get("prefix") + "setting force-prefix off"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
 			const new_setting = index === 0 ? true : false;
-			preferences.set("force_prefix", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "SupportBot will require prefixes on all LoL commands." : "SupportBot will not require prefixes on all LoL commands."))).catch(reply);
+			preferences.set("force_prefix", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will require prefixes on all osu commands." : "BoatBot will not require prefixes on all LoL commands."))).catch(reply);
 		});
 		command([preferences.get("prefix") + "setting release-notifications on", preferences.get("prefix") + "setting release-notifications off"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
 			const new_setting = index === 0 ? true : false;
-			preferences.set("release_notifications", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "SupportBot will show new release notifications." : "SupportBot will not show new release notifications."))).catch(reply);
+			preferences.set("release_notifications", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will show new release notifications." : "BoatBot will not show new release notifications."))).catch(reply);
 		});
-		command(["supportbot settings reset all"], false, CONFIG.CONSTANTS.ADMINISTRATORS, () => reply(":warning: You are about to reset all the preferences associated with this server. To confirm this action, please send the command: `supportbot settings reset all confirm`"));
-		command(["supportbot settings reset all confirm"], false, CONFIG.CONSTANTS.ADMINISTRATORS, () => {
+		command(["boatbot settings reset all"], false, CONFIG.CONSTANTS.ADMINISTRATORS, () => reply(":warning: You are about to reset all the preferences associated with this server. To confirm this action, please send the command: `boatbot settings reset all confirm`"));
+		command(["boatbot settings reset all confirm"], false, CONFIG.CONSTANTS.ADMINISTRATORS, () => {
 			preferences.resetToDefault().then(() => reply(":white_check_mark: This server's settings were reset to defaults.")).catch(reply);
 		});
 		command([preferences.get("prefix") + "mail "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {

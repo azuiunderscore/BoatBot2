@@ -51,7 +51,7 @@ alpha testing, forked from supportbot @ iaace-NA/SupportBot
 - api: internal api files
 - data: TLS certs and other local data
 - discord: discord bot files
-- releasenotes: release notes for supportbot
+- releasenotes: release notes for BoatBot
 - start: startup configs for pm2
 - tests: manual test cases
 
