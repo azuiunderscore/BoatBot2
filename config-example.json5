@@ -1,14 +1,12 @@
 {
 	"CONSTANTS": {
-		"SCM_FULL": 2,
-		"SCM_REDUCED": 1,
-		"SCM_COMPACT": 0,
 		"NORMALMEMBERS": 0,
 		"BOTCOMMANDERS": 1,
 		"MODERATORS": 2,
 		"ADMINISTRATORS": 3,
 		"SERVEROWNERS": 4,
-		"BOTOWNERS": 5
+		"BOTOWNERS": 5,
+		"PERMISSION_LEVEL_REVERSE": ["N", "B", "M", "A", "S", "G"]//normal, bot commander, moderator, administrator, server owner, god
 	},
 	"DISCORD_API_KEY": "",
 	"OSU_API_KEY": "",
@@ -17,33 +15,41 @@
 	"TWITCH_API_KEY": "",
 	"CLEVERBOT_API_KEY": "",
 	"OWNER_DISCORD_IDS": {
+		//key is owner uid
 		"109894307070083072": {
-			"name": "iaace",
-			"active": true
+			"name": "iaace",//common name
+			"active": true,//account is active
+			"flags": "🇺🇸"//language flags appended at end of Lmail support messages
 		},
 		"137664238046019585": {
 			"name": "Dab",
-			"active": true
+			"active": true,
+			"flags": "🇺🇸"
 		},
 		"338489538320269323": {
 			"name": "Caleb",
-			"active": true
+			"active": true,
+			"flags": "🇺🇸"
 		},
 		"170613427893567488": {
 			"name": "dracrosinos",
-			"active": true
+			"active": true,
+			"flags": "🇺🇸"
 		},
 		"150224199951187968": {
 			"name": "Proteus",
-			"active": true
+			"active": true,
+			"flags": "🇬🇧"
 		},
 		"121052319025594371": {
 			"name": "nomi",
-			"active": true
+			"active": true,
+			"flags": "🇺🇸"
 		},
 		"121626156720979968": {
 			"name": "Cyceph",
-			"active": true
+			"active": true,
+			"flags": "🇳🇴🇺🇸"
 		}
 	},
 	"DISCORD_COMMAND_PREFIX": "!",
@@ -99,11 +105,21 @@
 		"OSU": "https://osu.ppy.sh/api/"
 	},
 	"RATE_LIMIT": {
-		"CHANNEL_ID": "channel id here",
+		"CHANNEL_ID": "channel id here",//reports rate limit incidents in this channel
+		"LARGE_SERVER_THRESHOLD": 200,//the point where a server is large and the rate limit is increased
 		"USER_MESSAGES": 4,
 		"USER_TIME_S": 60,
 		"SERVER_MESSAGES": 6,
-		"SERVER_TIME_S": 60
+		"SERVER_TIME_S": 60,
+		"LARGE_SERVER_MESSAGES": 8,
+		"LARGE_SERVER_TIME_S": 60
 	},
-	"FEEDBACK_CHANNEL_ID": "channel id here"
+	"FEEDBACK": {
+		"EXTERNAL_CID": "channel id here",//where external feedback comes to get approved
+		"COMPLAINT_CID": "channel id here",//approved public complaints channel
+		"PRAISE_CID": "channel id here",//approved public praise channel
+		"SUGGESTION_CID": "channel id here",//approved public suggestion channel
+		"APPROVED_IMAGE_LINK": "https://cdn.discordapp.com/emojis/382263196477685771.png?v=1",//footer image for approved feedback (currently unused)
+		"DENIED_IMAGE_LINK": "https://cdn.discordapp.com/emojis/493118209566965764.png?v=1"//footer image for denied feedback (currently unused)
+	}
 }

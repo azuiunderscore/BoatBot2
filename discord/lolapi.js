@@ -2,7 +2,20 @@
 const UTILS = new (require("../utils.js"))();
 const fs = require("fs");
 const REQUEST = require("request");
-const agentOptions = { ca: fs.readFileSync("../data/keys/ca.crt") };
+const XRegExp = require("xregexp");
+const agentOptions = { ca: fs.readFileSync("../data/keys/ca.crt"), timeout: 120000 };
+const tags = {
+	match: "match",//matches, timelines
+	matchhistory: "matchlist",//matchlists
+	cmr: "cmr",//champions, masteries, runes
+	leagues: "league",//leagues, challenger, master
+	ranks: "league",//by summoner id
+	summoner: "summonerid",//summoners by name or id
+	account: "accountid",//summoners by account id
+	cm: "championmastery",//summoner champion mastery
+	spectator: "spectator",
+	status: "status"
+};
 module.exports = class LOLAPI {
 	constructor(INIT_CONFIG, request_id) {
 		this.CONFIG = INIT_CONFIG;
@@ -30,7 +43,7 @@ module.exports = class LOLAPI {
 			UTILS.assert(UTILS.exists(maxage));
 			let url = this.CONFIG.OSU_SERVERS.OSU + path + "?k=";
 			for (let i in options) {
-				url += "&" + i + "=" + encodeURIComponent(options[i]);
+				endpoint += "&" + i + "=" + encodeURIComponent(options[i]);
 			}
 			//UTILS.output("IAPI req sent: " + url.replace(that.CONFIG.OSU_API_KEY, ""));
 			url = this.address + ":" + this.port + "/osu/" + cachetime + "/" + maxage + "/" + this.request_id + "/?k=" + encodeURIComponent(this.CONFIG.API_KEY) +"&url=" + encodeURIComponent(url);
@@ -95,6 +108,7 @@ module.exports = class LOLAPI {
 				}
 				else {
 					try {
+						//UTILS.debug(body, true);
 						const answer = JSON.parse(body);
 						UTILS.output("IAPI req: " + url);
 						resolve(answer);
@@ -163,10 +177,10 @@ module.exports = class LOLAPI {
 	unbanServer(sid, issuer, issuer_tag, issuer_avatarURL) {
 		return this.getIAPI("unban", { id: sid, user: false, issuer, issuer_tag, issuer_avatarURL });
 	}
-	userHistory(uid, complete = false) {
+	userHistory(uid, complete = true) {
 		return complete ? this.getIAPI("gethistory", { id: uid, user: true }) : this.getIAPI("gethistory", { id: uid, user: true, limit: 10 });
 	}
-	serverHistory(sid, complete = false) {
+	serverHistory(sid, complete = true) {
 		return complete ? this.getIAPI("gethistory", { id: sid, user: false }) : this.getIAPI("gethistory", { id: sid, user: false, limit: 10 });
 	}
 	getActions(uid, complete = false) {
@@ -267,5 +281,8 @@ module.exports = class LOLAPI {
 	}
 	setPreferences(sid, prop, val, type) {
 		return this.getIAPI("setpreferences", { id: sid, prop, val, type });
+	}
+	resetPreferences(sid) {
+		return this.getIAPI("resetpreferences", { id: sid });
 	}
 }
