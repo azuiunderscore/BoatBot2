@@ -43,7 +43,7 @@ module.exports = class LOLAPI {
 			UTILS.assert(UTILS.exists(maxage));
 			let url = this.CONFIG.OSU_SERVERS.OSU + path + "?k=";
 			for (let i in options) {
-				endpoint += "&" + i + "=" + encodeURIComponent(options[i]);
+				url += "&" + i + "=" + encodeURIComponent(options[i]);
 			}
 			//UTILS.output("IAPI req sent: " + url.replace(that.CONFIG.OSU_API_KEY, ""));
 			url = this.address + ":" + this.port + "/osu/" + cachetime + "/" + maxage + "/" + this.request_id + "/?k=" + encodeURIComponent(this.CONFIG.API_KEY) +"&url=" + encodeURIComponent(url);
