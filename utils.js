@@ -1,7 +1,6 @@
 "use strict";
 let ta = require("./timeago.js");
 let seq = require("./promise-sequential.js");
-const mathjs = require("mathjs");
 const fs = require("fs");
 const countries = JSON.parse(fs.readFileSync("../data/countries.json", "utf-8"));
 String.prototype.replaceAll = function(search, replacement) {
@@ -227,7 +226,7 @@ module.exports = class UTILS {
 		}
 		return answer;
 	}
-	calcAimAcc(parsed, pp_raw) {
+	calcAimAcc(mathjs, parsed, pp_raw) {
 		let topHits = 0;
 		let topMisses = 0;
 		let fms = "";
