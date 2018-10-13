@@ -70,7 +70,6 @@
 	"API_ADDRESS": "localhost",
 	"API_PERIOD": 250,
 	"API_KEY": "insert random string here",
-	"API_SEQUENTIAL": true,
 	"API_CACHETIME": {
 		"GET_USER": 86400,
 		"GET_USER_BEST": 86400,
