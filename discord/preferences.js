@@ -115,10 +115,10 @@ catch (e) {
 module.exports = class Preferences {
 	constructor(lolapi, guild, callback) {
 		this.lolapi = lolapi;
-		if (!UTILS.exists(this.CONFIG)) throw new Error("config.json required.");
+		if (!UTILS.exists(CONFIG)) throw new Error("config.json required.");
 		this.request = REQUEST;
-		this.address = "https://" + this.CONFIG.API_ADDRESS;
-		this.port = this.CONFIG.API_PORT;
+		this.address = "https://" + CONFIG.API_ADDRESS;
+		this.port = CONFIG.API_PORT;
 		this.sid = UTILS.exists(guild) ? guild.id : undefined;
 		this.path = "/home/iaace/bbs/data/public/" + this.sid + ".json";
 		if (UTILS.exists(this.sid)) {//server message
