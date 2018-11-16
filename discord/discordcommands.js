@@ -313,8 +313,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	commandGuessUsername([preferences.get("prefix") + "d1"], false, (index, id, user, parameter) => {
 		reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + "` parameter: `" + parameter + "`");
 	});
-	commandGuessUsernameNumber([preferences.get("prefix") + "d2"], false, (index, id, user, parameter, number) => {
-		reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + "` parameter: `" + parameter + "`" + " number: `" + number + "`");
+	commandGuessUsernameNumber([preferences.get("prefix") + "d2"], false, (index, id, user, number, guess_method) => {
+		reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + " number: `" + number + "` guess_method: `" + guess_method + "`");
 	});
 	commandGuessUsername([preferences.get("prefix") + "statsplus", preferences.get("prefix") + "sp", preferences.get("prefix") + "osu", preferences.get("prefix") + "std", preferences.get("prefix") + "taiko", preferences.get("prefix") + "sptaiko", preferences.get("prefix") + "spt", preferences.get("prefix") + "ctb", preferences.get("prefix") + "spctb", preferences.get("prefix") + "spc", preferences.get("prefix") + "mania", preferences.get("prefix") + "spmania", preferences.get("prefix") + "spm"], false, (index, id, user, parameter) => {
 		let mode;
@@ -575,9 +575,9 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	function commandGuessUsernameNumber(trigger_array,//array of command aliases, prefix needs to be included
 		elevated_permissions,//requires owner permissions
 		callback) {//optional callback only if successful
-		//returns (index, boolean: user_id = true / username = false, user_id or username, parameter, number)
+		//returns (index, boolean: user_id = true / username = false, user_id or username, number)
 		//this command does not validate the existance of a username on the server
-		/*returns (region, username, number, username guess method)
+		/*
 		username guess method 0: username provided
 		username guess method 1: shortcut provided
 		username guess method 2: link
@@ -586,14 +586,29 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		username guess method 5: recently used command
 		*/
 		command(trigger_array, true, elevated_permissions, (original, index, parameter) => {
-			let number = UTILS.arbitraryLengthInt(parameter);
-			if (number === "") number = 1;//number not specified
-			else {//number specified
-				number = parseInt(number);
-				const space_index = parameter.indexOf(" ");
-				if (space_index == -1) parameter = "";
-				else parameter = parameter.substring(space_index);
+			/*
+			valid: number explicitly specified
+			invalid: number implicit (#1, index 0)
+
+			valid: no username specified
+			valid: username explicit
+			valid: discord mention
+			valid: $shortcut
+			valid: ^
+			*/
+			let number;
+			const space_index = parameter.indexOf(" ");
+			if (parameter === "") number = 1;//no number specified, no username specified
+			else if (space_index === -1) {
+				number = parseInt(parameter);//it's either "!c" or "!c123" with params "" or "123"
+				parameter = "";
 			}
+			else if (space_index === 0) number = 1;//"!c user" with params " user"
+			else {
+				number = parseInt(parameter.substring(0, space_index));//number specified. either it's "!c123 user"
+				parameter = parameter.substring(space_index);
+			}
+			if (isNaN(number)) return false;
 			if (parameter.length != 0) {//username explicitly provided
 				if (parameter.length < 70) {//longest query should be less than 70 characters
 					if (!processRateLimit()) return false;
@@ -601,13 +616,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 						lolapi.getLink(msg.mentions.users.first().id).then(result => {
 							let username = msg.mentions.users.first().username;//suppose the link doesn't exist in the database
 							if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
-							callback(index, false, username, parameter, number);
+							callback(index, false, username, number, 4);
 						}).catch(console.error);
 					}
 					else if (parameter.substring(0, 2) == " $") {//shortcut
 						lolapi.getShortcut(msg.author.id, parameter.toLowerCase().substring(2)).then(result => {
-							callback(index, false, result[parameter.toLowerCase().substring(2)], parameter, number);
-
+							callback(index, false, result[parameter.toLowerCase().substring(2)], number, 1);
 						}).catch(e => {
 							if (e) reply(":x: An error has occurred. The shortcut may not exist.");
 						});
@@ -628,21 +642,26 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 								}
 							}
 							if (!UTILS.exists(user_id)) reply(":x: Could not find a recent username queried.");
-							else callback(index, true, user_id, parameter, number);
+							else callback(index, true, user_id, number, 5);
 						}).catch(e => {
 							console.error(e);
 							reply(":x: Could not find a recent username queried.");
 						});
 					}
-					else if (parameter[0] == " ") callback(index, false, parameter.substring(1).trim(), parameter, number);//explicit (required trailing space after command trigger)
+					else if (parameter[0] == " ") callback(index, false, parameter.substring(1).trim(), number, 0);//explicit (required trailing space after command trigger)
+					else return false;
+					return true;
 				}
 			}
 			else {//username not provided
 				if (!processRateLimit()) return false;
 				lolapi.getLink(msg.author.id).then(result => {
 					let username = msg.author.username;//suppose the link doesn't exist in the database
-					if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
-					callback(index, false, username, parameter, number);
+					if (UTILS.exists(result.username) && result.username != "") {
+						username = result.username;//link exists
+						callback(index, false, username, number, 2);
+					}
+					else callback(index, false, username, number, 3);
 				}).catch(console.error);
 				return true;
 			}
