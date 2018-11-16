@@ -136,6 +136,8 @@ module.exports = class Preferences {
 				else {//otherwise make a new one
 					UTILS.debug(this.sid + " preferences: preferences file not found");
 					console.error(new Error("Default preferences could not be written."));
+					cache[this.sid] = UTILS.copy(newPreferences);
+					//writing will be handled by the other boatbot 1 process
 				}
 			}
 			else UTILS.debug(this.sid + " preferences: cache hit");//exists in cache and nothing needs to be done
