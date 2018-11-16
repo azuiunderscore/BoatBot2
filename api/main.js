@@ -280,13 +280,13 @@ function addCache(url, response, cachetime) {
 		if (e) console.error(e);
 	});
 }
-function get(region, url, cachetime, maxage, request_id) {//TODO: cachtime logic is not correct
+function get(region, url, cachetime, maxage, request_id) {
 	//cachetime in seconds, if cachetime is 0, do not cache
 	//maxage in seconds, if maxage is 0, force refresh
 	let that = this;
 	return new Promise((resolve, reject) => {
 		const url_with_key = url.replace("?k=", "?k=" + CONFIG.OSU_API_KEY);
-		if (cachetime != 0) {//cache
+		if (maxage != 0) {//don't force refresh
 			checkCache(url, maxage, request_id).then((cached_result) => {
 				//UTILS.output("\tcache hit: " + url);
 				load_average[2].add();
@@ -300,14 +300,14 @@ function get(region, url, cachetime, maxage, request_id) {//TODO: cachtime logic
 						if (UTILS.exists(error)) reject(error);
 						else {
 							//UTILS.output("\tcache miss: " + url);
-							addCache(url, body, cachetime);
+							if (cachetime != 0) addCache(url, body, cachetime);
 							resolve(body);
 						}
 					});
 				}, null, () => {});
 			});
 		}
-		else {//don't cache
+		else {//force refresh maxage == 0
 			region_limiters[region].submit((no_use, cb) => {
 				cb();
 				request(url_with_key, (error, response, body) => {
@@ -316,6 +316,7 @@ function get(region, url, cachetime, maxage, request_id) {//TODO: cachtime logic
 						//UTILS.output("\tuncached: " + url);
 						load_average[1].add();
 						if (UTILS.exists(irs[request_id])) ++irs[request_id][1];
+						if (cachetime != 0) addCache(url, body, cachetime);
 						resolve(body);
 					}
 				});
