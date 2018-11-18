@@ -14,7 +14,8 @@ const tags = {
 	account: "accountid",//summoners by account id
 	cm: "championmastery",//summoner champion mastery
 	spectator: "spectator",
-	status: "status"
+	status: "status",
+	tpv: "tpv"
 };
 module.exports = class LOLAPI {
 	constructor(INIT_CONFIG, request_id) {
@@ -25,6 +26,8 @@ module.exports = class LOLAPI {
 		this.request = REQUEST;
 		this.address = "https://" + this.CONFIG.API_ADDRESS;
 		this.port = this.CONFIG.API_PORT;
+		this.created = new Date().getTime();
+		this.calls = 0;
 	}
 	ping() {
 		return new Promise((resolve, reject) => {
@@ -84,7 +87,7 @@ module.exports = class LOLAPI {
 			});
 		});
 	}
-	getIAPI(path, options, response_expected = true) {//get internal API
+	getIAPI(path, options, response_expected = true, json_expected = true) {//get internal API
 		let that = this;
 		options.k = this.CONFIG.API_KEY;
 		return new Promise((resolve, reject) => {
@@ -95,6 +98,7 @@ module.exports = class LOLAPI {
 				else url += "&" + i + "=" + encodeURIComponent(options[i]);
 				++paramcount;
 			}
+			++that.calls;
 			this.request({ url , agentOptions }, (error, response, body) => {
 				if (!response_expected) {
 					resolve();
@@ -109,9 +113,14 @@ module.exports = class LOLAPI {
 				else {
 					try {
 						//UTILS.debug(body, true);
-						const answer = JSON.parse(body);
-						UTILS.output("IAPI req: " + url);
-						resolve(answer);
+						if (json_expected) {
+							const answer = JSON.parse(body);
+							UTILS.output("IAPI req: " + url);
+							resolve(answer);
+						}
+						else {
+							resolve(body);
+						}
 					}
 					catch (e) {
 						reject(e);
@@ -141,8 +150,45 @@ module.exports = class LOLAPI {
 	getShortcuts(uid) {
 		return this.getIAPI("getshortcuts/" + uid, {});
 	}
-	terminate() {
-		this.getIAPI("terminate_request/" + this.request_id, {}, false).catch();
+	getVerifiedAccounts(uid) {
+		return this.getIAPI("getverified/" + uid, {});
+	}
+	setVerifiedAccount(uid, puuid, expiry) {
+		return this.getIAPI("setverified/" + uid, { from: puuid, to: expiry });
+	}
+	checkVerifiedAccount(uid, puuid) {
+		return new Promise((resolve, reject) => {
+			this.getIAPI("getverified/" + uid, {}).then(result => {
+				resolve(UTILS.exists(result.verifiedAccounts[puuid]));
+			}).catch(reject);
+		});
+	}
+	terminate(msg, plevel, response, embed) {
+		const now = new Date().getTime();
+		let opts = {
+			mid: msg.id,
+			uid: msg.author.id,
+			tag: msg.author.tag,
+			cid: msg.channel.id,
+			calls: this.calls,
+			creation_time: msg.createdTimestamp,
+			reply_time: now,
+			ttr: now - this.created,
+			permission: plevel,
+			shard: process.env.SHARD_ID
+		};
+		if (!msg.PM) {
+			opts.sid = msg.guild.id,
+			opts.guild_name = msg.guild.name,
+			opts.channel_name = msg.channel.name
+		}
+		if (UTILS.exists(msg.content)) {
+			opts.content = msg.content;
+			opts.clean_content = msg.cleanContent;
+		}
+		if (UTILS.exists(response)) opts.response = response;
+		if (UTILS.exists(embed)) opts.embed = JSON.stringify(embed);
+		this.getIAPI("terminate_request/" + this.request_id, opts, false).catch(console.error);
 	}
 	IAPIEval(script) {
 		return this.getIAPI("eval/" + encodeURIComponent(script), {});
@@ -279,10 +325,16 @@ module.exports = class LOLAPI {
 	getPreferences(sid) {
 		return this.getIAPI("getpreferences", { id: sid });
 	}
+	checkPreferences(sid) {
+		return this.getIAPI("existspreferences", { id: sid });
+	}
 	setPreferences(sid, prop, val, type) {
 		return this.getIAPI("setpreferences", { id: sid, prop, val, type });
 	}
 	resetPreferences(sid) {
 		return this.getIAPI("resetpreferences", { id: sid });
+	}
+	stats() {
+		return this.getIAPI("stats", {});
 	}
 }

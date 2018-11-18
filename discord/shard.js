@@ -57,7 +57,14 @@ client.on("message", function (msg) {
 		//const server_preferences = new Preferences(CONFIG, LOLAPI, msg.guild);
 		const ACCESS_LEVEL = UTILS.accessLevel(CONFIG, msg);
 		const SERVER_RL = msg.PM ? null : getServerRateLimiter(msg.guild.id);
-		if (!msg.PM) msg.guild.memberCount >= CONFIG.RATE_LIMIT.LARGE_SERVER_THRESHOLD ? SERVER_RL.setMode(CONFIG.RATE_LIMIT.LARGE_SERVER_MESSAGES, CONFIG.RATE_LIMIT.LARGE_SERVER_TIME_S) : SERVER_RL.setMode(CONFIG.RATE_LIMIT.SERVER_MESSAGES, CONFIG.RATE_LIMIT.SERVER_TIME_S);
+		if (!msg.PM) {
+			for (let i = CONFIG.RATE_LIMIT.SERVERS.length - 1; i >= 0; --i) {
+				if (msg.guild.memberCount >= CONFIG.RATE_LIMIT.SERVERS[i].MEMBER_COUNT) {
+					SERVER_RL.setMode(CONFIG.RATE_LIMIT.SERVERS[i].MESSAGES, CONFIG.RATE_LIMIT.SERVERS[i].TIME_S);
+					break;
+				}
+			}
+		}
 		new Preferences(LOLAPI, msg.guild, server_preferences => discordcommands(CONFIG, client, msg, wsapi, sendToChannel, sendEmbedToChannel, server_preferences, ACCESS_LEVEL, SERVER_RL, getUserRateLimiter(msg.author.id)));
 	}
 	catch (e) {
@@ -65,11 +72,20 @@ client.on("message", function (msg) {
 	}
 });
 client.on("guildCreate", function (guild) {
-	UTILS.output("Server Joined: " + guild.id + " :: " + guild.name + " :: " + guild.region + " :: Population=" + guild.memberCount + " :: " + guild.owner.user.tag);
-	sendToChannel(CONFIG.LOG_CHANNEL_ID, ":white_check_mark:`$" + process.env.SHARD_ID + "`Server Joined: `" + guild.id + "` :: " + guild.region + " :: " + guild.name + " :: :busts_in_silhouette:" + guild.memberCount + " :: " + guild.owner.user.tag);
-	guild.owner.send("BoatBot has joined your server: " + guild.name + "\nUse `Lhelp` for information on how to use BoatBot.\nAdd BoatBot to other servers using this link: <" + CONFIG.BOT_ADD_LINK + ">\BoatBot is a work in progress! Help us improve BoatBot by sending us your feedback at " + CONFIG.HELP_SERVER_INVITE_LINK).catch(e => console.error(e));
-	let candidate = UTILS.preferredTextChannel(client, guild.channels, "text", UTILS.defaultChannelNames(), ["VIEW_CHANNEL", "SEND_MESSAGES"]);
-	if (UTILS.exists(candidate)) candidate.send("Use `" + CONFIG.DISCORD_COMMAND_PREFIX + "help` for information on how to use BoatBot.\nAdd BoatBot to other servers using this link: <" + CONFIG.BOT_ADD_LINK + ">\nBoatBot is a work in progress! Help us improve BoatBot by sending us your feedback at " + CONFIG.HELP_SERVER_INVITE_LINK).catch();
+	LOLAPI.checkPreferences(guild.id).then(ans => {
+		if (ans.new) {
+			UTILS.output("Server Joined: " + guild.id + " :: " + guild.name + " :: " + guild.region + " :: Population=" + guild.memberCount + " :: " + guild.owner.user.tag);
+			sendToChannel(CONFIG.LOG_CHANNEL_ID, ":white_check_mark:`$" + process.env.SHARD_ID + "`Server Joined: `" + guild.id + "` :: " + guild.region + " :: " + guild.name + " :: :busts_in_silhouette:" + guild.memberCount + " :: " + guild.owner.user.tag);
+			guild.owner.send("BoatBot has joined your server: " + guild.name + "\nUse `Lhelp` for information on how to use BoatBot.\nAdd BoatBot to other servers using this link: <" + CONFIG.BOT_ADD_LINK + ">\BoatBot is a work in progress! Help us improve BoatBot by sending us your feedback at " + CONFIG.HELP_SERVER_INVITE_LINK).catch(e => console.error(e));
+			let candidate = UTILS.preferredTextChannel(client, guild.channels, "text", UTILS.defaultChannelNames(), ["VIEW_CHANNEL", "SEND_MESSAGES"]);
+			if (UTILS.exists(candidate)) candidate.send("Use `Lhelp` for information on how to use BoatBot.\nAdd BoatBot to other servers using this link: <" + CONFIG.BOT_ADD_LINK + ">\BoatBot is a work in progress! Help us improve BoatBot by sending us your feedback at " + CONFIG.HELP_SERVER_INVITE_LINK).catch();
+		}
+		else {
+			UTILS.output("Server Rejoined: " + guild.id + " :: " + guild.name + " :: " + guild.region + " :: Population=" + guild.memberCount + " :: " + guild.owner.user.tag);
+			sendToChannel(CONFIG.LOG_CHANNEL_ID, ":white_check_mark::repeat:`$" + process.env.SHARD_ID + "`Server Rejoined: `" + guild.id + "` :: " + guild.region + " :: " + guild.name + " :: :busts_in_silhouette:" + guild.memberCount + " :: " + guild.owner.user.tag);
+		}
+	}).catch(console.error);
+
 });
 client.on("guildDelete", function(guild) {
 	UTILS.output("Server Left: " + guild.id + " :: " + guild.region + " :: " + guild.name + " :: Population=" + guild.memberCount + " :: " + guild.owner.user.tag);

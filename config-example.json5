@@ -68,9 +68,11 @@
 	},
 	"API_PORT": 56831,
 	"API_ADDRESS": "localhost",
-	"API_PERIOD": 250,
-	"API_KEY": "insert random string here",
-	"API_CACHETIME": {
+	"API_PERIOD": 250,//period (in ms) between requests to osu API servers. this is managed by the iapi. this setting has no effect anymore
+	"API_KEY": "insert random string here",//for internal api use only
+	"API_SEQUENTIAL": true,//whether or not multiple api requests should be sequential or bursted
+	"MONGODB_ADDRESS": "mongodb://localhost/apicache",//mongodb database address
+	"API_CACHETIME": {//how long (in seconds) the api document should remain in cache. set to 0 to never cache
 		"GET_USER": 86400,
 		"GET_USER_BEST": 86400,
 		"PHP_PROFILE_LEADER": 86400,
@@ -108,13 +110,25 @@
 	},
 	"RATE_LIMIT": {
 		"CHANNEL_ID": "channel id here",//reports rate limit incidents in this channel
-		"LARGE_SERVER_THRESHOLD": 200,//the point where a server is large and the rate limit is increased
 		"USER_MESSAGES": 4,
 		"USER_TIME_S": 60,
-		"SERVER_MESSAGES": 6,
-		"SERVER_TIME_S": 60,
-		"LARGE_SERVER_MESSAGES": 8,
-		"LARGE_SERVER_TIME_S": 60
+		"SERVERS": [{
+			MESSAGES: 4,
+			TIME_S: 60,
+			MEMBER_COUNT: 0//minimum members required to qualify
+		}, {
+			MESSAGES: 6,
+			TIME_S: 60,
+			MEMBER_COUNT: 5
+		}, {
+			MESSAGES: 8,
+			TIME_S: 60,
+			MEMBER_COUNT: 200
+		}, {
+			MESSAGES: 10,
+			TIME_S: 60,
+			MEMBER_COUNT: 1000
+		}]
 	},
 	"FEEDBACK": {
 		"EXTERNAL_CID": "channel id here",//where external feedback comes to get approved
@@ -123,5 +137,7 @@
 		"SUGGESTION_CID": "channel id here",//approved public suggestion channel
 		"APPROVED_IMAGE_LINK": "https://cdn.discordapp.com/emojis/382263196477685771.png?v=1",//footer image for approved feedback (currently unused)
 		"DENIED_IMAGE_LINK": "https://cdn.discordapp.com/emojis/493118209566965764.png?v=1"//footer image for denied feedback (currently unused)
-	}
+	},
+	"TPV_KEY": "random string here",//third party verification code HMAC key
+	"AUDIT_TTL": 31536000//time in seconds to keep logs of command use (default: 1 year)
 }

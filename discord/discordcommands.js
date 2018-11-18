@@ -6,6 +6,7 @@ const UTILS = new (require("../utils.js"))();
 let LOLAPI = require("./lolapi.js");
 let Profiler = require("../timeprofiler.js");
 let ctable = require("console.table");
+const crypto = require("crypto");
 module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedToChannel, preferences, ACCESS_LEVEL, server_RL, user_RL) {
 	if (msg.author.bot || msg.author.id === client.user.id) return;//ignore all messages from [BOT] users and own messages
 	if (!msg.PM && !msg.channel.permissionsFor(client.user).has(["VIEW_CHANNEL", "SEND_MESSAGES"])) return;//dont read messages that can't be responded to
@@ -47,8 +48,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	command([preferences.get("prefix") + "banuser "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		//Lbanuser <uid> <duration> <reason>
 		const id = parameter.substring(0, parameter.indexOf(" "));
-		const reason = parameter.substring(UTILS.indexOfInstance(parameter, " ", 2) + 1);
-		let duration = parameter.substring(UTILS.indexOfInstance(parameter, " ", 1) + 1, UTILS.indexOfInstance(parameter, " ", 2));
+		const reason = parameter.substring(parameter.indexOfInstance(" ", 2) + 1);
+		let duration = parameter.substring(parameter.indexOfInstance(" ", 1) + 1, parameter.indexOfInstance(" ", 2));
 		duration = duration == "0" ? duration = 0 : UTILS.durationParse(duration);
 		if (isNaN(duration)) return reply(":x: The duration is invalid.");
 		const end_date = duration == 0 ? 0 : new Date().getTime() + duration;
@@ -64,8 +65,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	command([preferences.get("prefix") + "banserver "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		//Lbanserver <sid> <duration> <reason>
 		const id = parameter.substring(0, parameter.indexOf(" "));
-		const reason = parameter.substring(UTILS.indexOfInstance(parameter, " ", 2) + 1);
-		let duration = parameter.substring(UTILS.indexOfInstance(parameter, " ", 1) + 1, UTILS.indexOfInstance(parameter, " ", 2));
+		const reason = parameter.substring(parameter.indexOfInstance(" ", 2) + 1);
+		let duration = parameter.substring(parameter.indexOfInstance(" ", 1) + 1, parameter.indexOfInstance(" ", 2));
 		duration = duration == "0" ? duration = 0 : UTILS.durationParse(duration);
 		if (isNaN(duration)) return reply(":x: The duration is invalid.");
 		const end_date = duration == 0 ? 0 : new Date().getTime() + duration;
@@ -178,13 +179,22 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		reply(msg.mentions.users.first().tag + " has " + (isOwner(msg.mentions.users.first().id, false) ? "owner" : "normal") + " permissions.");
 	});
 	command([preferences.get("prefix") + "cs"], false, CONFIG.CONSTANTS.BOTOWNERS, () => {
-		reply("This is shard " + process.env.SHARD_ID);
+		lolapi.stats().then(iapi_stats => {
+			UTILS.aggregateClientEvals(client, [["this.guilds.size", r => r.reduce((prev, val) => prev + val, 0) + " (" + r.join(", ") + ")"],
+				["this.users.size", r => r.reduce((prev, val) => prev + val, 0) + " (" + r.join(", ") + ")"],
+				["this.guilds.map(g => g.memberCount).reduce((prev, val) => prev + val, 0)", r => r.reduce((prev, val) => prev + val, 0) + " (" + r.join(", ") + ")"]]).then(c_eval => {
+				replyEmbed(embedgenerator.debug(CONFIG, client, iapi_stats, c_eval));
+			});
+		}).catch(console.error);
 	});
 	command([preferences.get("prefix") + "ping", preferences.get("prefix") + "latency"], false, false, () => {
 		reply("command to response time: ", nMsg => textgenerator.ping_callback(msg, nMsg));
 	});
 	command(["iping"], false, false, () => {
 		lolapi.ping().then(times => reply(textgenerator.internal_ping(times))).catch(console.error);
+	});
+	command(["wping"], false, false, () => {
+		wsapi.ping(times => reply(textgenerator.ws_ping(times)));
 	});
 	command([preferences.get("prefix") + "ping "], true, false, function (original, index, parameter) {
 		reply("you said: " + parameter);
@@ -272,12 +282,13 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	});*/
 	command([preferences.get("prefix") + "setshortcut ", preferences.get("prefix") + "ss ", preferences.get("prefix") + "createshortcut ", preferences.get("prefix") + "addshortcut "], true, false, (original, index, parameter) => {
 		if (parameter[0] !== "$") return reply(":x: The shortcut must begin with an `$`. Please try again.");
-		if (parameter.indexOf(" ") === -1) return reply(":x: The shortcut word and the username must be separated by a space. Please try again.");
-		if (parameter.length > 60) return reply(":x: The shortcut name or the username is too long.");
+		else if (parameter.indexOf(" ") === -1) return reply(":x: The shortcut word and the username must be separated by a space. Please try again.");
+		else if (parameter.length > 60) return reply(":x: The shortcut name or the username is too long.");
 		const from = parameter.substring(1, parameter.indexOf(" ")).toLowerCase();
 		if (from.length === 0) return reply(":x: The shortcut name was not specified. Please try again.");
 		const to = parameter.substring(parameter.indexOf(" ") + 1);
 		if (to.length === 0) return reply(":x: The username was not specified. Please try again.");
+		else if (parameter.substring(1).indexOf("$") !== -1) return reply(":x: The shortcut cannot contain more than 1 `$` character.");
 		lolapi.createShortcut(msg.author.id, from, to).then(result => {
 			if (result.success) reply(":white_check_mark: `$" + from + "` will now point to `" + to + "`.");
 			else reply(":x: You can only have up to 50 shortcuts. Please remove some and try again.");
@@ -651,7 +662,6 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 					}
 					else if (parameter[0] == " ") callback(index, false, parameter.substring(1).trim(), number, 0);//explicit (required trailing space after command trigger)
 					else return false;
-					return true;
 				}
 			}
 			else {//username not provided
@@ -696,7 +706,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	}
 	function reply(reply_text, callback, errorCallback) {
 		printMessage("reply (" + (new Date().getTime() - msg_receive_time) + "ms): " + reply_text + "\n");
-		lolapi.terminate();
+		lolapi.terminate(msg, ACCESS_LEVEL, reply_text);
 		msg.channel.send(reply_text, { split: true }).then((nMsg) => {
 			if (UTILS.exists(callback)) callback(nMsg);
 		}).catch((e) => {
@@ -707,7 +717,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 
 	function replyToAuthor(reply_text, callback, errorCallback) {
 		printMessage("reply to author (" + (new Date().getTime() - msg_receive_time) + "ms): " + reply_text + "\n");
-		lolapi.terminate();
+		lolapi.terminate(msg, ACCESS_LEVEL, reply_text);
 		msg.author.send(reply_text, { split: true }).then((nMsg) => {
 			if (UTILS.exists(callback)) callback(nMsg);
 		}).catch((e) => {
@@ -718,12 +728,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 
 	function replyEmbed(reply_embed, callback, errorCallback) {
 		if (!msg.PM && !msg.channel.permissionsFor(client.user).has(["EMBED_LINKS"])) {//doesn't have permission to embed links in server
-			lolapi.terminate();
+			lolapi.terminate(msg, ACCESS_LEVEL, ":x: I cannot respond to your request without the \"embed links\" permission.");
 			reply(":x: I cannot respond to your request without the \"embed links\" permission.");
 		}
 		else {//has permission to embed links, or is a DM/PM
 			printMessage("reply embedded (" + (new Date().getTime() - msg_receive_time) + "ms)\n");
-			lolapi.terminate();
+			lolapi.terminate(msg, ACCESS_LEVEL, undefined, reply_embed);
 			msg.channel.send("", { embed: reply_embed }).then((nMsg) => {
 				if (UTILS.exists(callback)) callback(nMsg);
 			}).catch((e) => {
@@ -735,7 +745,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 
 	function replyEmbedToAuthor(reply_embed, callback, errorCallback) {
 		printMessage("reply embedded to author (" + (new Date().getTime() - msg_receive_time) + "ms)\n");
-		lolapi.terminate();
+		lolapi.terminate(msg, ACCESS_LEVEL, undefined, reply_embed);
 		msg.author.send("", { embed: reply_embed }).then((nMsg) => {
 			if (UTILS.exists(callback)) callback(nMsg);
 		}).catch((e) => {
