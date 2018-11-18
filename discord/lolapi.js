@@ -2,13 +2,26 @@
 const UTILS = new (require("../utils.js"))();
 const fs = require("fs");
 const REQUEST = require("request");
-const agentOptions = { ca: fs.readFileSync("../data/keys/ca.crt") };
+const XRegExp = require("xregexp");
+const agentOptions = { ca: fs.readFileSync("../data/keys/ca.crt"), timeout: 120000 };
+const tags = {
+	match: "match",//matches, timelines
+	matchhistory: "matchlist",//matchlists
+	cmr: "cmr",//champions, masteries, runes
+	leagues: "league",//leagues, challenger, master
+	ranks: "league",//by summoner id
+	summoner: "summonerid",//summoners by name or id
+	account: "accountid",//summoners by account id
+	cm: "championmastery",//summoner champion mastery
+	spectator: "spectator",
+	status: "status"
+};
 module.exports = class LOLAPI {
 	constructor(INIT_CONFIG, request_id) {
 		this.CONFIG = INIT_CONFIG;
 		this.request_id = request_id;
-		if (!UTILS.exists(this.CONFIG)) throw new Error("config.json required to access riot api.");
-		else if (!UTILS.exists(this.CONFIG.RIOT_API_KEY) || this.CONFIG.RIOT_API_KEY === "") throw new Error("config.json RIOT_API_KEY required to access riot api.");
+		if (!UTILS.exists(this.CONFIG)) throw new Error("config.json required to access osu api.");
+		else if (!UTILS.exists(this.CONFIG.OSU_API_KEY) || this.CONFIG.OSU_API_KEY === "") throw new Error("config.json OSU_API_KEY required to access osu api.");
 		this.request = REQUEST;
 		this.address = "https://" + this.CONFIG.API_ADDRESS;
 		this.port = this.CONFIG.API_PORT;
@@ -23,18 +36,17 @@ module.exports = class LOLAPI {
 			}).catch(reject);
 		});
 	}
-	get(region, path, options, cachetime, maxage) {
+	get(path, options, cachetime, maxage) {
 		let that = this;
 		return new Promise((resolve, reject) => {
-			UTILS.assert(UTILS.exists(region));
 			UTILS.assert(UTILS.exists(cachetime));
 			UTILS.assert(UTILS.exists(maxage));
-			let url = "https://" + region + ".api.riotgames.com/lol/" + path + "?api_key=";
+			let url = this.CONFIG.OSU_SERVERS.OSU + path + "?k=";
 			for (let i in options) {
 				url += "&" + i + "=" + encodeURIComponent(options[i]);
 			}
-			//UTILS.output("IAPI req sent: " + url.replace(that.CONFIG.RIOT_API_KEY, ""));
-			url = this.address + ":" + this.port + "/lol/" + region + "/" + cachetime + "/" + maxage + "/" + this.request_id + "/?k=" + encodeURIComponent(this.CONFIG.API_KEY) +"&url=" + encodeURIComponent(url);
+			//UTILS.output("IAPI req sent: " + url.replace(that.CONFIG.OSU_API_KEY, ""));
+			url = this.address + ":" + this.port + "/osu/" + cachetime + "/" + maxage + "/" + this.request_id + "/?k=" + encodeURIComponent(this.CONFIG.API_KEY) +"&url=" + encodeURIComponent(url);
 			this.request({ url, agentOptions }, (error, response, body) => {
 				if (UTILS.exists(error)) {
 					reject(error);
@@ -42,13 +54,33 @@ module.exports = class LOLAPI {
 				else {
 					try {
 						const answer = JSON.parse(body);
-						if (UTILS.exists(answer.status)) UTILS.output(url + " : " + body);
+						UTILS.debug(url + " : " + body);
 						resolve(answer);
 					}
 					catch (e) {
 						reject(e);
 					}
 				}
+			});
+		});
+	}
+	getOffAPI(path, options, cachetime, maxage) {
+		let that = this;
+		return new Promise((resolve, reject) => {
+			UTILS.assert(UTILS.exists(cachetime));
+			UTILS.assert(UTILS.exists(maxage));
+			let url = path;
+			let paramcount = 0;
+			for (let i in options) {
+				if (paramcount == 0) url += "?" + i + "=" + encodeURIComponent(options[i]);
+				else url += "&" + i + "=" + encodeURIComponent(options[i]);
+				++paramcount;
+			}
+			//UTILS.debug("IAPI req sent: " + url.replace(that.CONFIG.OSU_API_KEY, ""));
+			url = this.address + ":" + this.port + "/osu/" + cachetime + "/" + maxage + "/" + this.request_id + "/?k=" + encodeURIComponent(this.CONFIG.API_KEY) +"&url=" + encodeURIComponent(url);
+			this.request({ url, agentOptions }, (error, response, body) => {
+				if (UTILS.exists(error)) reject(error);
+				else resolve(body);
 			});
 		});
 	}
@@ -76,6 +108,7 @@ module.exports = class LOLAPI {
 				}
 				else {
 					try {
+						//UTILS.debug(body, true);
 						const answer = JSON.parse(body);
 						UTILS.output("IAPI req: " + url);
 						resolve(answer);
@@ -85,148 +118,6 @@ module.exports = class LOLAPI {
 					}
 				}
 			});
-		});
-	}
-	getStatic(path) {//data dragon
-		return new Promise((resolve, reject) => {
-			let url = "https://ddragon.leagueoflegends.com/" + path;
-			this.request(url, function (error, response, body) {
-				if (error != undefined && error != null) {
-					reject(error);
-				}
-				else {
-					try {
-						const answer = JSON.parse(body);
-						if (UTILS.exists(answer.status)) UTILS.output(url + " : " + body);
-						else UTILS.output(url);
-						resolve(answer);
-					}
-					catch (e) {
-						reject(e);
-					}
-				}
-			});
-		});
-	}
-	//get(path, options) {}
-	getSummonerIDFromName(region, username, maxage) {
-		return this.get(region, "summoner/v3/summoners/by-name/" + encodeURIComponent(username), {}, this.CONFIG.API_CACHETIME.GET_SUMMONER_ID_FROM_NAME, maxage);
-	}
-	getMultipleSummonerIDFromName(region, usernames, maxage) {
-		let that = this;
-		let requests = [];
-		if (this.CONFIG.API_SEQUENTIAL) {
-			for (let i in usernames) requests.push(function () { return that.getSummonerIDFromName(region, usernames[i], maxage); });
-			return UTILS.sequential(requests);
-		}
-		else {
-			for (let i in usernames) requests.push(that.getSummonerIDFromName(region, usernames[i], maxage));
-			return Promise.all(requests);
-		}
-	}
-	getSummonerFromSummonerID(region, id, maxage) {
-		if (id === null) return new Promise((resolve, reject) => { resolve({}); });
-		return this.get(region, "summoner/v3/summoners/" + id, {}, this.CONFIG.API_CACHETIME.GET_SUMMONER_FROM_SUMMONER_ID, maxage);
-	}
-	getMultipleSummonerFromSummonerID(region, ids, maxage) {
-		let that = this;
-		let requests = [];
-		if (this.CONFIG.API_SEQUENTIAL) {
-			for (let i in ids) requests.push(function () { return that.getSummonerFromSummonerID(region, ids[i], maxage); });
-			return UTILS.sequential(requests);
-		}
-		else {
-			for (let i in ids) requests.push(that.getSummonerFromSummonerID(region, ids[i], maxage));
-			return Promise.all(requests);
-		}
-	}
-	getRanks(region, summonerID, maxage) {
-		if (summonerID === null) return new Promise((resolve, reject) => { resolve([]); });
-		return this.get(region, "league/v3/positions/by-summoner/" + summonerID, {}, this.CONFIG.API_CACHETIME.GET_RANKS, maxage);
-	}
-	getMultipleRanks(region, summonerIDs, maxage) {
-		let that = this;
-		let requests = [];
-		for (let i in summonerIDs) requests.push(that.getRanks(region, summonerIDs[i], maxage));
-		return Promise.all(requests);
-	}
-	getChampionMastery(region, summonerID, maxage) {
-		if (summonerID === null) return new Promise((resolve, reject) => { resolve([]); });
-		return this.get(region, "champion-mastery/v3/champion-masteries/by-summoner/" + summonerID, {}, this.CONFIG.API_CACHETIME.GET_CHAMPION_MASTERY, maxage);
-	}
-	getMultipleChampionMastery(region, summonerIDs, maxage) {
-		let that = this;
-		let requests = [];
-		for (let i in summonerIDs) requests.push(that.getChampionMastery(region, summonerIDs[i], maxage));
-		return Promise.all(requests);
-	}
-	getStaticChampions(region) {
-		UTILS.output("STATIC CHAMPIONS: " + region);
-		return this.get(region, "static-data/v3/champions", { locale: "en_US", dataById: true, tags: "all" }, this.CONFIG.API_CACHETIME.STATIC_CHAMPIONS, this.CONFIG.API_CACHETIME.STATIC_CHAMPIONS);
-	}
-	getStaticSummonerSpells(region) {
-		UTILS.output("STATIC SPELLS: " + region);
-		return this.get(region, "static-data/v3/summoner-spells", { locale: "en_US", dataById: true, spellListData: "all", tags: "all" }, this.CONFIG.API_CACHETIME.STATIC_SPELLS, this.CONFIG.API_CACHETIME.STATIC_SPELLS);
-	}
-	getRecentGames(region, accountID, maxage) {
-		return this.get(region, "match/v3/matchlists/by-account/" + accountID, { endIndex: 20 }, this.CONFIG.API_CACHETIME.GET_RECENT_GAMES, maxage);
-	}
-	getMultipleRecentGames(region, accountIDs, maxage) {
-		let that = this;
-		let requests = [];
-		if (this.CONFIG.API_SEQUENTIAL) {
-			for (let i in accountIDs) requests.push(function () { return that.getRecentGames(region, accountIDs[i], maxage); });
-			return UTILS.sequential(requests);
-		}
-		else {
-			for (let i in accountIDs) requests.push(that.getRecentGames(region, accountIDs[i], maxage));
-			return Promise.all(requests);
-		}
-	}
-	getMatchInformation(region, gameID, maxage) {
-		return this.get(region, "match/v3/matches/" + gameID, {}, this.CONFIG.API_CACHETIME.GET_MATCH_INFORMATION, maxage);
-	}
-	getMultipleMatchInformation(region, gameIDs, maxage) {
-		let that = this;
-		let requests = [];
-		if (this.CONFIG.API_SEQUENTIAL) {
-			for (let i in gameIDs) requests.push(function () { return that.getMatchInformation(region, gameIDs[i], maxage); });
-			return UTILS.sequential(requests);
-		}
-		else {
-			for (let i in gameIDs) requests.push(that.getMatchInformation(region, gameIDs[i], maxage));
-			return Promise.all(requests);
-		}
-	}
-	getLiveMatch(region, summonerID, maxage) {
-		return this.get(region, "spectator/v3/active-games/by-summoner/" + summonerID, {}, this.CONFIG.API_CACHETIME.GET_LIVE_MATCH, maxage);
-	}
-	getMMR(region, summonerID, maxage) {
-		return this.get(region, "league/v3/mmr-af/by-summoner/" + summonerID, {}, this.CONFIG.API_CACHETIME.GET_MMR, maxage);
-	}
-	getStatus(region, maxage) {
-		return this.get(region, "status/v3/shard-data", {}, this.CONFIG.API_CACHETIME.GET_STATUS, maxage);
-	}
-	getChallengerRanks(region, queue, maxage) {
-		return this.get(region, "league/v3/challengerleagues/by-queue/" + queue, {}, this.CONFIG.API_CACHETIME.GET_CHALLENGERS, maxage);
-	}
-	getSummonerCard(region, username) {
-		const that = this;
-		return new Promise((resolve, reject) => {
-			that.getSummonerIDFromName(region, username, this.CONFIG.API_MAXAGE.SUMMONER_CARD.SUMMONER_ID).then(result => {
-				result.region = region;
-				result.guess = username;
-				if (!UTILS.exists(result.id)) reject();
-				that.getRanks(region, result.id, this.CONFIG.API_MAXAGE.SUMMONER_CARD.RANKS).then(result2 => {
-					Promise.all(result2.map(r => that.getChallengerRanks(region, r.queueType, this.CONFIG.API_MAXAGE.SUMMONER_CARD.CHALLENGERS))).then(result5 => {
-						that.getChampionMastery(region, result.id, this.CONFIG.API_MAXAGE.SUMMONER_CARD.CHAMPION_MASTERY).then(result3 => {
-							that.getLiveMatch(region, result.id, this.CONFIG.API_MAXAGE.SUMMONER_CARD.LIVE_MATCH).then(result4 => {
-								resolve([result, result2, result3, result4, result5]);
-							}).catch(reject);
-						}).catch(reject);
-					}).catch(reject);
-				}).catch(reject);
-			}).catch(reject);
 		});
 	}
 	clearCache() {
@@ -286,13 +177,112 @@ module.exports = class LOLAPI {
 	unbanServer(sid, issuer, issuer_tag, issuer_avatarURL) {
 		return this.getIAPI("unban", { id: sid, user: false, issuer, issuer_tag, issuer_avatarURL });
 	}
-	userHistory(uid, complete = false) {
+	userHistory(uid, complete = true) {
 		return complete ? this.getIAPI("gethistory", { id: uid, user: true }) : this.getIAPI("gethistory", { id: uid, user: true, limit: 10 });
 	}
-	serverHistory(sid, complete = false) {
+	serverHistory(sid, complete = true) {
 		return complete ? this.getIAPI("gethistory", { id: sid, user: false }) : this.getIAPI("gethistory", { id: sid, user: false, limit: 10 });
 	}
 	getActions(uid, complete = false) {
 		return complete ? this.getIAPI("getactions", { id: uid }) : this.getIAPI("getactions", { id: uid, limit: 10 });
+	}
+	osuGetUser(u, m = 0, id, maxage) {
+		let that = this;
+		const type = id ? "id" : "string";
+		if (typeof(u) == "string") u = u.toLowerCase();
+		return new Promise((resolve, reject) => { that.get("get_user", { u, m, type }, that.CONFIG.API_CACHETIME.GET_USER, maxage).then(result => resolve(result[0])).catch(reject); });
+	}
+	osuGetUserBest(u, m = 0, limit = 100, id, maxage) {
+		const type = id ? "id" : "string";
+		if (typeof(u) == "string") u = u.toLowerCase();
+		return this.get("get_user_best", { u, m, limit, type }, this.CONFIG.API_CACHETIME.GET_USER_BEST, maxage);
+	}
+	osuGetUserRecent(u, m = 0, limit = 50, id, maxage) {
+		const type = id ? "id" : "string";
+		if (typeof(u) == "string") u = u.toLowerCase();
+		return this.get("get_user_recent", { u, m, limit, type }, this.CONFIG.API_CACHETIME.GET_USER_RECENT, maxage);
+	}
+	osuMostRecentMode(u, id, timeout = false, maxage) {
+		const type = id ? "id" : "string";
+		if (typeof(u) == "string") u = u.toLowerCase();
+		return new Promise((resolve, reject) => {
+			Promise.all([this.osuGetUserRecent(u, 0, 50, id, maxage), this.osuGetUserRecent(u, 1, 50, id, maxage), this.osuGetUserRecent(u, 2, 50, id, maxage), this.osuGetUserRecent(u, 3, 50, id, maxage)]).then(values => {
+				let latest = 0;
+				let latest_index = -1;
+				for (let b in values) {
+					if (UTILS.exists(values[b][0])) {
+						const candidate = new Date(new Date(values[b][0].date) - 28800000);
+						if (candidate.getTime() > latest) {
+							latest = candidate.getTime();
+							//UTILS.debug("found higher value for latest: " + latest);
+							latest_index = b;
+						}
+					}
+				}
+				if (timeout) {
+					if (latest != 0 && latest_index != -1) {
+						if (latest > new Date().getTime() - 90000) {
+							UTILS.debug("latest play is valid");
+							if (latest_index != -1) {
+								resolve(latest_index);
+							}
+							else {
+								reject();
+							}
+						}
+						else {
+							UTILS.debug("latest play is expired");
+							UTILS.debug("typeof(latest) is " + typeof (latest));
+							UTILS.debug("latest is " + (latest));
+							UTILS.debug("latest_index is " + latest_index);
+							UTILS.debug("current time is " + new Date().getTime());
+							UTILS.debug("1.5 min ago was " + (new Date().getTime() - 90000));
+							reject();
+						}
+					}
+					else {
+						UTILS.debug("typeof(latest) is " + typeof (latest));
+						UTILS.debug("latest is " + (latest));
+						UTILS.debug("latest_index is " + latest_index);
+						UTILS.debug("current time is " + new Date().getTime());
+						UTILS.debug("1.5 min ago was " + (new Date().getTime() - 90000));
+						reject();
+					}
+				}
+				else {
+					if (latest_index != -1) {
+						resolve(latest_index);
+					}
+					else {
+						reject();
+					}
+				}
+			}).catch(e => {
+				console.error(e);
+				reject(null);
+			});
+		});
+	}
+	osuPHPProfileLeader(user_id, m = 0, pp = 0, maxage) {
+		return this.getOffAPI("https://osu.ppy.sh/pages/include/profile-leader.php", { u: user_id, m, pp }, this.CONFIG.API_CACHETIME.PHP_PROFILE_LEADER, maxage);
+	}
+	osuOldUserPage(user_id, maxage) {
+		return this.getOffAPI("https://osu.ppy.sh/u/" + user_id, {}, this.CONFIG.API_CACHETIME.OLD_USER_PAGE, maxage);
+	}
+	osuUserPage(user_id, mode = 0, maxage) {
+		mode = ["osu", "taiko", "fruits", "mania"][mode]
+		return this.getOffAPI("https://osu.ppy.sh/users/" + user_id + "/" + mode, {}, this.CONFIG.API_CACHETIME.USER_PAGE, maxage);
+	}
+	osuPHPProfileGeneral(user_id, m = 0, maxage) {
+		return this.getOffAPI("https://osu.ppy.sh/pages/include/profile-general.php", { u: user_id, m }, this.CONFIG.API_CACHETIME.PHP_PROFILE_GENERAL, maxage);
+	}
+	getPreferences(sid) {
+		return this.getIAPI("getpreferences", { id: sid });
+	}
+	setPreferences(sid, prop, val, type) {
+		return this.getIAPI("setpreferences", { id: sid, prop, val, type });
+	}
+	resetPreferences(sid) {
+		return this.getIAPI("resetpreferences", { id: sid });
 	}
 }

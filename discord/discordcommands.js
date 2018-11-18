@@ -5,13 +5,19 @@ let child_process = require("child_process");
 const UTILS = new (require("../utils.js"))();
 let LOLAPI = require("./lolapi.js");
 let Profiler = require("../timeprofiler.js");
-module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
+let ctable = require("console.table");
+module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedToChannel, preferences, ACCESS_LEVEL, server_RL, user_RL) {
 	if (msg.author.bot || msg.author.id === client.user.id) return;//ignore all messages from [BOT] users and own messages
-	if (UTILS.exists(msg.guild) && !msg.channel.permissionsFor(client.user).has(["VIEW_CHANNEL", "SEND_MESSAGES"])) return;//dont read messages that can't be responded to
+	if (!msg.PM && !msg.channel.permissionsFor(client.user).has(["VIEW_CHANNEL", "SEND_MESSAGES"])) return;//dont read messages that can't be responded to
+	if (!UTILS.exists(CONFIG.BANS) || !UTILS.exists(CONFIG.BANS.USERS) || !UTILS.exists(CONFIG.BANS.SERVERS)) {
+		wsapi.getUserBans();
+		wsapi.getServerBans();
+		return UTILS.output("message " + msg.id + " could not be processed because ban data has not been loaded yet");
+	}
 	if (UTILS.exists(CONFIG.BANS.USERS[msg.author.id]) && (CONFIG.BANS.USERS[msg.author.id] == 0 || CONFIG.BANS.USERS[msg.author.id] > msg.createdTimestamp)) return;//ignore messages from banned users
-	if (UTILS.exists(msg.guild) && UTILS.exists(CONFIG.BANS.SERVERS[msg.guild.id])) {
+	if (!msg.PM && UTILS.exists(CONFIG.BANS.SERVERS[msg.guild.id])) {
 		if (CONFIG.BANS.SERVERS[msg.guild.id] == 0) {//permanent ban
-			reply(":no_entry: This server is banned from using SupportBot. Please visit " + CONFIG.HELP_SERVER_INVITE_LINK + " for assistance.", () => {
+			reply(":no_entry: This server is banned from using BoatBot. Please visit " + CONFIG.HELP_SERVER_INVITE_LINK + " for assistance.", () => {
 				msg.guild.leave().catch(console.error);//leave server
 			}, () => {
 				msg.guild.leave().catch(console.error);//leave server
@@ -26,8 +32,19 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 	let lolapi = new LOLAPI(CONFIG, msg.id);
 	request_profiler.mark("lolapi instantiated");
 
+	command(["boatsetprefix "], true, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index, parameter) => {
+		const candidate = parameter.trim().toLowerCase();
+		if (candidate.length > 100) return reply(":x: This prefix is too long.");
+		preferences.set("prefix", candidate).then(() => reply(":white_check_mark: The prefix was set to " + candidate)).catch(reply);
+	});
+	command(["boatsetprefix"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
+		preferences.set("prefix", "").then(() => reply(":white_check_mark: Prefixless operation enabled")).catch(reply);
+	});
+	command([preferences.get("prefix") + "owner", preferences.get("prefix") + "owners"], false, false, (original, index) => {
+		reply(textgenerator.owners(CONFIG));
+	});
 	//respondable server message or PM
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "banuser "], true, true, (original, index, parameter) => {
+	command([preferences.get("prefix") + "banuser "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		//Lbanuser <uid> <duration> <reason>
 		const id = parameter.substring(0, parameter.indexOf(" "));
 		const reason = parameter.substring(UTILS.indexOfInstance(parameter, " ", 2) + 1);
@@ -44,7 +61,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 			reply(":no_entry: User banned, id " + id + " by " + msg.author.tag + " for : " + reason);
 		}).catch(console.error);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "banserver "], true, true, (original, index, parameter) => {
+	command([preferences.get("prefix") + "banserver "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		//Lbanserver <sid> <duration> <reason>
 		const id = parameter.substring(0, parameter.indexOf(" "));
 		const reason = parameter.substring(UTILS.indexOfInstance(parameter, " ", 2) + 1);
@@ -58,7 +75,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 			reply(":no_entry: Server banned, id " + id + " by " + msg.author.tag + " for " + duration + ": " + reason);
 		}).catch(console.error);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "warnuser "], true, true, (original, index, parameter) => {
+	command([preferences.get("prefix") + "warnuser "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		//Lwarnuser <uid> <reason>
 		const id = parameter.substring(0, parameter.indexOf(" "));
 		const reason = parameter.substring(parameter.indexOf(" ") + 1);
@@ -70,7 +87,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 			reply(":warning: User warned, id " + id + " by " + msg.author.tag + ": " + reason);
 		}).catch(console.error);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "warnserver "], true, true, (original, index, parameter) => {
+	command([preferences.get("prefix") + "warnserver "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		//Lwarnserver <uid> <reason>
 		const id = parameter.substring(0, parameter.indexOf(" "));
 		const reason = parameter.substring(parameter.indexOf(" ") + 1);
@@ -80,7 +97,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 			reply(CONFIG.LOG_CHANNEL_ID, ":warning: Server warned, id " + id + " by " + msg.author.tag + ": " + reason);
 		}).catch(console.error);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "noteuser "], true, true, (original, index, parameter) => {
+	command([preferences.get("prefix") + "noteuser "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		//Lnoteuser <uid> <reason>
 		const id = parameter.substring(0, parameter.indexOf(" "));
 		const reason = parameter.substring(parameter.indexOf(" ") + 1);
@@ -90,7 +107,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 			sendToChannel(CONFIG.LOG_CHANNEL_ID, ":information_source: User note added, id " + id + " by " + msg.author.tag + ": " + reason);
 		}).catch(console.error);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "noteserver "], true, true, (original, index, parameter) => {
+	command([preferences.get("prefix") + "noteserver "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		//Lnoteserver <sid> <reason>
 		const id = parameter.substring(0, parameter.indexOf(" "));
 		const reason = parameter.substring(parameter.indexOf(" ") + 1);
@@ -100,59 +117,79 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 			sendToChannel(CONFIG.LOG_CHANNEL_ID, ":information_source: Server note added, id " + id + " by " + msg.author.tag + ": " + reason);
 		}).catch(console.error);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "userhistory "], true, true, (original, index, parameter) => {
+	command([preferences.get("prefix") + "userhistory "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		//Luserhistory <uid>
 		lolapi.userHistory(parameter).then(results => {
-			reply_embed(embedgenerator.disciplinaryHistory(CONFIG, parameter, true, results[parameter]));
+			replyEmbed(embedgenerator.disciplinaryHistory(CONFIG, parameter, true, results[parameter]));
 		}).catch();
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "serverhistory "], true, true, (original, index, parameter) => {
+	command([preferences.get("prefix") + "serverhistory "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		//Lserverhistory <sid>
 		lolapi.serverHistory(parameter).then(results => {
-			reply_embed(embedgenerator.disciplinaryHistory(CONFIG, parameter, false, results[parameter]));
+			replyEmbed(embedgenerator.disciplinaryHistory(CONFIG, parameter, false, results[parameter]));
 		}).catch();
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "unbanserver "], true, true, (original, index, parameter) => {
+	command([preferences.get("prefix") + "unbanserver "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		//Lunbanserver <sid>
 		lolapi.unbanServer(parameter, msg.author.id, msg.author.tag, msg.author.displayAvatarURL).then(result => {
 			reply(":no_entry_sign: Server unbanned, id " + parameter + " by " + msg.author.tag);
 			sendToChannel(CONFIG.LOG_CHANNEL_ID, ":no_entry_sign: Server unbanned, id " + parameter + " by " + msg.author.tag);
 		}).catch(console.error);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "unbanuser "], true, true, (original, index, parameter) => {
+	command([preferences.get("prefix") + "unbanuser "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		//Lunbanuser <uid>
 		lolapi.unbanUser(parameter, msg.author.id, msg.author.tag, msg.author.displayAvatarURL).then(result => {
 			reply(":no_entry_sign: User unbanned, id " + parameter + " by " + msg.author.tag);
 			sendToChannel(CONFIG.LOG_CHANNEL_ID, ":no_entry_sign: User unbanned, id " + parameter + " by " + msg.author.tag);
 		}).catch(console.error);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "actionreport "], true, true, (original, index, parameter) => {
+	command([preferences.get("prefix") + "actionreport "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		//Lactionreport <uid>
 		if (!UTILS.exists(CONFIG.OWNER_DISCORD_IDS[parameter])) return reply(":x: This user is not a current or previously registered admin.");
 		lolapi.getActions(parameter).then(results => {
-			reply_embed(embedgenerator.actionReport(CONFIG, parameter, results[parameter]));
+			replyEmbed(embedgenerator.actionReport(CONFIG, parameter, results[parameter]));
 		}).catch();
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "permissionstest", CONFIG.DISCORD_COMMAND_PREFIX + "pt"], false, false, () => {
+	command([preferences.get("prefix") + "complain ", preferences.get("prefix") + "praise ", preferences.get("prefix") + "suggest "], true, false, (original, index) => {
+		lolapi.userHistory(msg.author.id).then(uH => {
+			if (!msg.PM) lolapi.serverHistory(msg.guild.id).then(gH => step2(gH[msg.guild.id])).catch(console.error);
+			else step2(null);
+			function step2(gH) {
+				sendEmbedToChannel(CONFIG.FEEDBACK.EXTERNAL_CID, embedgenerator.feedback(CONFIG, index + 1, 1, msg, uH[msg.author.id], gH), true);
+				reply(":white_check_mark: Thank you for your feedback!");
+			}
+		}).catch(console.error);
+	});
+	command([preferences.get("prefix") + "question ", preferences.get("prefix") + "ask "], true, false, (original, index) => {
+		lolapi.userHistory(msg.author.id).then(uH => {
+			if (!msg.PM) lolapi.serverHistory(msg.guild.id).then(gH => step2(gH[msg.guild.id]));
+			else step2(null);
+			function step2(gH) {
+				sendEmbedToChannel(CONFIG.FEEDBACK.EXTERNAL_CID, embedgenerator.feedback(CONFIG, 4, 1, msg, uH[msg.author.id], gH));
+				reply(":white_check_mark: Thank you for your question! Someone from our staff will respond by BoatBot PM as soon as possible.");
+			}
+		});
+	});
+	command([preferences.get("prefix") + "permissionstest", preferences.get("prefix") + "pt"], false, false, () => {
 		reply("You have " + (isOwner(undefined, false) ? "owner" : "normal") + " permissions.");
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "permissionstest ", CONFIG.DISCORD_COMMAND_PREFIX + "pt "], true, false, () => {
+	command([preferences.get("prefix") + "permissionstest ", preferences.get("prefix") + "pt "], true, false, () => {
 		if (msg.mentions.users.size != 1) return reply(":x: A user must be mentioned.");
 		reply(msg.mentions.users.first().tag + " has " + (isOwner(msg.mentions.users.first().id, false) ? "owner" : "normal") + " permissions.");
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "stats"], false, true, () => {
+	command([preferences.get("prefix") + "cs"], false, CONFIG.CONSTANTS.BOTOWNERS, () => {
 		reply("This is shard " + process.env.SHARD_ID);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "ping"], false, false, () => {
+	command([preferences.get("prefix") + "ping", preferences.get("prefix") + "latency"], false, false, () => {
 		reply("command to response time: ", nMsg => textgenerator.ping_callback(msg, nMsg));
 	});
 	command(["iping"], false, false, () => {
 		lolapi.ping().then(times => reply(textgenerator.internal_ping(times))).catch(console.error);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "ping "], true, false, function (original, index, parameter) {
+	command([preferences.get("prefix") + "ping "], true, false, function (original, index, parameter) {
 		reply("you said: " + parameter);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "eval "], true, true, function (original, index, parameter) {
+	command(["eval "], true, CONFIG.CONSTANTS.BOTOWNERS, function (original, index, parameter) {
 		try {
 			reply("```" + eval(parameter) + "```");
 		}
@@ -160,76 +197,80 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 			reply("```" + e + "```");
 		}
 	});
-	command(["iapi eval "], true, true, (original, index, parameter) => {
+	command(["iapi eval "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		lolapi.IAPIEval(parameter).then(result => reply("```" + result.string + "```")).catch(console.error);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "notify "], true, true, (original, index, parameter) => {
-		wsapi.lnotify(msg.author.username, msg.author.displayAvatarURL, parameter);
+	command([preferences.get("prefix") + "notify "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
+		wsapi.lnotify(msg.author.username, msg.author.displayAvatarURL, parameter, false);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "testembed"], false, false, () => {
-		reply_embed(embedgenerator.test());
+	command([preferences.get("prefix") + "releasenotify "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
+		wsapi.lnotify(msg.author.username, msg.author.displayAvatarURL, parameter, true);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "sd ", CONFIG.DISCORD_COMMAND_PREFIX + "summonerdebug "], true, false, (original, index, parameter) => {
-		lolapi.getSummonerIDFromName(assert_region(parameter.substring(0, parameter.indexOf(" "))), parameter.substring(parameter.indexOf(" ") + 1), CONFIG.API_MAXAGE.SD).then(result => {
-			result.guess = parameter.substring(parameter.indexOf(" ") + 1);
-			reply_embed(embedgenerator.summoner(CONFIG, result));
+	command([preferences.get("prefix") + "testembed"], false, false, () => {
+		replyEmbed(embedgenerator.test());
+	});
+	command([preferences.get("prefix") + "migratelinks"], false, CONFIG.CONSTANTS.BOTOWNERS, (original, index) => {
+		const fs = require("fs");
+		const prev_links = JSON.parse(fs.readFileSync("/home/iaace/bbs/data/local/userlinks.json"));
+		let tasks = [];
+		for (let b in prev_links) tasks.push(function () { return lolapi.setLink(b, prev_links[b]); });
+		UTILS.sequential(tasks).then(results => {
+			let errors = 0, successes = 0;
+			for (let b in results) results[b] ? ++successes : ++errors;
+			reply("There were " + successes + " successes and " + errors + " failures.");
 		}).catch(console.error);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "link "], true, false, (original, index, parameter) => {
-		let region = assert_region(parameter.substring(0, parameter.indexOf(" ")));
+	command([preferences.get("prefix") + "link "], true, false, (original, index, parameter) => {
 		if (msg.mentions.users.size == 0) {
-			lolapi.getSummonerIDFromName(region, parameter.substring(parameter.indexOf(" ") + 1), CONFIG.API_MAXAGE.LINK).then(summoner => {
-				summoner.region = region;
-				summoner.guess = parameter.substring(parameter.indexOf(" ") + 1);
-				if (UTILS.exists(summoner.status)) return reply(":x: The username appears to be invalid.");
-				lolapi.setLink(msg.author.id, summoner.name).then(result => {
-					result.success ? reply(":white_check_mark: Your discord account is now linked to " + summoner.name) : reply(":x: Something went wrong.");
+			lolapi.osuGetUser(parameter, 0, false, CONFIG.API_MAXAGE.LINK).then(user => {
+				if (!UTILS.exists(user)) return reply(":x: The username appears to be invalid.");
+				lolapi.setLink(msg.author.id, user.username).then(result => {
+					result.success ? reply(":white_check_mark: Your discord account is now linked to osu!:" + user.username) : reply(":x: Something went wrong.");
 				}).catch(console.error);
 			}).catch(console.error);
 		}
 		else if (msg.mentions.users.size == 1 && isOwner()) {
-			lolapi.getSummonerIDFromName(region, parameter.substring(parameter.indexOf(" ") + 1, parameter.indexOf(" <")), CONFIG.API_MAXAGE.LINK).then(summoner => {
-				summoner.region = region;
-				summoner.guess = parameter.substring(parameter.indexOf(" ") + 1, parameter.indexOf(" <"));
-				if (UTILS.exists(summoner.status)) return reply(":x: The username appears to be invalid. Follow the format: `" + CONFIG.DISCORD_COMMAND_PREFIX + "link <region> <username> <@mention>`");
-				lolapi.setLink(msg.mentions.users.first().id, summoner.name).then(result => {
-					result.success ? reply(":white_check_mark: " + msg.mentions.users.first().tag + "'s discord account is now linked to " + summoner.name) : reply(":x: Something went wrong.");
+			lolapi.osuGetUser(parameter.substring(0, parameter.indexOf(" <")), 0, false, CONFIG.API_MAXAGE.LINK).then(user => {
+				if (!UTILS.exists(user)) return reply(":x: The username appears to be invalid. Follow the format: `" + CONFIG.DISCORD_COMMAND_PREFIX + "link <username> <@mention>`");
+				lolapi.setLink(msg.mentions.users.first().id, user.username).then(result => {
+					result.success ? reply(":white_check_mark: " + msg.mentions.users.first().tag + "'s discord account is now linked to osu!:" + user.username) : reply(":x: Something went wrong.");
 				}).catch(console.error);
 			}).catch(console.error);
 		}
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "unlink", CONFIG.DISCORD_COMMAND_PREFIX + "removelink"], false, false, (original, index) => {
+	command([preferences.get("prefix") + "unlink", preferences.get("prefix") + "removelink"], false, false, (original, index) => {
 		lolapi.setLink(msg.author.id, "").then(result => {
-			result.success ? reply(":white_check_mark: Your discord account is no longer associated with any username. We'll try to use your discord username when you use a username-optional LoL stats command.") : reply(":x: Something went wrong.");
+			result.success ? reply(":white_check_mark: Your discord account is no longer associated with any username. We'll try to use your discord username when you use a username-optional osu stats command.") : reply(":x: Something went wrong.");
 		}).catch(console.error);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "unlink ", CONFIG.DISCORD_COMMAND_PREFIX + "removelink "], true, true, (original, index) => {
+	command([preferences.get("prefix") + "unlink ", preferences.get("prefix") + "removelink "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index) => {
 		if (!UTILS.exists(msg.mentions.users.first())) return reply(":x: No user mention specified.");
 		lolapi.setLink(msg.mentions.users.first().id, "").then(result => {
 			result.success ? reply(":white_check_mark: " + msg.mentions.users.first().tag + "'s discord account is no longer associated with any username.") : reply(":x: Something went wrong.");
 		}).catch(console.error);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "gl", CONFIG.DISCORD_COMMAND_PREFIX + "getlink"], false, false, (original, index) => {
+	command([preferences.get("prefix") + "gl", preferences.get("prefix") + "getlink"], false, false, (original, index) => {
 		lolapi.getLink(msg.author.id).then(result => {
 			if (UTILS.exists(result.username) && result.username != "") reply(":white_check_mark: You're `" + result.username + "`");
 			else reply(":x: No records for user id " + msg.author.id);
 		}).catch(console.error);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "gl ", CONFIG.DISCORD_COMMAND_PREFIX + "getlink "], true, true, (original, index) => {
+	command([preferences.get("prefix") + "gl ", preferences.get("prefix") + "getlink "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index) => {
 		if (!UTILS.exists(msg.mentions.users.first())) return reply(":x: No user mention specified.");
 		lolapi.getLink(msg.mentions.users.first().id).then(result => {
 			if (UTILS.exists(result.username) && result.username != "") reply(":white_check_mark: " + msg.mentions.users.first().tag + " is `" + result.username + "`");
 			else reply(":x: No records for user id " + msg.mentions.users.first().id);
 		}).catch(console.error);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "invite"], false, false, (original, index) => {
-		reply("This is the link to add SupportBot to other servers: <" + CONFIG.BOT_ADD_LINK + ">\nAdding it requires the \"Manage Server\" permission.");
+	/*
+	command([preferences.get("prefix") + "invite"], false, false, (original, index) => {
+		reply("This is the link to add BoatBot to other servers: <" + CONFIG.BOT_ADD_LINK + ">\nAdding it requires the \"Manage Server\" permission.");
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "help"], false, false, (original, index) => {
-		reply(":white_check_mark: A PM has been sent to you with information on how to use SupportBot.");
-		reply_embed_to_author(embedgenerator.help(CONFIG));
-	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "setshortcut ", CONFIG.DISCORD_COMMAND_PREFIX + "ss ", CONFIG.DISCORD_COMMAND_PREFIX + "createshortcut ", CONFIG.DISCORD_COMMAND_PREFIX + "cs ", CONFIG.DISCORD_COMMAND_PREFIX + "addshortcut "], true, false, (original, index, parameter) => {
+	command([preferences.get("prefix") + "help"], false, false, (original, index) => {
+		reply(":white_check_mark: A PM has been sent to you with information on how to use BoatBot.");
+		replyEmbedToAuthor(embedgenerator.help(CONFIG));
+	});*/
+	command([preferences.get("prefix") + "setshortcut ", preferences.get("prefix") + "ss ", preferences.get("prefix") + "createshortcut ", preferences.get("prefix") + "addshortcut "], true, false, (original, index, parameter) => {
 		if (parameter[0] !== "$") return reply(":x: The shortcut must begin with an `$`. Please try again.");
 		if (parameter.indexOf(" ") === -1) return reply(":x: The shortcut word and the username must be separated by a space. Please try again.");
 		if (parameter.length > 60) return reply(":x: The shortcut name or the username is too long.");
@@ -242,7 +283,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 			else reply(":x: You can only have up to 50 shortcuts. Please remove some and try again.");
 		}).catch(console.error);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "removeshortcut ", CONFIG.DISCORD_COMMAND_PREFIX + "rs ", CONFIG.DISCORD_COMMAND_PREFIX + "deleteshortcut ", CONFIG.DISCORD_COMMAND_PREFIX + "ds "], true, false, (original, index, parameter) => {
+	command([preferences.get("prefix") + "removeshortcut ", preferences.get("prefix") + "rs ", preferences.get("prefix") + "deleteshortcut ", preferences.get("prefix") + "ds "], true, false, (original, index, parameter) => {
 		if (parameter[0] !== "$") return reply(":x: The shortcut must begin with an `$`. Please try again.");
 		const from = parameter.substring(1).toLowerCase();
 		if (from.length === 0) return reply(":x: The shortcut name was not specified. Please try again.");
@@ -250,199 +291,187 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 			if (result.success) reply(":white_check_mark: `$" + from + "` removed (or it did not exist already).");
 		}).catch(console.error);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "shortcuts", CONFIG.DISCORD_COMMAND_PREFIX + "shortcut"], false, false, (original, index) => {
+	command([preferences.get("prefix") + "shortcuts", preferences.get("prefix") + "shortcut"], false, false, (original, index) => {
 		lolapi.getShortcuts(msg.author.id).then(result => {
 			reply(textgenerator.shortcuts(CONFIG, result));
 		}).catch(console.error);
 	});
-	command([CONFIG.DISCORD_COMMAND_PREFIX + "removeallshortcuts"], false, false, (original, index) => {
+	command([preferences.get("prefix") + "removeallshortcuts"], false, false, (original, index) => {
 		lolapi.removeAllShortcuts(msg.author.id).then(result => {
 			reply(":white_check_mark: All shortcuts were removed.")
 		}).catch(console.error);
 	});
-	command(["http://"], true, false, (original, index, parameter) => {
-		const region = assert_region(parameter.substring(0, parameter.indexOf(".")), false);
-		if (parameter.substring(parameter.indexOf(".") + 1, parameter.indexOf(".") + 6) == "op.gg") {
-			let username = decodeURIComponent(msg.content.substring(msg.content.indexOf("userName=") + "userName=".length));
-			lolapi.getSummonerCard(region, username).then(result => {
-				reply_embed(embedgenerator.detailedSummoner(CONFIG, result[0], result[1], result[2], parameter.substring(0, parameter.indexOf(".")), result[3]));
-			}).catch();
-		}
+	command(["boatsetprefix "], true, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index, parameter) => {
+		parameter = parameter.toLowerCase();
+		preferences.set("prefix", parameter) ? reply(":white_check_mark: The prefix to use this bot has been changed to:" + parameter) : reply(":x: An error has occurred while setting the prefix.");
 	});
-	command(["service status ", "servicestatus ", "ss ", "status "], true, false, (original, index, parameter) => {
-		let region = assert_region(parameter);
-		lolapi.getStatus(region, 60).then((status_object) => {
-			reply_embed(embedgenerator.status(status_object));
-		}).catch(console.error);
+	command(["boatsetprefix"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
+		preferences.set("prefix", "") ? reply(":white_check_mark: The prefix to use this bot has been removed. No prefix is needed to use commands.") : reply(":x: An error has occurred while setting the prefix.");
 	});
-	commandGuessUsername([""], false, (region, username, parameter) => {
-		lolapi.getSummonerCard(region, username).then(result => {
-			reply_embed(embedgenerator.detailedSummoner(CONFIG, result[0], result[1], result[2], parameter, result[3], result[4]));
-		}).catch(e => {
-			if (UTILS.exists(e)) console.error(e);
-			reply(":x: No results for `" + username + "`. Please revise your request.");
-		});
+	command(["http://", "https://"], true, false, (original, index, parameter) => {
 	});
-	commandGuessUsername(["mh ", "matchhistory "], false, (region, username, parameter) => {
-		request_profiler.mark("mh command recognized");
-		lolapi.getSummonerIDFromName(region, username, CONFIG.API_MAXAGE.MH.SUMMONER_ID).then(result => {
-			result.region = region;
-			if (!UTILS.exists(result.accountId)) return reply(":x: No recent matches found for `" + username + "`.");
-			lolapi.getRecentGames(region, result.accountId, CONFIG.API_MAXAGE.MH.RECENT_GAMES).then(matchhistory => {
-				if (!UTILS.exists(matchhistory.matches) || matchhistory.matches.length == 0) return reply("No recent matches found for `" + username + "`.");
-				lolapi.getMultipleMatchInformation(region, matchhistory.matches.map(m =>  m.gameId), CONFIG.API_MAXAGE.MH.MULTIPLE_MATCH).then(matches => {
-					request_profiler.begin("generating embed");
-					const answer = embedgenerator.match(CONFIG, result, matchhistory.matches, matches);
-					request_profiler.end("generating embed");
-					UTILS.debug(request_profiler.endAll());
-					reply_embed(answer);
-				}).catch(console.error);
-			}).catch(console.error);
-		}).catch(console.error);
+	commandGuessUsername([preferences.get("prefix") + "d1"], false, (index, id, user, parameter) => {
+		reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + "` parameter: `" + parameter + "`");
 	});
-	command(["m ", "multi ", "c ", "compare "], true, false, (original, index, parameter) => {
-		request_profiler.mark("multi command recognized");
-		request_profiler.begin("parsing usernames");
-		let region = assert_region(parameter.substring(0, parameter.indexOf(" ")));
-		let pre_usernames;
-		if (parameter.indexOf("\n") != -1) pre_usernames = UTILS.presentLobby(parameter.substring(parameter.indexOf(" ") + 1).split("\n"));//lobby text formatting
-		else if (parameter.indexOf(",") != -1) pre_usernames = parameter.substring(parameter.indexOf(" ") + 1).split(",").map(s => s.trim());//CSV
-		else pre_usernames = [parameter.substring(parameter.indexOf(" ") + 1)];//single username
-		if (pre_usernames.length > 10) {
-			reply(":warning: There are too many usernames to get data for. Only the first 10 results will be displayed.");
-			pre_usernames = pre_usernames.slice(0, 10);
-		}
-		if (pre_usernames.length < 1) return reply(":x: There are not enough usernames to get data for.");
-		request_profiler.end("parsing usernames");
-		UTILS.debug(request_profiler.endAll());
-		Promise.all(pre_usernames.map(u => {
-			return new Promise((resolve, reject) => {
-				if (u[0] !== "$") resolve(u);
-				else {
-					lolapi.getShortcut(msg.author.id, u.substring(1)).then(result => {
-						resolve(result[u.substring(1)]);
-					}).catch(result => {
-						resolve(u.substring(1));
-					});
-				}
-			});
-		})).then(usernames => {
-			lolapi.getMultipleSummonerIDFromName(region, usernames, CONFIG.API_MAXAGE.MULTI.MULTIPLE_SUMMONER_ID).then(summoners => {
-				const ids = summoners.map(s => s.id);
-				lolapi.getMultipleRanks(region, ids, CONFIG.API_MAXAGE.MULTI.MULTIPLE_RANKS).then(ranks => {
-					lolapi.getMultipleChampionMastery(region, ids, CONFIG.API_MAXAGE.MULTI.MULTIPLE_MASTERIES).then(masteries => {
-						lolapi.getMultipleRecentGames(region, summoners.map(s => s.accountId), CONFIG.API_MAXAGE.MULTI.MULTIPLE_RECENT_GAMES).then(mhA => {
-							let mIDA = [];//match id array;
-							for (let b in mhA) for (let c in mhA[b].matches) if (mIDA.indexOf(mhA[b].matches[c].gameId) == -1) mIDA.push(mhA[b].matches[c].gameId);
-							lolapi.getMultipleMatchInformation(region, mIDA, CONFIG.API_MAXAGE.MULTI.MULTIPLE_MATCH).then(matches => {
-								reply_embed(embedgenerator.multiSummoner(CONFIG, CONFIG.REGIONS_REVERSE[region], summoners, ranks, masteries, mhA, matches));
-							}).catch(console.error);
+	commandGuessUsernameNumber([preferences.get("prefix") + "d2"], false, (index, id, user, number, guess_method) => {
+		reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + "` number: `" + number + "` guess_method: `" + guess_method + "`");
+	});
+	commandGuessUsername([preferences.get("prefix") + "statsplus", preferences.get("prefix") + "sp", preferences.get("prefix") + "osu", preferences.get("prefix") + "std", preferences.get("prefix") + "taiko", preferences.get("prefix") + "sptaiko", preferences.get("prefix") + "spt", preferences.get("prefix") + "ctb", preferences.get("prefix") + "spctb", preferences.get("prefix") + "spc", preferences.get("prefix") + "mania", preferences.get("prefix") + "spmania", preferences.get("prefix") + "spm"], false, (index, id, user, parameter) => {
+		let mode;
+		if (index < 4) mode = 0;
+		else if (index < 7) mode = 1;
+		else if (index < 10) mode = 2;
+		else mode = 3;
+		lolapi.osuGetUser(user, mode, id, CONFIG.API_MAXAGE.SP.GET_USER).then(user_stats => {
+			if (!UTILS.exists(user_stats)) return reply(":x: This user could not be found.");
+			lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.SP.GET_USER_BEST).then(user_best => {
+				Promise.all([lolapi.osuPHPProfileLeader(user_stats.user_id, mode, 0, CONFIG.API_MAXAGE.SP.PHP_PROFILE_LEADER), lolapi.osuPHPProfileLeader(user_stats.user_id, mode, 1, CONFIG.API_MAXAGE.SP.PHP_PROFILE_LEADER)]).then(php_profile_leader => {
+					php_profile_leader = php_profile_leader.join("");
+					lolapi.osuOldUserPage(user_stats.user_id, CONFIG.API_MAXAGE.SP.OLD_USER_PAGE).then(user_page => {
+						lolapi.osuPHPProfileGeneral(user_stats.user_id, mode, CONFIG.API_MAXAGE.SP.PHP_PROFILE_GENERAL).then(php_profile_general => {
+							replyEmbed(embedgenerator.statsPlus(CONFIG, mode, user_stats, user_best, php_profile_leader, user_page, php_profile_general));
 						}).catch(console.error);
 					}).catch(console.error);
 				}).catch(console.error);
 			}).catch(console.error);
 		}).catch(console.error);
 	});
-	commandGuessUsername(["lg ", "livegame ", "cg ", "currentgame ", "livematch ", "lm ", "currentmatch ", "cm "], false, (region, username, parameter) => {//new
-		request_profiler.mark("lg command recognized");
-		//reply(":warning:We are processing the latest information for your command: if this message does not update within 5 minutes, try the same command again. Thank you for your patience.", nMsg => {
-		lolapi.getSummonerIDFromName(region, username, CONFIG.API_MAXAGE.LG.SUMMONER_ID).then(result => {
-			result.region = region;
-			result.guess = username;
-			if (!UTILS.exists(result.id)) return reply(":x: No username found for `" + username + "`.");
-			lolapi.getLiveMatch(region, result.id, CONFIG.API_MAXAGE.LG.LIVE_MATCH).then(match => {
-				if (UTILS.exists(match.status)) return reply(":x: No current matches found for `" + username + "`.");
-				lolapi.getMultipleSummonerFromSummonerID(region, match.participants.map(p => p.summonerId), CONFIG.API_MAXAGE.LG.OTHER_SUMMONER_ID).then(pSA => {//participant summoner array
-					lolapi.getMultipleRecentGames(region, pSA.map(pS => pS.accountId), CONFIG.API_MAXAGE.LG.RECENT_GAMES).then(mhA => {//matchhistory array
-						let mIDA = [];//match id array;
-						for (let b in mhA) for (let c in mhA[b].matches) if (mIDA.indexOf(mhA[b].matches[c].gameId) == -1) mIDA.push(mhA[b].matches[c].gameId);
-						lolapi.getMultipleMatchInformation(region, mIDA, CONFIG.API_MAXAGE.LG.MULTIPLE_MATCH).then(matches => {
-							lolapi.getMultipleRanks(region, pSA.map(p => p.id), CONFIG.API_MAXAGE.LG.MULTIPLE_RANKS).then(ranks => {
-								lolapi.getMultipleChampionMastery(region, pSA.map(p => p.id), CONFIG.API_MAXAGE.LG.MULTIPLE_MASTERIES).then(masteries => {
-									//nMsg.edit("", { embed: embedgenerator.liveMatchPremade(CONFIG, result, match, matches, ranks, masteries, pSA) }).catch();
-									request_profiler.begin("generating embed");
-									const newEmbed = embedgenerator.liveMatchPremade(CONFIG, result, match, matches, ranks, masteries, pSA);
-									request_profiler.end("generating embed");
-									UTILS.debug(request_profiler.endAll());
-									reply_embed(newEmbed, () => {
-										//reply_embed(embedgenerator.liveMatchPremade(CONFIG, result, match, matches, ranks, masteries, pSA, false, true));
-									});
-									//reply_embed(embedgenerator.liveMatchPremade(CONFIG, result, match, matches, ranks, masteries, pSA, false));//untrimmed output
-								}).catch();
-							}).catch();
-						});
-					}).catch(console.error);
-				}).catch(console.error);
-			}).catch(console.error);
-		}).catch(console.error);
-		//});
-	});
-	commandGuessUsernameNumber(["mh", "matchhistory"], false, (region, username, number) => {
-		request_profiler.mark("dmh command recognized");
-		lolapi.getSummonerIDFromName(region, username, CONFIG.API_MAXAGE.DMH.SUMMONER_ID).then(result => {
-			result.region = region;
-			result.guess = username;
-			if (!UTILS.exists(result.accountId)) return reply(":x: No recent matches found for `" + username + "`.");
-			lolapi.getRecentGames(region, result.accountId, CONFIG.API_MAXAGE.DMH.RECENT_GAMES).then(matchhistory => {
-				if (!UTILS.exists(matchhistory.matches) || matchhistory.matches.length == 0) return reply(":x: No recent matches found for `" + username + "`.");
-				if (number < 1 || number > 20 || !UTILS.exists(matchhistory.matches[number - 1])) return reply(":x: This number is out of range.");
-				lolapi.getMatchInformation(region, matchhistory.matches[number - 1].gameId, CONFIG.API_MAXAGE.DMH.MATCH_INFORMATION).then(match => {
-					const pIDA = match.participantIdentities.map(pI => {
-						if (UTILS.exists(pI.player.summonerId)) return pI.player.summonerId;
-						else return null;//bot account
-					});//participant (summoner) ID array
-					lolapi.getMultipleRanks(region, pIDA, CONFIG.API_MAXAGE.DMH.MULTIPLE_RANKS).then(ranks => {
-						lolapi.getMultipleChampionMastery(region, pIDA, CONFIG.API_MAXAGE.DMH.MULTIPLE_MASTERIES).then(masteries => {
-							lolapi.getMultipleSummonerFromSummonerID(region, pIDA, CONFIG.API_MAXAGE.DMH.OTHER_SUMMONER_ID).then(pSA => {
-								request_profiler.begin("generating embed");
-								const answer = embedgenerator.detailedMatch(CONFIG, result, matchhistory.matches[number - 1], match, ranks, masteries, pSA);
-								request_profiler.end("generating embed");
-								UTILS.debug(request_profiler.endAll());
-								reply_embed(answer);
-							});
-						});
-					}).catch();
-				}).catch(console.error);
+	commandGuessUsername([preferences.get("prefix") + "statsplus-m", preferences.get("prefix") + "sp-m", preferences.get("prefix") + "osu-m", preferences.get("prefix") + "std-m", preferences.get("prefix") + "taiko-m", preferences.get("prefix") + "sptaiko-m", preferences.get("prefix") + "spt-m", preferences.get("prefix") + "ctb-m", preferences.get("prefix") + "spctb-m", preferences.get("prefix") + "spc-m", preferences.get("prefix") + "mania-m", preferences.get("prefix") + "spmania-m", preferences.get("prefix") + "spm-m"], false, (index, id, user, parameter) => {
+		let mode;
+		if (index < 4) mode = 0;
+		else if (index < 7) mode = 1;
+		else if (index < 10) mode = 2;
+		else mode = 3;
+		lolapi.osuGetUser(user, mode, id, CONFIG.API_MAXAGE.SPM.GET_USER).then(user_stats => {
+			if (!UTILS.exists(user_stats)) return reply(":x: This user could not be found.");
+			lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.SPM.GET_USER_BEST).then(user_best => {
+				replyEmbed(embedgenerator.statsPlusMods(CONFIG, mode, user_stats, user_best));
 			}).catch(console.error);
 		}).catch(console.error);
 	});
-	/*
-	commandGuessUsername(["mmr "], false, (region, username, parameter) => {
-		lolapi.getSummonerIDFromName(region, username).then(result => {
-			result.region = region;
-			lolapi.getMMR(region, result.id).then(mmr => {
-				reply_embed(embedgenerator.mmr(CONFIG, result, mmr));
-			}).catch();
+	command(["https://osu.ppy.sh/u/", "http://osu.ppy.sh/u/", "https://osu.ppy.sh/users/", "http://osu.ppy.sh/users/"], true, false, (original, index, parameter) => {
+		const id = UTILS.arbitraryLengthInt(parameter);
+		lolapi.osuMostRecentMode(id, true, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER_RECENT).then(mrm => {
+			lolapi.osuGetUser(id, mrm, true, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
+				replyEmbed(embedgenerator.signature(CONFIG, mrm, user_stats));
+			}).catch(console.error);
+		}).catch(e => {
+			lolapi.osuGetUser(id, 0, true, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
+				replyEmbed(embedgenerator.signature(CONFIG, 0, user_stats));
+			}).catch(console.error);
 		});
-	});*/
+	});
+	commandGuessUsername([preferences.get("prefix") + "osusignature", preferences.get("prefix") + "osusign", preferences.get("prefix") + "osusig"], false, (index, id, user, parameter) => {
+		lolapi.osuMostRecentMode(user, id, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER_RECENT).then(mrm => {
+			lolapi.osuGetUser(user, mrm, id, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
+				replyEmbed(embedgenerator.signature(CONFIG, mrm, user_stats));
+			}).catch(console.error);
+		}).catch(e => {
+			lolapi.osuGetUser(user, 0, id, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
+				replyEmbed(embedgenerator.signature(CONFIG, 0, user_stats));
+			}).catch(console.error);
+		});
+	});
+	command([preferences.get("prefix") + "roll"], false, false, (original, index) => {
+		reply(textgenerator.roll(100, msg.author));
+	});
+	command([preferences.get("prefix") + "roll "], true, false, (original, index, parameter) => {
+		reply(textgenerator.roll(parameter, msg.author));
+	});
+	command([preferences.get("prefix") + "coinflip", preferences.get("prefix") + "flipcoin", preferences.get("prefix") + "coin"], false, false, (original, index) => {
+		reply(textgenerator.coin());
+	});
+	command([preferences.get("prefix") + "stats ", preferences.get("prefix") + "stat "], true, false, (original, index, parameter) => {
+		lolapi.osuMostRecentMode(parameter, false, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER_RECENT).then(mrm => {
+			lolapi.osuGetUser(parameter, mrm, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
+				reply(textgenerator.stats(mrm, user_stats));
+			}).catch(console.error);
+		}).catch(e => {
+			lolapi.osuGetUser(parameter, 0, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
+				reply(textgenerator.stats(0, user_stats));
+			}).catch(console.error);
+		});
+	});
+	command([preferences.get("prefix") + "where "], true, false, (original, index, parameter) => {
+		lolapi.osuGetUser(parameter, 0, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
+			reply(textgenerator.where(user_stats));
+		}).catch(console.error);
+	});
 
 	if (UTILS.exists(msg.guild)) {//respondable server message only
-		command([CONFIG.DISCORD_COMMAND_PREFIX + "shutdown"], false, true, () => {
+		/*
+		command([preferences.get("prefix") + "shutdown"], false, CONFIG.CONSTANTS.BOTOWNERS, () => {
 			reply(":white_check_mark: shutdown initiated", shutdown, shutdown);
 		});
-		command([CONFIG.DISCORD_COMMAND_PREFIX + "restart"], false, true, () => {
+		command([preferences.get("prefix") + "restart"], false, CONFIG.CONSTANTS.BOTOWNERS, () => {
 			reply(":white_check_mark: restart initiated", restart, restart);
 		});
-		command([CONFIG.DISCORD_COMMAND_PREFIX + "refresh", CONFIG.DISCORD_COMMAND_PREFIX + "clearcache"], false, true, () => {
+		command([preferences.get("prefix") + "refresh", preferences.get("prefix") + "clearcache"], false, CONFIG.CONSTANTS.BOTOWNERS, () => {
 			reply(":white_check_mark: restart initiated + clearing cache", step2, step2);
 			function step2() {
 				lolapi.clearCache();
 				restart();
 			}
+		});*/
+		command([preferences.get("prefix") + "setting force-prefix on", preferences.get("prefix") + "setting force-prefix off"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
+			const new_setting = index === 0 ? true : false;
+			preferences.set("force_prefix", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will require prefixes on all osu commands." : "BoatBot will not require prefixes on all LoL commands."))).catch(reply);
+		});
+		command([preferences.get("prefix") + "setting release-notifications on", preferences.get("prefix") + "setting release-notifications off"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
+			const new_setting = index === 0 ? true : false;
+			preferences.set("release_notifications", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will show new release notifications." : "BoatBot will not show new release notifications."))).catch(reply);
+		});
+		/*
+		command(["boatbot settings reset all"], false, CONFIG.CONSTANTS.ADMINISTRATORS, () => reply(":warning: You are about to reset all the preferences associated with this server. To confirm this action, please send the command: `boatbot settings reset all confirm`"));
+		command(["boatbot settings reset all confirm"], false, CONFIG.CONSTANTS.ADMINISTRATORS, () => {
+			preferences.resetToDefault().then(() => reply(":white_check_mark: This server's settings were reset to defaults.")).catch(reply);
+		});*/
+		command([preferences.get("prefix") + "mail "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
+			const uid = parameter.substring(0, parameter.indexOf(" "))
+			getUsernameFromUID(uid).then(usertag => {
+				sendEmbedToChannel(CONFIG.FEEDBACK.EXTERNAL_CID, embedgenerator.feedback(CONFIG, 5, 1, msg, null, null, usertag));
+				wsapi.embedPM(uid, embedgenerator.feedback(CONFIG, 5, 0, msg, null, null, usertag));
+			}).catch(console.error);
+		});
+		command([preferences.get("prefix") + "approve "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
+			const mid = parameter;
+			if (!UTILS.isInt(mid)) return reply(":x: Message ID not recognizable.");
+			msg.channel.fetchMessage(mid).then(approvable => {
+				if (approvable.author.id != client.user.id) return reply(":x: Cannot approve messages not sent from this account.");
+				const candidate = embedgenerator.reviewFeedback(CONFIG, approvable, msg.author, true);
+				if (typeof(candidate) == "number") {
+					UTILS.debug(CONFIG.DISCORD_COMMAND_PREFIX + "approve error type " + candidate);
+					if (candidate == 1) return reply(":x: No embed found.");
+					else return reply(":x: This type of message is not approvable.");
+				}
+				else {//success
+					wsapi.embedPM(candidate.to_user_uid, candidate.to_user);//notify user of success
+					approvable.edit({ embed: candidate.edit });//change internal feedback message
+					sendEmbedToChannel(candidate.to_public_cid, candidate.to_public);//publish to public feedback channel
+				}
+			}).catch(console.error);
 		});
 	}
 	else {//PM/DM only
+		command([preferences.get("prefix") + "say "], true, false, (original, index, parameter) => {
+			lolapi.userHistory(msg.author.id).then(uH => {
+				sendEmbedToChannel(CONFIG.FEEDBACK.EXTERNAL_CID, embedgenerator.feedback(CONFIG, 0, 1, msg, uH[msg.author.id]));
+				reply(":e_mail: Message delivered.");
+			});
+		});
 	}
 
 	function command(trigger_array,//array of command aliases, prefix needs to be included
 		parameters_expected,//boolean
 		elevated_permissions,//requires owner permissions
-		callback) {//optional callback only if successful
-		for (let i in trigger_array) {
+		callback,//optional callback only if successful
+		external = true) {//external call means not inside commandGuessUsername & commandGuessUsernameNumber
+		for (let i = 0; i < trigger_array.length; ++i) {
 			if (parameters_expected && msg.content.trim().toLowerCase().substring(0, trigger_array[i].length) === trigger_array[i].toLowerCase()) {
-				if (elevated_permissions && !isOwner()) return false
+				if (external && !processRateLimit()) return false;
+				if (elevated_permissions && !is(elevated_permissions)) return false;
 				else {
-					if (elevated_permissions) sendToChannel(CONFIG.LOG_CHANNEL_ID, msg.author.tag + " used " + msg.cleanContent);
+					if (elevated_permissions === CONFIG.CONSTANTS.BOTOWNERS) sendToChannel(CONFIG.LOG_CHANNEL_ID, msg.author.tag + " used " + msg.cleanContent);
 					if (UTILS.exists(callback)) {
 						try {
 							callback(trigger_array[i], i, msg.content.trim().substring(trigger_array[i].length));
@@ -450,14 +479,15 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 						catch (e) {
 							console.error(e);
 						}
+						return true;
 					}
-					return true;
 				}
 			}
 			else if (!parameters_expected && msg.content.trim().toLowerCase() === trigger_array[i].toLowerCase()) {
-				if (elevated_permissions && !isOwner()) return false;
+				if (external && !processRateLimit()) return false;
+				if (elevated_permissions && !is(elevated_permissions)) return false;
 				else {
-					if (elevated_permissions) sendToChannel(CONFIG.LOG_CHANNEL_ID, msg.author.tag + " used " + msg.cleanContent);
+					if (elevated_permissions === CONFIG.CONSTANTS.BOTOWNERS) sendToChannel(CONFIG.LOG_CHANNEL_ID, msg.author.tag + " used " + msg.cleanContent);
 					if (UTILS.exists(callback)) {
 						try {
 							callback(trigger_array[i], i);
@@ -465,159 +495,320 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel) {
 						catch (e) {
 							console.error(e);
 						}
+						return true;
 					}
-					return true;
 				}
 			}
 		}
-		return false;
 	}
 
 	function commandGuessUsername(trigger_array,//array of command aliases, prefix needs to be included
 		elevated_permissions,//requires owner permissions
 		callback) {//optional callback only if successful
-		//returns (region, username, parameter)
+		//returns (index, boolean: user_id = true / username = false, user_id or username, parameter)
+		//this command does not validate the existance of a username on the server
+		/*returns (region, username, parameter, username guess method)
+		username guess method 0: username provided
+		username guess method 1: shortcut provided
+		username guess method 2: link
+		username guess method 3: implicit discord username
+		username guess method 4: explicit discord mention
+		username guess method 5: recently used command
+		*/
 		command(trigger_array, true, elevated_permissions, (original, index, parameter) => {
-			try {//username provided
-				const region = assert_region(parameter.substring(0, parameter.indexOf(" ")), false);//see if there is a region
-				if (parameter.substring(parameter.indexOf(" ") + 1).length < 35) {
-					if (parameter.substring(parameter.indexOf(" ") + 1)[0] == "$") {
-						lolapi.getShortcut(msg.author.id, parameter.substring(parameter.indexOf(" ") + 1).toLowerCase().substring(1)).then(result => {
-							callback(region, result[parameter.substring(parameter.indexOf(" ") + 1).toLowerCase().substring(1)], parameter.substring(0, parameter.indexOf(" ")));
+			if (parameter.length !== 0) {//username explicitly provided
+				if (parameter.length < 70 && parameter[0] === " ") {//longest query should be less than 70 characters (required trailing space after command trigger)
+					if (!processRateLimit()) return false;
+					parameter = parameter.trim();
+					if (msg.mentions.users.size == 1) {
+						lolapi.getLink(msg.mentions.users.first().id).then(result => {
+							let username = msg.mentions.users.first().username;//suppose the link doesn't exist in the database
+							if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
+							callback(index, false, username, parameter);
+						}).catch(console.error);
+					}
+					else if (parameter[0] === "$") {//shortcut
+						lolapi.getShortcut(msg.author.id, parameter.toLowerCase().substring(1)).then(result => {
+							callback(index, false, result[parameter.toLowerCase().substring(1)], parameter);
 						}).catch(e => {
 							if (e) reply(":x: An error has occurred. The shortcut may not exist.");
 						});
 					}
-					else callback(region, parameter.substring(parameter.indexOf(" ") + 1), parameter.substring(0, parameter.indexOf(" ")));
+					else if (parameter[0] === "^") {
+						msg.channel.fetchMessages({ before: msg.id, limit: 30 }).then(msgs => {
+							msgs = msgs.array();
+							let user_id;
+							for (let i = 0; i < msgs.length; ++i) {
+								if (msgs[i].author.id == client.user.id && //message was sent by bot
+									msgs[i].embeds.length == 1 && //embedded response
+									UTILS.exists(msgs[i].embeds[0].author) && //author present
+									UTILS.exists(msgs[i].embeds[0].author.url) && //url present
+									msgs[i].embeds[0].author.url.substring(0, 25) === "https://osu.ppy.sh/users/") {//https://osu.ppy.sh/users/4374286
+									const candidate = UTILS.arbitraryLengthInt(msgs[i].embeds[0].author.url.substring(25));
+									if (candidate !== "") user_id = parseInt(candidate);
+									break;
+								}
+							}
+							if (!UTILS.exists(user_id)) reply(":x: Could not find a recent username queried.");
+							else callback(index, true, user_id, parameter);
+						}).catch(e => {
+							console.error(e);
+							reply(":x: Could not find a recent username queried.");
+						});
+					}
+					else callback(index, false, parameter.substring(1).trim(), parameter);//explicit
+					return true;
 				}
+				else return false;
 			}
-			catch (e) {//username not provided
-				try {
-					const region = assert_region(parameter, false);
-					lolapi.getLink(msg.author.id).then(result => {
-						let username = msg.author.username;//suppose the link doesn't exist in the database
-						if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
-						callback(region, username, parameter);
-					}).catch(console.error);
-				}
-				catch (e) { }
+			else {//username not provided
+				if (!processRateLimit()) return false;
+				lolapi.getLink(msg.author.id).then(result => {
+					let username = msg.author.username;//suppose the link doesn't exist in the database
+					if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
+					callback(index, false, username, parameter);
+				}).catch(console.error);
+				return true;
 			}
-		});
+		}, false);
 	}
 
 	function commandGuessUsernameNumber(trigger_array,//array of command aliases, prefix needs to be included
 		elevated_permissions,//requires owner permissions
 		callback) {//optional callback only if successful
-		//returns (region, username, number)
+		//returns (index, boolean: user_id = true / username = false, user_id or username, number)
+		//this command does not validate the existance of a username on the server
+		/*
+		username guess method 0: username provided
+		username guess method 1: shortcut provided
+		username guess method 2: link
+		username guess method 3: implicit discord username
+		username guess method 4: explicit discord mention
+		username guess method 5: recently used command
+		*/
 		command(trigger_array, true, elevated_permissions, (original, index, parameter) => {
-			const number = parseInt(parameter.substring(0, parameter.indexOf(" ")));
-			if (isNaN(number)) return;
-			try {//username provided
-				const region = assert_region(parameter.substring(UTILS.indexOfInstance(parameter, " ", 1) + 1, UTILS.indexOfInstance(parameter, " ", 2)), false);//see if there is a region
-				if (parameter.substring(UTILS.indexOfInstance(parameter, " ", 2) + 1).length < 35) {
-					if (parameter.substring(UTILS.indexOfInstance(parameter, " ", 2) + 1)[0] == "$") {
-						lolapi.getShortcut(msg.author.id, parameter.substring(UTILS.indexOfInstance(parameter, " ", 2) + 1).toLowerCase().substring(1)).then(result => {
-							callback(region, result[parameter.substring(UTILS.indexOfInstance(parameter, " ", 2) + 1).toLowerCase().substring(1)], number);
+			/*
+			valid: number explicitly specified
+			invalid: number implicit (#1, index 0)
+
+			valid: no username specified
+			valid: username explicit
+			valid: discord mention
+			valid: $shortcut
+			valid: ^
+			*/
+			let number;
+			const space_index = parameter.indexOf(" ");
+			if (parameter === "") number = 1;//no number specified, no username specified
+			else if (space_index === -1) {
+				number = parseInt(parameter);//it's either "!c" or "!c123" with params "" or "123"
+				parameter = "";
+			}
+			else if (space_index === 0) number = 1;//"!c user" with params " user"
+			else {
+				number = parseInt(parameter.substring(0, space_index));//number specified. either it's "!c123 user"
+				parameter = parameter.substring(space_index);
+			}
+			if (isNaN(number)) return false;
+			if (parameter.length != 0) {//username explicitly provided
+				if (parameter.length < 70) {//longest query should be less than 70 characters
+					if (!processRateLimit()) return false;
+					if (msg.mentions.users.size == 1) {
+						lolapi.getLink(msg.mentions.users.first().id).then(result => {
+							let username = msg.mentions.users.first().username;//suppose the link doesn't exist in the database
+							if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
+							callback(index, false, username, number, 4);
+						}).catch(console.error);
+					}
+					else if (parameter.substring(0, 2) == " $") {//shortcut
+						lolapi.getShortcut(msg.author.id, parameter.toLowerCase().substring(2)).then(result => {
+							callback(index, false, result[parameter.toLowerCase().substring(2)], number, 1);
 						}).catch(e => {
 							if (e) reply(":x: An error has occurred. The shortcut may not exist.");
 						});
 					}
-					else callback(region, parameter.substring(UTILS.indexOfInstance(parameter, " ", 2) + 1), number);
+					else if (parameter.substring(parameter.indexOf(" ") + 1) == "^") {//pull from recent command
+						msg.channel.fetchMessages({ before: msg.id, limit: 30 }).then(msgs => {
+							msgs = msgs.array();
+							let user_id;
+							for (let i = 0; i < msgs.length; ++i) {
+								if (msgs[i].author.id == client.user.id && //message was sent by bot
+									msgs[i].embeds.length == 1 && //embedded response
+									UTILS.exists(msgs[i].embeds[0].author) && //author present
+									UTILS.exists(msgs[i].embeds[0].author.url) && //url present
+									msgs[i].embeds[0].author.url.substring(0, 25) === "https://osu.ppy.sh/users/") {//https://osu.ppy.sh/users/4374286
+									const candidate = UTILS.arbitraryLengthInt(msgs[i].embeds[0].author.url.substring(25));
+									if (candidate !== "") user_id = parseInt(candidate);
+									break;
+								}
+							}
+							if (!UTILS.exists(user_id)) reply(":x: Could not find a recent username queried.");
+							else callback(index, true, user_id, number, 5);
+						}).catch(e => {
+							console.error(e);
+							reply(":x: Could not find a recent username queried.");
+						});
+					}
+					else if (parameter[0] == " ") callback(index, false, parameter.substring(1).trim(), number, 0);//explicit (required trailing space after command trigger)
+					else return false;
+					return true;
 				}
 			}
-			catch (e) {//username not provided
-				try {
-					const region = assert_region(parameter.substring(parameter.indexOf(" ") + 1), false);
-					lolapi.getLink(msg.author.id).then(result => {
-						let username = msg.author.username;//suppose the link doesn't exist in the database
-						if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
-						callback(region, username, number);
-					}).catch(console.error);
-				}
-				catch (e) { }
+			else {//username not provided
+				if (!processRateLimit()) return false;
+				lolapi.getLink(msg.author.id).then(result => {
+					let username = msg.author.username;//suppose the link doesn't exist in the database
+					if (UTILS.exists(result.username) && result.username != "") {
+						username = result.username;//link exists
+						callback(index, false, username, number, 2);
+					}
+					else callback(index, false, username, number, 3);
+				}).catch(console.error);
+				return true;
 			}
-		});
+		}, false);
+	}
+	function is(PLEVEL, candidate = msg.author.id, notify = true) {
+		if (candidate === msg.author.id) {
+			if (ACCESS_LEVEL >= PLEVEL) return true;
+			else if (notify) {
+				if (PLEVEL === CONFIG.CONSTANTS.BOTOWNERS);//do not notify when this permission fails
+				else if (PLEVEL === CONFIG.CONSTANTS.SERVEROWNERS) reply(":x: Server Owner permissions required. You must be the owner of this server to use this command.");
+				else if (PLEVEL === CONFIG.CONSTANTS.ADMINISTRATORS) reply(":x: Server Administrator permissions required.");
+				else if (PLEVEL === CONFIG.CONSTANTS.MODERATORS) reply(":x: Server Moderator permissions required.");
+				else if (PLEVEL === CONFIG.CONSTANTS.BOTCOMMANDERS) reply(":x: Bot Commander permissions required.");
+				else;//normal member permissions
+			}
+			return false;
+		}
+		else {
+			const other_ACCESS_LEVEL = UTILS.accessLevel(CONFIG, msg);
+			return other_ACCESS_LEVEL >= PLEVEL;//never notifies
+		}
 	}
 	function isOwner(candidate = msg.author.id, notify = true) {
 		const answer = UTILS.exists(CONFIG.OWNER_DISCORD_IDS[candidate]) && CONFIG.OWNER_DISCORD_IDS[candidate].active;
 		if (!answer) {
-			UTILS.output("insufficient permissions");
-			print_message();
+			printMessage("insufficient permissions");
 			if (notify) msg.channel.send(":x: Owner permissions required. Ask for help at " + CONFIG.HELP_SERVER_INVITE_LINK + " .").catch(console.error);
 		}
 		return answer;
 	}
-	function reply(reply_text, callback, error_callback) {
-		print_message();
+	function reply(reply_text, callback, errorCallback) {
+		printMessage("reply (" + (new Date().getTime() - msg_receive_time) + "ms): " + reply_text + "\n");
 		lolapi.terminate();
-		console.log("reply (" + (new Date().getTime() - msg_receive_time) + "ms): " + reply_text + "\n");
 		msg.channel.send(reply_text, { split: true }).then((nMsg) => {
 			if (UTILS.exists(callback)) callback(nMsg);
 		}).catch((e) => {
 			console.error(e);
-			if (UTILS.exists(error_callback)) error_callback(e);
+			if (UTILS.exists(errorCallback)) errorCallback(e);
 		});
 	}
 
-	function reply_to_author(reply_text, callback, error_callback) {
-		print_message();
+	function replyToAuthor(reply_text, callback, errorCallback) {
+		printMessage("reply to author (" + (new Date().getTime() - msg_receive_time) + "ms): " + reply_text + "\n");
 		lolapi.terminate();
-		console.log("reply to author (" + (new Date().getTime() - msg_receive_time) + "ms): " + reply_text + "\n");
 		msg.author.send(reply_text, { split: true }).then((nMsg) => {
 			if (UTILS.exists(callback)) callback(nMsg);
 		}).catch((e) => {
 			console.error(e);
-			if (UTILS.exists(error_callback)) error_callback(e);
+			if (UTILS.exists(errorCallback)) errorCallback(e);
 		});
 	}
 
-	function reply_embed(reply_embed, callback, error_callback) {
-		if (UTILS.exists(msg.guild) && !msg.channel.permissionsFor(client.user).has(["EMBED_LINKS"])) {//doesn't have permission to embed links in server
+	function replyEmbed(reply_embed, callback, errorCallback) {
+		if (!msg.PM && !msg.channel.permissionsFor(client.user).has(["EMBED_LINKS"])) {//doesn't have permission to embed links in server
 			lolapi.terminate();
 			reply(":x: I cannot respond to your request without the \"embed links\" permission.");
 		}
 		else {//has permission to embed links, or is a DM/PM
-			print_message();
+			printMessage("reply embedded (" + (new Date().getTime() - msg_receive_time) + "ms)\n");
 			lolapi.terminate();
-			console.log("reply embedded (" + (new Date().getTime() - msg_receive_time) + "ms)\n");
 			msg.channel.send("", { embed: reply_embed }).then((nMsg) => {
 				if (UTILS.exists(callback)) callback(nMsg);
 			}).catch((e) => {
 				console.error(e);
-				if (UTILS.exists(error_callback)) error_callback(e);
+				if (UTILS.exists(errorCallback)) errorCallback(e);
 			});
 		}
 	}
 
-	function reply_embed_to_author(reply_embed, callback, error_callback) {
-		print_message();
+	function replyEmbedToAuthor(reply_embed, callback, errorCallback) {
+		printMessage("reply embedded to author (" + (new Date().getTime() - msg_receive_time) + "ms)\n");
 		lolapi.terminate();
-		console.log("reply embedded to author (" + (new Date().getTime() - msg_receive_time) + "ms)\n");
 		msg.author.send("", { embed: reply_embed }).then((nMsg) => {
 			if (UTILS.exists(callback)) callback(nMsg);
 		}).catch((e) => {
 			console.error(e);
-			if (UTILS.exists(error_callback)) error_callback(e);
+			if (UTILS.exists(errorCallback)) errorCallback(e);
 		});
 	}
 
-	function print_message() {
-		const basic = msg.id + "\ncontent: " + msg.content +
-			"\nauthor: " + msg.author.tag + " :: " + msg.author.id +
-			"\nchannel: " + msg.channel.name + " :: " + msg.channel.id;
-		if (UTILS.exists(msg.guild)) UTILS.output("received server message :: " + basic + "\nguild: " + msg.guild.name + " :: " + msg.guild.id);
-		else {
-			UTILS.output("received PM/DM message :: " + basic);
+	function printMessage(x = "") {
+		let answer = x + "\n";
+		const MSG_LEN = 50;
+		let ctt;
+		if (!msg.PM) {
+			ctt = [{ content: msg.id, author: msg.author.id, P: ACCESS_LEVEL, channel: msg.channel.id, guild: msg.guild.id, size_region: msg.guild.memberCount }, { content: msg.cleanContent.substring(0, MSG_LEN), author: msg.author.tag, P: CONFIG.CONSTANTS.PERMISSION_LEVEL_REVERSE[ACCESS_LEVEL], channel: msg.channel.name, guild: msg.guild.name, size_region: msg.guild.region }];
 		}
+		else {
+			ctt = [{ content: msg.id, author: msg.author.id, P: ACCESS_LEVEL, channel: msg.channel.id }, { content: msg.cleanContent.substring(0, MSG_LEN), author: msg.author.tag, P: CONFIG.CONSTANTS.PERMISSION_LEVEL_REVERSE[ACCESS_LEVEL], channel: msg.channel.name }];
+		}
+		for (let i = MSG_LEN; i < msg.cleanContent.length; i += MSG_LEN) ctt.push({ content: msg.cleanContent.substring(i, i + MSG_LEN) });
+		answer += ctable.getTable(ctt);
+		UTILS.output(answer);
 	}
-	function assert_region(test_string, notify = true) {
-		if (!UTILS.exists(CONFIG.REGIONS[test_string.toUpperCase()])) {
-			if (notify) reply(":x: You need to specify a region.");
-			throw new Error("Region not specified");
+	function suggestLink(guess_method) {
+		return guess_method === 3 ? " We tried using your discord username but could not find a player with the same name. Let us know what your osu username is using `" + CONFIG.DISCORD_COMMAND_PREFIX + "link <ign>` and we'll remember it for next time!" : "";
+	}
+	function forcePrefix(triggers) {
+		return preferences.get("force_prefix") ? triggers.map(t => preferences.get("prefix") + t) : triggers;
+	}
+	function processRateLimit() {
+		//return true if valid. return false if limit reached.
+		if (is(CONFIG.CONSTANTS.BOTOWNERS, msg.author.id, false)) return true;//owners bypass rate limits
+		let valid = 0;//bitwise
+		if (!msg.PM) {
+			if (!server_RL.check()) {
+				sendToChannel(CONFIG.RATE_LIMIT.CHANNEL_ID, ":no_entry::busts_in_silhouette: Server exceeded rate limit. uID: `" + msg.author.id + "` sID: `" + msg.guild.id + "`\n" + msg.author.tag + " on " + msg.guild.name);
+				valid += 1;//bit 0
+			}
 		}
-		else {
-			return CONFIG.REGIONS[test_string.toUpperCase()];
+		if (!user_RL.check()) {
+			sendToChannel(CONFIG.RATE_LIMIT.CHANNEL_ID, ":no_entry::bust_in_silhouette: User exceeded rate limit. uID: `" + msg.author.id + "` sID: `" + (msg.PM ? "N/A" : msg.guild.id) + "`\n" + msg.author.tag + " on " + (msg.PM ? "N/A" : msg.guild.name));
+			valid += 2;//bit 1
 		}
+		if (valid === 0) {
+			if (!msg.PM) server_RL.add();
+			user_RL.add();
+		}
+		else if (valid === 3) {//both rate limits reached
+			if (!server_RL.warned && !user_RL.warned) {
+				reply(":no_entry::alarm_clock::busts_in_silhouette::bust_in_silhouette: The server and user rate limits have been exceeded. Please wait a while before trying the next command.");
+			}
+			server_RL.warn();
+			user_RL.warn();
+		}
+		else if (valid === 2) {//user rate limit reached
+			if (!user_RL.warned) reply(":no_entry::alarm_clock::bust_in_silhouette: The user rate limits have been exceeded. Please wait a while before trying the next command.");
+			user_RL.warn();
+		}
+		else if (valid === 1) {//server rate limit reached
+			if (!server_RL.warned) reply(":no_entry::alarm_clock::busts_in_silhouette: The server rate limits have been exceeded. Please wait a while before trying the next command.");
+			server_RL.warn();
+		}
+		return valid === 0;
+	}
+	function getUsernameFromUID(uid) {
+		return new Promise((resolve, reject) => {
+			if (UTILS.isInt(uid)) {
+				client.shard.broadcastEval("let candidate_user = this.users.get(\"" + uid + "\"); candidate_user != undefined ? candidate_user.tag : null;").then(possible_usernames => {
+					for (let b in possible_usernames) if (UTILS.exists(possible_usernames[b])) return resolve(possible_usernames[b]);
+					resolve(uid);
+				}).catch(reject);
+			}
+			else resolve(uid);
+		});
 	}
 	function shutdown() {
 		sendToChannel(CONFIG.LOG_CHANNEL_ID, ":x: Shutdown initiated.");

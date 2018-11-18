@@ -1,78 +1,30 @@
 "use strict";
 const Discord = require("discord.js");
 const UTILS = new (require("../utils.js"))();
-const queues = {
-	"0": "Custom",
-	"70": "SR One for All",
-	"72": "HA 1v1 Snowdown Showdown",
-	"73": "HA 2v2 Snowdown Showdown",
-	"75": "SR 6v6 Hexakill",
-	"76": "SR URF",
-	"78": "HA One For All: Mirror",
-	"83": "SR Co-op vs AI URF",
-	"98": "TT 6v6 Hexakill",
-	"100": "BB 5v5 ARAM",
-	"310": "SR Nemesis",
-	"313": "SR Black Market Brawlers",
-	"317": "CS Definitely Not Dominion",
-	"325": "SR All Random",
-	"400": "SR Draft",
-	"420": "SR Ranked Solo",
-	"430": "SR Blind",
-	"440": "SR Ranked Flex",
-	"450": "HA ARAM",
-	"460": "TT Blind",
-	"470": "TT Ranked Flex",
-	"600": "SR Blood Hunt",
-	"610": "CR Dark Star: Singularity",
-	"700": "SR Clash",
-	"800": "TT Co-op vs AI Intermediate",
-	"810": "TT Co-op vs AI Intro",
-	"820": "TT Co-op vs AI Beginner",
-	"830": "SR Co-op vs AI Intro",
-	"840": "SR Co-op vs AI Beginner",
-	"850": "SR Co-op vs AI Intermediate",
-	"900": "SR ARURF",
-	"910": "CS Ascension",
-	"920": "HA Legend of the Poro King",
-	"940": "SR Nexus Siege",
-	"950": "SR Doom Bots Voting",
-	"960": "SR Doom Bots Standard",
-	"980": "VCP Star Guardian Invasion: Normal",
-	"990": "VCP Star Guardian Invasion: Onslaught",
-	"1000": "O Project: Hunters",
-	"1010": "SR Snow ARURF",
-	"1020": "SR One for All"
-};
-const RANK_ORDER = ["BRONZE", "SILVER", "GOLD", "PLATINUM", "DIAMOND", "MASTER", "CHALLENGER"];
-const RANK_COLOR = [[153, 51, 0], [179, 179, 179], [255, 214, 51], [0, 255, 152], [179, 240, 255], [255, 153, 255], [255, 0, 0]];
-const IMMR_THRESHOLD = [100, 600, 1100, 1600, 2100, 2600, 2700];
-const PREMADE_EMOJIS = ["", "\\💙", "\\💛", "\\💚"];
+const mathjs = require("mathjs");
+const HORIZONTAL_SEPARATOR = "------------------------------";
 module.exports = class EmbedGenerator {
 	constructor() { }
 	test() {
 		let newEmbed = new Discord.RichEmbed();
-		newEmbed.setTitle("Test");
-		newEmbed.setDescription("description");
-		newEmbed.addField("`j` `      ` test", "nothing");
+		newEmbed.setAuthor("Author \\🇺🇸");
+		newEmbed.setTitle("Test 🇺🇸");
+		newEmbed.setDescription("description 🇺🇸");
+		newEmbed.addField("field title 🇺🇸", "field desc 🇺🇸");
+		newEmbed.setFooter("Footer 🇺🇸");
 		return newEmbed;
 	}
 	help(CONFIG) {
 		let newEmbed = new Discord.RichEmbed();
 		newEmbed.setTitle("Discord Commands");
-		newEmbed.setDescription("Terms of Service:\n- Don't be a bot on a user account and use SupportBot.\n- Don't abuse bugs. If you find a bug, please report it to us.\n- Don't spam useless feedback\n- If you do not want to use SupportBot, let us know and we'll opt you out of our services.\n- We reserve the right to ban users and servers from using SupportBot at our discretion.\nFor additional help, please visit <" + CONFIG.HELP_SERVER_INVITE_LINK + ">\n\n<required parameter> [optional parameter]");
-		newEmbed.addField("`" + CONFIG.DISCORD_COMMAND_PREFIX + "help`", "Displays this information card.");
-		newEmbed.addField("`" + CONFIG.DISCORD_COMMAND_PREFIX + "invite`", "Provides information on how to add SupportBot to a different server.");
-		newEmbed.addField("`" + CONFIG.DISCORD_COMMAND_PREFIX + "link <region> <username>`", "If your LoL ign is different from your discord username, you can set your LoL ign using this command, and SupportBot will remember it.");
-		newEmbed.addField("`" + CONFIG.DISCORD_COMMAND_PREFIX + "unlink`", "Aliases:\n`" + CONFIG.DISCORD_COMMAND_PREFIX + "removelink`\n\nSupportBot forgets your preferred username and region.");
-		newEmbed.addField("`<region> [username]`", "Aliases:\n`<op.gg link>`\n\nDisplays summoner information.");
-		newEmbed.addField("`matchhistory <region> [username]`", "Aliases:\n`mh <region> [username]`\n\nDisplays basic information about the 5 most recent games played.");
-		newEmbed.addField("`matchhistory<number> <region> [username]`", "Aliases:\n`mh<number> <region> [username]`\n\nDisplays detailed information about one of your most recently played games.");
-		newEmbed.addField("`livegame <region> [username]`", "Aliases:\n`lg <region> [username]`\n`currentgame <region> [username]`\n`cg <region> [username]`\n`livematch <region> [username]`\n`lm <region> [username]`\n`currentmatch <region> [username]`\n`cm <region> [username]`\n\nShows information about a game currently being played.");
-		newEmbed.addField("`service status <region>`", "Aliases:\n`servicestatus <region>`\n`status <region>`\n`ss <region>`\n\nShows information on the uptime of LoL services in a region.");
-		newEmbed.addField("multi <region> [comma separated list of usernames/lobby text]", "Aliases:\n`m <region> [list of usernames or lobby text]`\n\nCompares multiple summoners in a region against each other.");
-		newEmbed.addField("`" + CONFIG.DISCORD_COMMAND_PREFIX + "shortcuts`", "Displays a list of nicknames you've set for friends with hard to spell names. Visit https://supportbot.tk/ for more information on this family of commands.")
-		newEmbed.setFooter("SupportBot " + CONFIG.VERSION);
+		newEmbed.setDescription("Terms of Service:\n- Don't be a bot on a user account and use BoatBot.\n- Don't abuse bugs. If you find a bug, please report it to us.\n- Don't spam useless feedback\n- If you do not want to use BoatBot, let us know and we'll opt you out of our services.\n- We reserve the right to ban users and servers from using BoatBot at our discretion.\nFor additional help, please visit <" + CONFIG.HELP_SERVER_INVITE_LINK + ">\n\n<required parameter> [optional parameter]");
+		newEmbed.addField("`" + CONFIG.DISCORD_COMMAND_PREFIX + "help`", "Displays this information card.\n" + HORIZONTAL_SEPARATOR);
+		newEmbed.addField("`" + CONFIG.DISCORD_COMMAND_PREFIX + "invite`", "Provides information on how to add BoatBot to a different server.\n" + HORIZONTAL_SEPARATOR);
+		newEmbed.addField("`" + CONFIG.DISCORD_COMMAND_PREFIX + "link <username>`", "If your osu ign is different from your discord username, you can set your osu ign using this command, and BoatBot will remember it.\n" + HORIZONTAL_SEPARATOR);
+		newEmbed.addField("`" + CONFIG.DISCORD_COMMAND_PREFIX + "unlink`", "Aliases:\n`" + CONFIG.DISCORD_COMMAND_PREFIX + "removelink`\n\BoatBot forgets your preferred username.\n" + HORIZONTAL_SEPARATOR);
+		newEmbed.addField("`" + CONFIG.DISCORD_COMMAND_PREFIX + "shortcuts`", "Displays a list of nicknames you've set for friends with hard to spell names. Visit https://supportbot.tk/ for more information on this family of commands.\n" + HORIZONTAL_SEPARATOR);
+		newEmbed.addField("`" + CONFIG.DISCORD_COMMAND_PREFIX + "setting <setting name> <value>`", "Set server preferences for: prefix, auto-opgg, force-prefix, release-notifications. See our website for more details.");
+		newEmbed.setFooter("BoatBot " + CONFIG.VERSION);
 		return newEmbed;
 	}
 	summoner(CONFIG, apiobj) {//lsd command
@@ -103,8 +55,12 @@ module.exports = class EmbedGenerator {
 		newEmbed.setAuthor(summoner.name, undefined, UTILS.opgg(region, summoner.name));
 		newEmbed.setThumbnail("https://ddragon.leagueoflegends.com/cdn/" + CONFIG.STATIC.n.profileicon + "/img/profileicon/" + summoner.profileIconId + ".png");
 		if (UTILS.exists(match.status)) newEmbed.setDescription("Level " + summoner.summonerLevel);
-		else if (match.gameStartTime != 0) newEmbed.setDescription("Level " + summoner.summonerLevel + "\n__**Playing:**__ **" + CONFIG.STATIC.CHAMPIONS[match.participants.find(p => { return p.summonerId == summoner.id; }).championId].emoji + "** on " + queues[match.gameQueueConfigId] + " for `" + UTILS.standardTimestamp((new Date().getTime() - match.gameStartTime) / 1000) + "`");
-		else newEmbed.setDescription("Level " + summoner.summonerLevel + "\n__**Game Loading:**__ **" + CONFIG.STATIC.CHAMPIONS[match.participants.find(p => p.summonerId == summoner.id).championId].emoji + "** on " + queues[match.gameQueueConfigId]);
+		else {
+			const game_type = match.gameType == "CUSTOM_GAME" ? "Custom" : queues[match.gameQueueConfigId];
+			if (match.gameStartTime != 0) newEmbed.setDescription("Level " + summoner.summonerLevel + "\n__**Playing:**__ **" + CONFIG.STATIC.CHAMPIONS[match.participants.find(p => { return p.summonerId == summoner.id; }).championId].emoji + "** on " + game_type + " for `" + UTILS.standardTimestamp((new Date().getTime() - match.gameStartTime) / 1000) + "`");
+			else newEmbed.setDescription("Level " + summoner.summonerLevel + "\n__**Game Loading:**__ **" + CONFIG.STATIC.CHAMPIONS[match.participants.find(p => p.summonerId == summoner.id).championId].emoji + "** on " + game_type);
+		}
+		const will = (region === "na" && summoner.id == 50714503) ? true : false;
 		let highest_rank = -1;
 		for (let i = 0; i < ranks.length; ++i) {
 			let description = (ranks[i].wins + ranks[i].losses) + "G (" + UTILS.round(100 * ranks[i].wins / (ranks[i].wins + ranks[i].losses), 2) + "%) = " + ranks[i].wins + "W + " + ranks[i].losses + "L";
@@ -122,17 +78,27 @@ module.exports = class EmbedGenerator {
 				if (candidate != -1) title += "#" + (candidate + 1) + " ";//add placing if index found
 			}
 			title += ranks[i].leaguePoints + "LP";
-			newEmbed.addField(title, description, true);
+			newEmbed.addField((will ? "~~" : "") + title + (will ? "~~" : ""), (will ? "~~" : "") + description + (will ? "~~" : ""), true);
 			if (RANK_ORDER.indexOf(ranks[i].tier) > highest_rank) highest_rank = RANK_ORDER.indexOf(ranks[i].tier);
 		}
 		if (highest_rank > -1) newEmbed.setColor(RANK_COLOR[highest_rank]);
+		if (will) {
+			const challenger_rank = UTILS.randomInt(5, 200);
+			const challenger_LP = UTILS.randomInt(100, 1000);
+			const fake_games = UTILS.randomInt(200, 700);
+			const fake_wins = UTILS.randomInt(fake_games / 2, fake_games);
+			const fake_losses = fake_games - fake_wins;
+			const fake_wr = UTILS.round(100 * fake_wins / (fake_wins + fake_losses), 2);
+			newEmbed.addField("<:Challenger:437262128282599424>True Rank: Challenger ~#" + challenger_rank + " " + challenger_LP + "LP", fake_games + "G (" + fake_wr + "%) = " + fake_wins + "W + " + fake_losses + "L", true);
+			newEmbed.setColor(RANK_COLOR[RANK_COLOR.length - 1]);
+		}
 		let cm_description = [];
 		let cm_total = 0;
 		for (let i = 0; i < championmastery.length; ++i) {
 			if (i < 3) cm_description.push("`M" + championmastery[i].championLevel + "` " + CONFIG.STATIC.CHAMPIONS[championmastery[i].championId].emoji + " `" + UTILS.numberWithCommas(championmastery[i].championPoints) + "`pts");
 			cm_total += championmastery[i].championLevel;
 		}
-		if (cm_description.length > 0) newEmbed.addField("Champion Mastery: " + cm_total, cm_description.join("\t") + "\n[op.gg](" + UTILS.opgg(region, summoner.name) + ") [lolnexus](https://lolnexus.com/" + region + "/search?name=" + encodeURIComponent(summoner.name) + "&region=" + region + ") [quickfind](https://quickfind.kassad.in/profile/" + region + "/" + encodeURIComponent(summoner.name) + ") [lolking](https://lolking.net/summoner/" + region + "/" + summoner.id + "/" + encodeURIComponent(summoner.name) + "#/profile) [lolprofile](https://lolprofile.net/summoner/" + region + "/" + encodeURIComponent(summoner.name) + "#update) [matchhistory](https://matchhistory." + region + ".leagueoflegends.com/en/#match-history/" + CONFIG.REGIONS[region.toUpperCase()].toUpperCase() + "/" + summoner.accountId + ") [wol](https://wol.gg/stats/" + region + "/" + encodeURIComponent(summoner.name) + "/)");
+		if (cm_description.length > 0) newEmbed.addField("Champion Mastery: " + cm_total, cm_description.join("\t") + "\n[op.gg](" + UTILS.opgg(region, summoner.name) + ") [lolnexus](https://lolnexus.com/" + region + "/search?name=" + encodeURIComponent(summoner.name) + "&region=" + region + ") [quickfind](https://quickfind.kassad.in/profile/" + region + "/" + encodeURIComponent(summoner.name) + ") [lolprofile](https://lolprofile.net/summoner/" + region + "/" + encodeURIComponent(summoner.name) + "#update) [matchhistory](https://matchhistory." + region + ".leagueoflegends.com/en/#match-history/" + CONFIG.REGIONS[region.toUpperCase()].toUpperCase() + "/" + summoner.accountId + ") [wol](https://wol.gg/stats/" + region + "/" + encodeURIComponent(summoner.name) + "/)");
 		newEmbed.setTimestamp(new Date(summoner.revisionDate));
 		newEmbed.setFooter("Last change detected at ");
 		return newEmbed;
@@ -441,7 +407,7 @@ module.exports = class EmbedGenerator {
 		}
 		return newEmbed;
 	}
-	mmr(CONFIG, summoner, mmr) {
+	mmr(CONFIG, summoner) {
 		let newEmbed = new Discord.RichEmbed();
 		if (!UTILS.exists(summoner.id)) {
 			newEmbed.setTitle("This summoner does not exist.");
@@ -449,18 +415,49 @@ module.exports = class EmbedGenerator {
 			newEmbed.setColor([255, 0, 0]);
 			return newEmbed;
 		}
-		newEmbed.setAuthor(summoner.name);
+		let tier, jokeNumber;
+		let mmr = UTILS.randomInt(-1, MMR_THRESHOLD.length);//pick a tier
+		if (mmr === -1) UTILS.randomInt(-100, MMR_THRESHOLD[0])
+		else if (mmr < MMR_THRESHOLD.length - 1) mmr = UTILS.randomInt(MMR_THRESHOLD[mmr], MMR_THRESHOLD[mmr + 1]);//-100 to 400
+		else UTILS.randomInt(MMR_THRESHOLD[mmr], MMR_THRESHOLD[mmr] + 300);
+		if (mmr < MMR_THRESHOLD[0]) {
+			tier = UTILS.randomOf(["WOOD", "CLOTH", "IRON", "PLASTIC", "PAPER", "COPPER", "CARDBOARD", "LEAD", "DIRT", "GARBAGE"]);
+			jokeNumber = 0;
+		} else if (mmr < MMR_THRESHOLD[1]) {//bronze
+			tier = RANK_ORDER[0];
+			jokeNumber = 1;
+		} else if (mmr < MMR_THRESHOLD[2]) {//silver
+			tier = RANK_ORDER[1];
+			jokeNumber = 2;
+		} else if (mmr < MMR_THRESHOLD[3]) {//gold
+			tier = RANK_ORDER[2];
+			jokeNumber = 3;
+		} else if (mmr < MMR_THRESHOLD[4]) {//plat
+			tier = RANK_ORDER[3];
+			jokeNumber = 4;
+		} else if (mmr < MMR_THRESHOLD[5]) {//dia
+			tier = RANK_ORDER[4];
+			jokeNumber = 5;
+		} else if (mmr < MMR_THRESHOLD[6]) {//master
+			tier = RANK_ORDER[5];
+			jokeNumber = 6;
+		} else {//challenger
+			tier = RANK_ORDER[6];
+			jokeNumber = 7;
+		}
+		const analysis = UTILS.randomOf(MMR_JOKES[jokeNumber]);
+		newEmbed.setAuthor(summoner.name, null, UTILS.opgg(CONFIG.REGIONS_REVERSE[summoner.region], summoner.name));
 		newEmbed.setThumbnail("https://ddragon.leagueoflegends.com/cdn/" + CONFIG.STATIC.n.profileicon + "/img/profileicon/" + summoner.profileIconId + ".png");
 		newEmbed.setDescription("Level " + summoner.summonerLevel);
-		newEmbed.addField("Official MMR Data", "Tier: " + UTILS.english(mmr.tier) + "\nMMR: `" + mmr.mmr + "`\n" + mmr.analysis);
-		if (RANK_ORDER.indexOf(mmr.tier) != -1) newEmbed.setColor(RANK_COLOR[RANK_ORDER.indexOf(mmr.tier)]);
-		newEmbed.setFooter("This information is subject to very frequent change.");
+		newEmbed.addField("MMR Data", "Tier: " + UTILS.english(tier) + "\nMMR: `" + mmr + "`\n" + analysis);
+		if (RANK_ORDER.indexOf(tier) != -1) newEmbed.setColor(RANK_COLOR[RANK_ORDER.indexOf(tier)]);
+		newEmbed.setFooter("This information does not reflect this summoner's actual MMR.");
 		return newEmbed;
 	}
 	notify(CONFIG, content, username, displayAvatarURL) {
 		let newEmbed = new Discord.RichEmbed();
 		newEmbed.setColor([255, 255, 0]);
-		newEmbed.setTitle("Important message from SupportBot staff");
+		newEmbed.setTitle("Important message from BoatBot staff");
 		newEmbed.setURL(CONFIG.HELP_SERVER_INVITE_LINK);
 		newEmbed.setAuthor(username, displayAvatarURL);
 		newEmbed.setDescription(content);
@@ -496,90 +493,23 @@ module.exports = class EmbedGenerator {
 		newEmbed.setThumbnail("https://cdn.discordapp.com/attachments/423261885262069771/433465885420945409/cby4p-fp0aj-0.png");
 		return newEmbed;
 	}
-	multiSummoner(CONFIG, region, summoners, ranks, masteries, match_metas, matches) {
-		let newEmbed = new Discord.RichEmbed();
-		newEmbed.setTitle("Multiple Summoner Comparison");
-		let response_str = [];
-		for (let i = 0; i < summoners.length; ++i) {
-			if (UTILS.exists(summoners[i].status)) {
-				response_str.push("The requested summoner does not exist.");
-				continue;
-			}
-			let individual_description = "`";
-			individual_description += UTILS.shortRank(ranks[i].find(r => r.queueType === "RANKED_SOLO_5x5")) + " ";
-			individual_description += UTILS.shortRank(ranks[i].find(r => r.queueType === "RANKED_FLEX_SR")) + " ";
-			individual_description += UTILS.shortRank(ranks[i].find(r => r.queueType === "RANKED_FLEX_TT")) + " ";
-			let results = [];
-			let all_KDA = {
-				K: 0,
-				D: 0,
-				A: 0
-			};
-			for (let b in match_metas[i].matches) {//iterate through match meta for 1 summoner
-				const indv_match = matches.find(m => match_metas[i].matches[b].gameId == m.gameId);
-				results.push(UTILS.determineWin(summoners[i].id, indv_match));
-				const KDA = UTILS.KDA(summoners[i].id, indv_match);
-				for (let b in all_KDA) all_KDA[b] += KDA[b];
-			}
-			let streak_count = 1;
-			const streak_result = results[0];
-			for (let j = 1; j < results.length; ++j) {
-				if (streak_result == results[j]) streak_count++;
-				else break;
-			}
-			individual_description += (streak_count + "").padStart(2, " ") + (streak_result ? "Ws " : "Ls ");//streak information
-			const total_wins = results.reduce((total, increment) => total + (increment ? 1 : 0), 0) + "";
-			const total_losses = results.reduce((total, increment) => total + (increment ? 0 : 1), 0) + "";
-			individual_description += total_wins.padStart(2, " ") + "W/" + total_losses.padStart(2, " ") + "L ";//20 game W/L record
-			individual_description += "@ " + UTILS.KDAFormat((all_KDA.K + all_KDA.A) / all_KDA.D) + "` ";
-			for (let j = 0; j < 3; ++j) {//top 3 champion masteries
-				individual_description += j < masteries[i].length ? CONFIG.STATIC.CHAMPIONS[masteries[i][j].championId].emoji : ":x:";
-			}
-			individual_description += " lv. `" + summoners[i].summonerLevel + "`";
-			individual_description += " [" + summoners[i].name + "](" + UTILS.opgg(region, summoners[i].name) + ")";
-			UTILS.debug("individual_description length: " + individual_description.length);
-			response_str.push(individual_description);
-		}
-		for (let i = 0; i < response_str.length; ++i) {
-			let field_str = "";
-			for (; i < response_str.length; ++i) {
-				if (field_str.length + response_str[i].length < 1024) field_str += response_str[i] + "\n";
-				else break;
-			}
-			newEmbed.addField("`SOLOQ |FLEX5 |FLEX3` W/L-Streak, 20G W/L, 20G KDA, Best Champs", field_str.substring(0, field_str.length - 1));
-		}
-		return newEmbed;
-		//SOLO Q|FLEX 5|FLEX 3 [MH1][MH2][MH3][MH4][W]W/[L]L KDA: [KDA][C1][C2][C3] lv. [lv.][username w/ op.gg]
-		//6     7      7      1 25   25   25   25   2 2  2 2 4    6     26  26  26 5    3    48
-		//SOLO Q|FLEX 5|FLEX 3 [W]W/[L]L [KDA][C1][C2][C3] lv. [lv.][username w/ op.gg]
-		//6     7      7      1 2 2  2 2 6     26  26  26 5    3    48
-		//SOLO Q|FLEX 5|FLEX 3 [S#][R]s [W]W/[L]L [KDA][C1][C2][C3] lv. [lv.][username w/ op.gg]
-		//6     7      7      1 2   1 2  2 2  2 2 6     26  26  26 5    3    48
-
-
-		//SOLO Q|FLEX 5|FLEX 3 [S#][R]s [W]W/[L]L [KDA][C1][C2][C3] lv. [lv.][username w/ op.gg]
-		//SOLO Q|FLEX 5|FLEX 3 [S#][R]s [W]W/[L]L [KDA][C1][C2][C3] lv. [lv.][username w/ op.gg]
-		//SOLO Q|FLEX 5|FLEX 3 [S#][R]s [W]W/[L]L [KDA][C1][C2][C3] lv. [lv.][username w/ op.gg]
-		//SOLO Q|FLEX 5|FLEX 3 [S#][R]s [W]W/[L]L [KDA][C1][C2][C3] lv. [lv.][username w/ op.gg]
-		//SOLO Q|FLEX 5|FLEX 3 [S#][R]s [W]W/[L]L [KDA][C1][C2][C3] lv. [lv.][username w/ op.gg]
-	}
 	serverBan(CONFIG, server, reason, date, issuer_tag, issuer_avatarURL) {
 		let newEmbed = new Discord.RichEmbed();
 		if (date == 0) {
-			newEmbed.setTitle("This server (" + server.name + ") has been permanently banned from using SupportBot");
+			newEmbed.setTitle("This server (" + server.name + ") has been permanently banned from using BoatBot");
 			newEmbed.setColor([1, 1, 1]);
 			newEmbed.addField("Duration", "Permanent", true);
 		}
 		else {
 			const date_date = new Date(date);
-			newEmbed.setTitle("This server (" + server.name + ") has been temporarily suspended from using SupportBot");
+			newEmbed.setTitle("This server (" + server.name + ") has been temporarily suspended from using BoatBot");
 			newEmbed.setColor([255, 0, 0]);
 			newEmbed.addField("Duration", UTILS.until(date_date), true);
 			newEmbed.setFooter("This suspension expires at");
 			newEmbed.setTimestamp(date_date);
 		}
-		newEmbed.addField("While this ban is effective", "SupportBot will ignore all messages sent from this server.", true);
-		newEmbed.addField("Help", "If you believe this is a mistake, please visit " + CONFIG.HELP_SERVER_INVITE_LINK, true);
+		newEmbed.addField("While this ban is effective", "BoatBot will ignore all messages sent from this server.", true);
+		newEmbed.addField("Help", "If you believe this is a mistake, please visit " + CONFIG.HELP_SERVER_INVITE_LINK + " and state your case to an admin.", true);
 		newEmbed.setAuthor(issuer_tag, issuer_avatarURL);
 		newEmbed.setDescription("The reason given was: " + reason);
 		return newEmbed;
@@ -587,19 +517,19 @@ module.exports = class EmbedGenerator {
 	userBan(CONFIG, reason, date, issuer_tag, issuer_avatarURL) {
 		let newEmbed = new Discord.RichEmbed();
 		if (date == 0) {
-			newEmbed.setTitle("You have been permanently banned from using SupportBot");
+			newEmbed.setTitle("You have been permanently banned from using BoatBot");
 			newEmbed.setColor([1, 1, 1]);
 			newEmbed.addField("Duration", "Permanent", true);
 		}
 		else {
 			const date_date = new Date(date);
-			newEmbed.setTitle("You have been temporarily suspended from using SupportBot");
+			newEmbed.setTitle("You have been temporarily suspended from using BoatBot");
 			newEmbed.setColor([255, 0, 0]);
 			newEmbed.addField("Duration", UTILS.until(date_date), true);
 			newEmbed.setFooter("This suspension expires at");
 			newEmbed.setTimestamp(date_date);
 		}
-		newEmbed.addField("While this ban is effective", "SupportBot will ignore all messages sent from your account.", true);
+		newEmbed.addField("While this ban is effective", "BoatBot will ignore all messages sent from your account.", true);
 		newEmbed.addField("Help", "If you believe this is a mistake, please visit " + CONFIG.HELP_SERVER_INVITE_LINK + " and state your case to an admin.", true);
 		newEmbed.setAuthor(issuer_tag, issuer_avatarURL);
 		newEmbed.setDescription("The reason given was: " + reason);
@@ -610,7 +540,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setTitle("This is an official warning for your server (" + server.name + ")");
 		newEmbed.setTimestamp();
 		newEmbed.setColor([255, 255, 0]);
-		newEmbed.addField("This server can be temporarily or permanently banned from using SupportBot", "if you continue to violate our policies.", true);
+		newEmbed.addField("This server can be temporarily or permanently banned from using BoatBot", "if you continue to violate our policies.", true);
 		newEmbed.addField("No further action is required from anyone.", "Please ensure everyone is familiar with our Terms and Conditions, which you can read about by sending `" + CONFIG.DISCORD_COMMAND_PREFIX + "help`. For more assistance, please visit " + CONFIG.HELP_SERVER_INVITE_LINK + " .", true);
 		newEmbed.setAuthor(issuer_tag, issuer_avatarURL);
 		newEmbed.setDescription("The reason given was: " + reason);
@@ -621,7 +551,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setTitle("This is an official warning");
 		newEmbed.setColor([255, 255, 0]);
 		newEmbed.setTimestamp();
-		newEmbed.addField("You can be temporarily or permanently banned from using SupportBot", "if you continue to violate our policies.", true);
+		newEmbed.addField("You can be temporarily or permanently banned from using BoatBot", "if you continue to violate our policies.", true);
 		newEmbed.addField("No further action is required from you.", "Please ensure you are familiar with our Terms and Conditions, which you can read about by sending `" + CONFIG.DISCORD_COMMAND_PREFIX + "help`. For more assistance, please visit " + CONFIG.HELP_SERVER_INVITE_LINK + " .", true);
 		newEmbed.setAuthor(issuer_tag, issuer_avatarURL);
 		newEmbed.setDescription("The reason given was: " + reason);
@@ -648,33 +578,13 @@ module.exports = class EmbedGenerator {
 	disciplinaryHistory(CONFIG, id, user, docs) {
 		let newEmbed = new Discord.RichEmbed();
 		newEmbed.setTitle("Disciplinary History");
-		let active_ban = -1;
-		const now = new Date().getTime();
-		for (let b in docs) {
-			if (docs[b].ban && docs[b].active) {
-				const ban_date = new Date(docs[b].date);
-				if (ban_date.getTime() == 0) {
-					active_ban = 0;
-					break;
-				}
-				else if (ban_date.getTime() > now) {
-					if (ban_date.getTime() > active_ban) active_ban = ban_date.getTime();
-				}
-			}
-		}
-		let recent_warning = false;
-		for (let b in docs) {
-			if (!docs[b].ban && docs[b].reason.substring(0, 9) == ":warning:") {
-				recent_warning = true;
-				break;
-			}
-		}
-		if (active_ban == 0) {
+		const status = UTILS.disciplinaryStatus(docs);
+		if (status.active_ban == 0) {
 			newEmbed.setColor([1, 1, 1]);
 			newEmbed.setDescription("This " + (user ? "user" : "server") + " has an active permanent ban.\nHere are the 10 most recent events:");
 		}
-		else if (active_ban == -1) {
-			if (recent_warning) {
+		else if (status.active_ban == -1) {
+			if (status.recent_warning) {
 				newEmbed.setColor([255, 255, 0]);
 				newEmbed.setDescription("This " + (user ? "user" : "server") + " has been warned recently.\nHere are the 10 most recent events:");
 			}
@@ -685,7 +595,7 @@ module.exports = class EmbedGenerator {
 		}
 		else {
 			newEmbed.setColor([255, 0, 0]);
-			newEmbed.setDescription("This " + (user ? "user" : "server") + " has an active temporary ban. It expires in " + UTILS.until(new Date(active_ban)) + ".\nHere are the 10 most recent events:");
+			newEmbed.setDescription("This " + (user ? "user" : "server") + " has an active temporary ban. It expires in " + UTILS.until(new Date(status.active_ban)) + ".\nHere are the 10 most recent events:");
 		}
 		for (let i = 0; i < docs.length && i < 10; ++i) {
 			newEmbed.addField("By " + CONFIG.OWNER_DISCORD_IDS[docs[i].issuer_id].name + ", " + UTILS.ago(new Date(docs[i].id_timestamp)) + (docs[i].ban && docs[i].active ? (new Date(docs[i].date).getTime() == 0 ? ", Permanent Ban" : ", Ban Expires in " + UTILS.until(new Date(docs[i].date))) : ""), docs[i].reason);
@@ -699,7 +609,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setDescription("Showing 10 most recent events:");
 		newEmbed.setAuthor(CONFIG.OWNER_DISCORD_IDS[id].name + " (" + id + ")");
 		for (let i = 0; i < docs.length && i < 10; ++i) {
-			let description = "To: " + docs[i].target_id + ", ";
+			let description = docs[i].user ? "uid" : "sid" + ": " + docs[i].target_id + ", ";
 			description += UTILS.ago(new Date(docs[i].id_timestamp)) + ", ";
 			if (docs[i].ban) {
 				description += new Date(docs[i].date).getTime() == 0 ? "Permanent Ban Issued" : "Temporary Ban Issued, duration " + UTILS.duration(new Date(docs[i].id_timestamp), new Date(docs[i].date));
@@ -710,5 +620,205 @@ module.exports = class EmbedGenerator {
 			newEmbed.addField(description, docs[i].reason);
 		}
 		return newEmbed;
+	}
+	statsPlus(CONFIG, mode, user_stats, user_best, php_profile_leader, user_page, php_profile_general) {
+		let newEmbed = new Discord.RichEmbed();
+		let totalHits = parseInt(user_stats.count300) + parseInt(user_stats.count100) + parseInt(user_stats.count50);
+		let efficiency = (parseInt(user_stats.ranked_score) / parseInt(user_stats.total_score)) * 100;
+		let bonusPP = 416.6667 * (1 - Math.pow(.9994, (parseInt(user_stats.count_rank_ss) + parseInt(user_stats.count_rank_s) + parseInt(user_stats.count_rank_a))));
+		let apw =UTILS.round((parseFloat(user_stats.pp_raw) - bonusPP) / 20.0, 2);
+		const aim_acc = UTILS.calcAimAcc(mathjs, user_best, user_stats.pp_raw);
+		const misses = (totalHits / aim_acc.aimAccuracy) - totalHits;
+		let missRate = 100 - (aim_acc.aimAccuracy * 100);
+		let cpp = (totalHits + misses) / parseInt(user_stats.playcount);
+		aim_acc.pfm = aim_acc.pfm + "\tbonus: >`" +UTILS.round(bonusPP, 1) + "`pp";
+		aim_acc.pfmp = aim_acc.pfmp + "\tbonus: >`" +UTILS.round(bonusPP * 100 / user_stats.pp_raw, 1) + "%`";
+		if (mode == 0) newEmbed.setColor(16777215);
+		else if (mode == 1) newEmbed.setColor(16711680);
+		else if (mode == 2) newEmbed.setColor(65280);
+		else if (mode == 3) newEmbed.setColor(255);
+		let accs = [];
+		while (php_profile_leader.indexOf("</b> (") != -1) {
+			if (php_profile_leader.indexOf("%)", php_profile_leader.indexOf("</b> (") + "</b> (".length) < php_profile_leader.indexOf("<", php_profile_leader.indexOf("</b> (") + "</b> (".length)) {
+				accs.push(parseFloat(php_profile_leader.substring(php_profile_leader.indexOf("</b> (") + "</b> (".length, php_profile_leader.indexOf("%)", php_profile_leader.indexOf("</b> (") + "</b> (".length))));
+			}
+			php_profile_leader = php_profile_leader.substring(php_profile_leader.indexOf("</b> (") + "</b> (".length);
+		}
+		const accdev = accs.length === 0 ? 0 : UTILS.round(mathjs.std(accs, "uncorrected"), 3);
+		//UTILS.output(accs);
+		const playstyle = UTILS.pickPlaystyle(user_page.indexOf("playstyle mouse using") != -1, user_page.indexOf("playstyle keyboard using") != -1, user_page.indexOf("playstyle tablet using") != -1, user_page.indexOf("playstyle touch using") != -1);
+		const playHours = parseInt(php_profile_general.substring(php_profile_general.indexOf("<b>Play Time</b>: ") + "<b>Play Time</b>: ".length, php_profile_general.indexOf(" hours", php_profile_general.indexOf("<b>Play Time</b>: ") + "<b>Play Time</b>: ".length)).replace(/,/g, ""));
+		newEmbed.setAuthor("Stats for " + user_stats.username, "", "https://osu.ppy.sh/users/" + user_stats.user_id);
+		newEmbed.setThumbnail("https://a.ppy.sh/" + user_stats.user_id);
+		newEmbed.setTitle("Performance: " + user_stats.pp_raw + "pp    (#" + UTILS.numberWithCommas(user_stats.pp_rank) + ")    :flag_" + user_stats.country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_stats.pp_country_rank));
+		newEmbed.setDescription(playstyle + "\nRanked Score: " + UTILS.numberWithCommas(user_stats.ranked_score) + "\nHit Accuracy: " + UTILS.round(user_stats.accuracy, 3) + " ± " + accdev + "%\nPlay Count: " + UTILS.numberWithCommas(user_stats.playcount) + "\nPlay Time: " + UTILS.numberWithCommas(playHours) + " hours\nTotal Score: " + UTILS.numberWithCommas(UTILS.round(parseInt(user_stats.total_score), 2)) + "\nCurrent Level: " + UTILS.round(parseFloat(user_stats.level), 2) + "\nTotal Hits: " + UTILS.numberWithCommas(totalHits) + "\n" + CONFIG.EMOJIS.webXH + ": " + user_stats.count_rank_ssh + "    " + CONFIG.EMOJIS.webX + ": " + user_stats.count_rank_ss + "    " + CONFIG.EMOJIS.webSH + ": " + user_stats.count_rank_sh + "    " + CONFIG.EMOJIS.webS + ": " + user_stats.count_rank_s + "    " + CONFIG.EMOJIS.webA + ": " + user_stats.count_rank_a);
+
+		newEmbed.addField("For mod information", "add `-m` to the command. `!sp-m`, `!spt-m`, `!spc-m`, `!spm-m`");
+		/*
+		newEmbed.addField("Favorite Mods", fms);
+		newEmbed.addField("pp sources (pp)", pfm);
+		newEmbed.addField("pp sources (%)", pfmp);
+		*/
+		user_stats.countmiss = misses;
+		newEmbed.addField("Interpolated Information", "Unweighted Hit Accuracy: `" + UTILS.calcAcc(0, user_stats) + "%`\nAverage play worth: `" + apw + "` ± " + aim_acc.ppstddev + "pp\nCumulative unweighted pp, top 100: `" + aim_acc.ppTotal + "` pp\nPP range: " + aim_acc.maxPP + " - " + aim_acc.minPP + " = `" + UTILS.round(aim_acc.ppRange, 3) + "`\nScoring Efficiency: `" + UTILS.round(efficiency, 2) + "%`\tObjects per play: `" + UTILS.round(cpp, 2) + "`\nAppx.Misses: `" + UTILS.numberWithCommas(UTILS.round(misses, 0)) + "`\tMiss rate: `" + UTILS.round(missRate, 3) + "%` or 1 miss every `" + UTILS.round(100 / missRate, 0) + "` hits\nRatio of 0 miss plays in the top 100: `" + UTILS.round(aim_acc.sRatio, 1) + "%` >0 miss plays: `" + UTILS.round(100 - aim_acc.sRatio, 1) + "%`\nAverage Career Hits per second: `" + UTILS.round(totalHits / (playHours * 3600), 2) + "`");
+		//newEmbed.addField("For mod information", "add `-m` to the command. `!sp-m`, `!spt-m`, `!spc-m`, `!spm-m`");
+		newEmbed.addField("More about " + user_stats.username, "[osu!track](https://ameobea.me/osutrack/user/" + encodeURIComponent(user_stats.username) + ")\t[osu!stats](http://osustats.ppy.sh/u/" + encodeURIComponent(user_stats.username) + ")\t[osu!skills](http://osuskills.tk/user/" + encodeURIComponent(user_stats.username) + ")\t[osu!chan](https://syrin.me/osuchan/u/" + user_stats.user_id + "/?m=" + mode + ")\t[pp+](https://syrin.me/pp+/u/" + user_stats.user_id + "/)");
+		newEmbed.setTimestamp(new Date());
+		newEmbed.setFooter("Requested at local time", "https://s.ppy.sh/images/flags/" + user_stats.country.toLowerCase() + ".gif");
+		//output(pfm);
+		return newEmbed;
+	}
+	signature(CONFIG, mode, user_stats) {
+		let newEmbed = new Discord.RichEmbed();
+		let wordMode;
+		let modeCommand;
+		if (mode == 0) {
+			wordMode = "Standard";
+			modeCommand = "!sp";
+			newEmbed.setColor(16777215);
+		}
+		else if (mode == 1) {
+			wordMode = "Taiko";
+			modeCommand = "!spt";
+			newEmbed.setColor(16711680);
+		}
+		else if (mode == 2) {
+			wordMode = "CtB";
+			modeCommand = "!spm";
+			newEmbed.setColor(65280);
+		}
+		else if (mode == 3) {
+			wordMode = "Mania";
+			modeCommand = "!spm";
+			newEmbed.setColor(255);
+		}
+		newEmbed.setAuthor(user_stats.username + "'s " + wordMode + " Profile", null, "https://osu.ppy.sh/users/" + user_stats.user_id);
+		newEmbed.setImage("https://lemmmy.pw/osusig/sig.php?colour=pink&uname=" + user_stats.user_id + "&pp=2&countryrank&removeavmargin&darktriangles&onlineindicator=undefined&xpbar&xpbarhex&mode=" + mode + "&random=" + UTILS.map(Math.random(), 0, 1, 0, 10000));
+		newEmbed.setFooter("use " + modeCommand + " " + user_stats.username + " for more information");
+		return newEmbed;
+	}
+	statsPlusMods(CONFIG, mode, user_stats, user_best) {
+		let newEmbed = new Discord.RichEmbed();
+		let totalHits = parseInt(user_stats.count300) + parseInt(user_stats.count100) + parseInt(user_stats.count50);
+		//let efficiency = (parseInt(user_stats.ranked_score) / parseInt(user_stats.total_score)) * 100;
+		let bonusPP = 416.6667 * (1 - Math.pow(.9994, (parseInt(user_stats.count_rank_ss) + parseInt(user_stats.count_rank_s) + parseInt(user_stats.count_rank_a))));
+		//let apw = UTILS.round((parseFloat(user_stats.pp_raw) - bonusPP) / 20.0, 2);
+		const aim_acc = UTILS.calcAimAcc(mathjs, user_best, user_stats.pp_raw);
+		let misses = (totalHits / aim_acc.aimAccuracy) - totalHits;
+		//let missRate = 100 - (aim_acc.aimAccuracy * 100);
+		//let cpp = (totalHits + misses) / parseInt(user_stats.playcount);
+		aim_acc.pfm = aim_acc.pfm + "\tbonus: >`" + UTILS.round(bonusPP, 1) + "`pp";
+		aim_acc.pfmp = aim_acc.pfmp + "\tbonus: >`" + UTILS.round(bonusPP * 100 / user_stats.pp_raw, 1) + "%`";
+		if (mode == 0) newEmbed.setColor(16777215);
+		else if (mode == 1) newEmbed.setColor(16711680);
+		else if (mode == 2) newEmbed.setColor(65280);
+		else if (mode == 3) newEmbed.setColor(255);
+		newEmbed.setAuthor("Stats for " + user_stats.username, "", "https://osu.ppy.sh/u/" + user_stats.user_id);
+		newEmbed.setThumbnail("https://a.ppy.sh/" + user_stats.user_id);
+		newEmbed.setTitle("Performance: " + user_stats.pp_raw + "pp    (#" + UTILS.numberWithCommas(user_stats.pp_rank) + ")    :flag_" + user_stats.country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_stats.pp_country_rank));
+		newEmbed.addField("Favorite Mods, combined", aim_acc.fms);
+		newEmbed.addField("Favorite Mods, segregated", aim_acc.ms);
+		newEmbed.addField("pp sources (pp)", aim_acc.pfm);
+		newEmbed.addField("pp sources (%)", aim_acc.pfmp);
+		newEmbed.setTimestamp(new Date());
+		newEmbed.setFooter("Requested at local time", "https://s.ppy.sh/images/flags/" + user_stats.country.toLowerCase() + ".gif");
+		//output(aim_acc.pfm);
+		return newEmbed;
+	}
+	feedback(CONFIG, type, destination, msg, user_history, server_history, usertag) {
+		/*type = 0: general message from user (destination 1)
+		type = 1: complaint (destination 1->2)
+		type = 2: praise (destination 1->2)
+		type = 3: suggestion (destination 1->2)
+		type = 4: question (destination 1)
+		type = 5: general message to user (destination 0)
+		destination = 0: user PM
+		destination = 1: admin channel
+		destination = 2: public
+		(t, d)
+		(0, 1): user to admin channel
+		(1-3, 1): feedback awaiting public approval in admin channel
+		X(1-3, 2): feedback approved, to be published publicly. handled by function below, reviewFeedback()
+		X(1-3, 0): feedback approved, to be sent to original user. handled by function below, reviewFeedback()
+		(4, 1): question submitted to admin channel
+		(5, 0): management to user
+		(5, 1): management to user admin channel audit
+		*/
+		let newEmbed = new Discord.RichEmbed();
+		newEmbed.setAuthor(msg.author.tag + (msg.PM ? " via PM" : " from server " + msg.guild.name + "::" + msg.guild.id), msg.author.displayAvatarURL);
+		newEmbed.setTimestamp();
+		newEmbed.setTitle("Message from a user");
+		newEmbed.setDescription(msg.cleanContent);
+		if (type === 0) {//Lsay
+			newEmbed.setColor("#ffffff");//white
+		}
+		else if (type === 1) {//Lcomplain
+			newEmbed.setColor("#ff0000");//red
+			newEmbed.setFooter(CONFIG.FEEDBACK.COMPLAINT_CID + ":" + msg.author.id + ":" + msg.author.username);
+		}
+		else if (type === 2) {//Lpraise
+			newEmbed.setColor("#00ff00");//green
+			newEmbed.setFooter(CONFIG.FEEDBACK.PRAISE_CID + ":" + msg.author.id + ":" + msg.author.username);
+		}
+		else if (type === 3) {//Lsuggest
+			newEmbed.setColor("#0000ff");//blue
+			newEmbed.setFooter(CONFIG.FEEDBACK.SUGGESTION_CID + ":" + msg.author.id + ":" + msg.author.username);
+		}
+		else if (type === 4) {//Lask/Lquestion
+			newEmbed.setColor("#ff00ff");//magenta (yellow reserved for warnings)
+		}
+		else if (type === 5) {
+			newEmbed.setAuthor(msg.author.username, msg.author.displayAvatarURL);
+			newEmbed.setTitle("Message from management to " + usertag);//reset title
+			if (destination === 0) {
+				newEmbed.setURL(CONFIG.HELP_SERVER_INVITE_LINK);
+				newEmbed.addField("This is a private conversation with management.", "You can reply to this message by sending `" + CONFIG.DISCORD_COMMAND_PREFIX + "say <your response goes here>`");
+				newEmbed.setDescription(msg.cleanContent.substring(UTILS.indexOfInstance(msg.cleanContent, " ", 2) + 1) + "\n\n" + CONFIG.OWNER_DISCORD_IDS[msg.author.id].flags);
+			}
+			else if (destination === 1) {
+				newEmbed.setDescription(msg.cleanContent.substring(UTILS.indexOfInstance(msg.cleanContent, " ", 2) + 1));
+			}
+		}//Lmail
+		if (type < 5) {
+			let user_status = UTILS.disciplinaryStatusString(UTILS.disciplinaryStatus(user_history), true);
+			let server_status = UTILS.exists(server_history) ? "\n" + UTILS.disciplinaryStatusString(UTILS.disciplinaryStatus(server_history), false) : "";
+			newEmbed.addField("Background Checks", user_status + server_status);
+			if (destination === 1) {
+				newEmbed.addField("Responses", "Send message response: `" + CONFIG.DISCORD_COMMAND_PREFIX + "mail " + msg.author.id + " <text>`\nBan: `" + CONFIG.DISCORD_COMMAND_PREFIX + "banuser " + msg.author.id + " <duration> <reason>`\nWarn: `" + CONFIG.DISCORD_COMMAND_PREFIX + "warnuser " + msg.author.id + " <reason>`\nNote: `" + CONFIG.DISCORD_COMMAND_PREFIX + "noteuser " + msg.author.id + " <reason>`");
+			}
+		}
+		return newEmbed;
+	}
+	reviewFeedback(CONFIG, msg, approver, approved) {
+		if (!UTILS.exists(msg.embeds[0])) return 1;//no embed detected
+		if (!UTILS.exists(msg.embeds[0].footer) || !UTILS.exists(msg.embeds[0].footer.text)) return 2;//not approvable
+		const c_location = msg.embeds[0].footer.text.indexOf(":");
+		const c_location2 = UTILS.indexOfInstance(msg.embeds[0].footer.text, ":", 2);
+		if (c_location == -1 || c_location2 == -1) return 3;//not approvable
+		if (approved) {
+			let public_e = new Discord.RichEmbed(msg.embeds[0]);
+			let edit = new Discord.RichEmbed(msg.embeds[0]);
+			let user = new Discord.RichEmbed(msg.embeds[0]);
+			const cid = msg.embeds[0].footer.text.substring(0, c_location);
+			const uid = msg.embeds[0].footer.text.substring(c_location + 1, c_location2);
+			const username = msg.embeds[0].footer.text.substring(c_location2 + 1);
+			public_e.setFooter("Approved by " + approver.username, approver.displayAvatarURL);
+			public_e.fields = [];
+			public_e.setAuthor(username, public_e.author.icon_url);
+			edit.setFooter("Approved by " + approver.username, approver.displayAvatarURL);
+			edit.fields = [];
+			edit.addField("Responses", "Send message response: `" + CONFIG.DISCORD_COMMAND_PREFIX + "mail " + uid + "`\nNote: `" + CONFIG.DISCORD_COMMAND_PREFIX + "noteuser " + uid + " <reason>`");
+			user.setAuthor(username, msg.embeds[0].author.icon, msg.embeds[0].author.url);
+			user.setFooter("Approved by " + approver.username, approver.displayAvatarURL);
+			user.fields = [];
+			user.setTitle("Your feedback was reviewed by our staff and approved for public viewing on our server- click to join");
+			user.setURL("https://discord.gg/57Z8Npg");
+			public_e.setAuthor(username, user.author.icon_url);
+			return { to_user: user, to_user_uid: uid, edit, to_public: public_e, to_public_cid: cid };
+		}
+		else return {};
+	}
+	raw(embed_object) {
+		return new Discord.RichEmbed(embed_object);
 	}
 }

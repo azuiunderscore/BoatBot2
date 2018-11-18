@@ -1,15 +1,89 @@
 "use strict";
 let ta = require("./timeago.js");
 let seq = require("./promise-sequential.js");
+const fs = require("fs");
+const countries = JSON.parse(fs.readFileSync("../data/countries.json", "utf-8"));
 String.prototype.replaceAll = function(search, replacement) {
 	let target = this;
-	return target.replace(new RegExp(search, 'g'), replacement);
+	return target.replace(new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), replacement);
+}
+String.prototype.count = function(search) {
+	return (this.match(new RegExp(search, "g")) || []).length;
 }
 Number.prototype.pad = function(size) {
 	let s = String(this);
 	while (s.length < (size || 2)) {s = "0" + s;}
 	return s;
 }
+const modnames = [
+	{ val: 1, name: "NoFail", short: "NF" },
+	{ val: 2, name: "Easy", short: "EZ" },
+	//{ val: 4, name: "NoVideo", short: "NV" },//no video or touchscreen
+	{ val: 4, name: "TouchScreen", short: "TS" },//no video or touchscreen
+	{ val: 8, name: "Hidden", short: "HD" },
+	{ val: 16, name: "HardRock", short: "HR" },
+	{ val: 32, name: "SuddenDeath", short: "SD" },
+	{ val: 64, name: "DoubleTime", short: "DT" },
+	{ val: 128, name: "Relax", short: "RX" },
+	{ val: 256, name: "HalfTime", short: "HT" },
+	{ val: 512, name: "Nightcore", short: "NC" },
+	{ val: 1024, name: "Flashlight", short: "FL" },
+	{ val: 2048, name: "Autoplay", short: "AT" },
+	{ val: 4096, name: "SpunOut", short: "SO" },
+	{ val: 8192, name: "Autopilot", short: "AP" },
+	{ val: 16384, name: "Perfect", short: "PF" },
+	{ val: 32768, name: "Key4", short: "4K" },
+	{ val: 65536, name: "Key5", short: "5K" },
+	{ val: 131072, name: "Key6", short: "6K" },
+	{ val: 262144, name: "Key7", short: "7K" },
+	{ val: 524288, name: "Key8", short: "8K" },
+	{ val: 1048576, name: "FadeIn", short: "FI" },
+	{ val: 2097152, name: "Random", short: "RD" },
+	{ val: 4194304, name: "LastMod", short: "LM" },
+	{ val: 16777216, name: "Key9", short: "9K" },
+	{ val: 33554432, name: "Key10", short: "XK" },
+	{ val: 67108864, name: "Key1", short: "1K" },
+	{ val: 134217728, name: "Key3", short: "3K" },
+	{ val: 268435456, name: "Key2", short: "2K" },
+	{ val: 268435456 * 2, name: "ScoreV2", short: "V2" },
+];
+const doublemods = [
+	["NC", "DT"],
+	["PF", "SD"]
+];
+const short_mod_values = {
+	"NF": 1,
+	"EZ": 2,
+	"NV": 4,
+	"TS": 4,
+	"HD": 8,
+	"HR": 16,
+	"SD": 32,
+	"DT": 64,
+	"RX": 128,
+	"RL": 128,
+	"HT": 256,
+	"NC": 512,
+	"FL": 1024,
+	"AT": 2048,
+	"SO": 4096,
+	"AP": 8192,
+	"PF": 16384,
+	"4K": 32768,
+	"5K": 65536,
+	"6K": 131072,
+	"7K": 262144,
+	"8K": 524288,
+	"FI": 1048576,
+	"RD": 2097152,
+	"LM": 4194304,
+	"9K": 16777216,
+	"XK": 33554432,
+	"1K": 67108864,
+	"3K": 134217728,
+	"2K": 268435456,
+	"V2": 268435456 * 2
+};
 module.exports = class UTILS {
 	output(t) {//general utility function
 		if (this.exists(t)) {
@@ -39,8 +113,14 @@ module.exports = class UTILS {
 		return Math.round(num * Math.pow(10, decimal)) / Math.pow(10, decimal);
 	}
 	assert(condition) {
-		if (typeof (condition) != "boolean") throw new Error("asserting non boolean value: " + typeof (condition));
-		if (!condition) throw new Error("assertion false");
+		if (typeof (condition) != "boolean") {
+			console.trace();
+			throw new Error("asserting non boolean value: " + typeof (condition));
+		}
+		if (!condition) {
+			console.trace();
+			throw new Error("assertion false");
+		}
 		return true;
 	}
 	ago(date) {
@@ -58,32 +138,6 @@ module.exports = class UTILS {
 		answer = answer.substring(0, answer.length - 4);
 		return answer;
 	}
-	teamParticipant(summonerID, match) {
-		const participantID = match.participantIdentities.find(pI => pI.player.summonerId == summonerID).participantId;
-		const stats = match.participants.find(p => p.participantId == participantID);
-		return stats;
-	}
-	findParticipantIdentityFromPID(match, pid) {
-		return match.participantIdentities.find(pI => pI.participantId == pid);
-	}
-	stats(summonerID, match) {
-		return this.teamParticipant(summonerID, match).stats;
-	}
-	KDA(summonerID, match) {
-		const stats = this.stats(summonerID, match);
-		return {
-			K: stats.kills,
-			D: stats.deaths,
-			A: stats.assists,
-			KDA: (stats.kills + stats.assists) / stats.deaths,
-			KD: stats.kills / stats.deaths
-		};
-	}
-	determineWin(summonerID, match) {
-		const participantID = match.participantIdentities.find(pI => pI.player.summonerId == summonerID).participantId;
-		const teamID = match.participants.find(p => p.participantId == participantID).teamId;
-		return match.teams.find(t => t.teamId == teamID).win == "Win";
-	}
 	english(text) {
 		return text.split("_").map(t => t.substring(0, 1).toUpperCase() + t.substring(1).toLowerCase()).join(" ");
 	}
@@ -100,10 +154,7 @@ module.exports = class UTILS {
 	}
 	gold(number) {
 		number /= 1000;
-		return this.round(number, 1) + "k";
-	}
-	level(summonerID, match) {
-		return this.stats(summonerID, match).championLevel;
+		return number.toFixed(1) + "k";
 	}
 	indexOfInstance(string, searchString, index) {
 		let answer = -1;
@@ -145,134 +196,6 @@ module.exports = class UTILS {
 	sequential(tasks) {
 		return seq(tasks);
 	}
-	inferLane(role, lane, spell1Id, spell2Id) {//top=1, jungle=2, mid=3, support=4, bot=5
-		if (spell1Id == 11 || spell2Id == 11 || lane == "JUNGLE") return 2;
-		else if (lane == "BOTTOM") {
-			if (role == "DUO_SUPPORT") return 4;
-			else return 5;
-		}
-		else if (lane == "TOP") return 1;
-		else if (lane == "MIDDLE" || lane == "MID") return 3;
-		else return 0;
-	}
-	opgg(region, username) {
-		return "http://" + region + ".op.gg/summoner/userName=" + encodeURIComponent(username);
-	}
-	shortRank(info) {
-		//****** unranked
-		//██████ unranked
-		//G↑W--- Gold promotion, 1 win
-		//G2 +00 Gold 2, 0 LP
-		//G2 +56 Gold 2, 56LP
-		//G2↑ L_ Gold 2 promotion, 1 loss
-		//C +256 Challenger, 256LP
-		//C+1256 Challenger 1256 LP
-		if (!this.exists(info)) return "******";
-		let answer = "";
-		answer += info.tier[0];
-		if (this.exists(info.miniSeries)) {//series
-			if (info.miniSeries.progress.length == 5) {//BO5
-				answer += "↑" + info.miniSeries.progress.substring(0, info.miniSeries.progress.length - 1).replaceAll("N", "-");
-			}
-			else {//BO3
-				answer += { "I": "1", "II": "2", "III": "3", "IV": "4", "V": "5" }[info.rank] + "↑ " + info.miniSeries.progress.substring(0, info.miniSeries.progress.length - 1).replaceAll("N", "-");
-			}
-		}
-		else {//no series
-			let LP = info.leaguePoints;
-			if (info.tier[0] == "C" || info.tier[0] == "M") {//challenger or master (unlimited LP)
-				if (LP < 0) answer += "  -";
-				else if (LP < 100) answer += "  +";
-				else if (LP < 1000) answer += " +";
-				else answer += "+";
-			}
-			else {
-				answer += { "I": "1", "II": "2", "III": "3", "IV": "4", "V": "5" }[info.rank];
-				if (LP < 0) answer += " -";
-				else if (LP < 100) answer += " +";
-				else answer += "+";
-			}
-			LP = Math.abs(LP);
-			if (LP >= 10) answer += LP;
-			else answer += "0" + LP;
-		}
-		return answer;
-	}
-	getSingleChampionMastery(all, singleID) {
-		return this.exists(all.find(cmi => cmi.championId == singleID)) ? all.find(cmi => cmi.championId == singleID).championLevel : 0;
-	}
-	KDAFormat(num) {
-		if (isNaN(num) || num == Infinity) return "Perfect";
-		else return this.round(num, 2).toFixed("2");
-	}
-	KPFormat(num) {
-		if (isNaN(num)) return 0;
-		else return this.round(num, 0);
-	}
-	iMMR(rank) {//internal MMR Representation
-		/*
-		Bronze 5, 0LP: 100
-		Bronze 4, 0LP: 200
-		Bronze 3, 0LP: 300
-		Bronze 2, 0LP: 400
-		Bronze 1, 0LP: 500
-		Silver 5, 0LP: 600
-		Gold 5, 0LP: 1100
-		Platinum 5, 0LP: 1600
-		Diamond 5, 0LP: 2100
-		Master, 0LP: 2600
-		Challenger, 1000LP: 2800
-		*/
-		let answer = { BRONZE: 100, SILVER: 600, GOLD: 1100, PLATINUM: 1600, DIAMOND: 2100, MASTER: 2600, CHALLENGER: 2600 }[rank.tier];
-		if (answer != 2600) {
-			answer += { V: 0, IV: 100, III: 200, II: 300, I: 400 }[rank.rank];
-			answer += rank.leaguePoints;
-		}
-		else answer += rank.leaguePoints / 5;//magic number constant: 500 LP = 1 iMMR div
-		return answer;
-	}
-	iMMRtoEnglish(mmr) {
-		//6-char representation
-		if (mmr < 100) return "******";
-		let answer = "";
-		if (mmr < 600) answer += "B";
-		else if (mmr < 1100) answer += "S";
-		else if (mmr < 1600) answer += "G";
-		else if (mmr < 2100) answer += "P";
-		else if (mmr < 2600) answer += "D";
-		else if (mmr < 2700) answer += "M";//arbitrary M/C threshold
-		else answer += "C";
-		let LP;
-		if (mmr < 2600) {
-			answer += ["5", "4", "3", "2", "1"][Math.floor(((mmr - 100) % 500) / 100)];
-			LP = " +" + this.round(mmr % 100).pad(2);
-			answer += LP;
-		}
-		else {
-			LP = this.round((mmr - 2600) * 5);
-			if (LP < 100) answer += "  +" + LP.pad(2);
-			else if (LP < 1000) answer += " +" + LP;
-			else answer += "+" + LP;
-		}
-		return answer;
-	}
-	averageMatchMMR(ranks) {
-		let total_iMMR = 0;
-		let total_users = 0;
-		for (let b in ranks) {
-			let individual_iMMR = 0;
-			let individual_games = 0;
-			for (let c in ranks[b]) {
-				individual_iMMR += this.iMMR(ranks[b][c]) * (ranks[b][c].wins + ranks[b][c].losses);
-				individual_games += ranks[b][c].wins + ranks[b][c].losses;
-			}
-			if (individual_iMMR > 0) {
-				++total_users;
-				total_iMMR += individual_iMMR / individual_games;
-			}
-		}
-		return total_users === 0 ? 0 : total_iMMR / total_users;
-	}
 	copy(obj) {//no functions
 		return JSON.parse(JSON.stringify(obj));
 	}
@@ -280,7 +203,7 @@ module.exports = class UTILS {
 		while (arr.indexOf(deletable) != -1) arr.splice(arr.indexOf(deletable), 1);
 	}
 	defaultChannelNames() {
-		return ["general", "bot", "bots", "bot-commands", "botcommands", "commands", "league", "lol", "games", "spam"];
+		return ["general", "bot", "bots", "bot-commands", "botcommands", "commands", "osu", "games", "standard", "taiko", "mania", "ctb", "catch-the-beat", "fruit", "fruits", "boatbot", "boat-bot", "spam"];
 	}
 	durationParse(duration) {
 		let multiplier = duration.substring(duration.length - 1, duration.length).toUpperCase();
@@ -289,44 +212,378 @@ module.exports = class UTILS {
 		else return NaN;
 		return parseInt(duration) * multiplier;
 	}
-	presentLobby(pre_usernames) {
-		let present = [];//users present
-		let join_detected = false, leave_detected = false;
-		let joins = [], leaves = [];
-		const join_suffix = " joined the lobby";
-		const leave_suffix = " left the lobby";
-		for (let i = 0; i < pre_usernames.length; ++i) {
-			if (pre_usernames[i].substring(pre_usernames[i].length - join_suffix.length) === join_suffix) join_detected = true;
-			else if (pre_usernames[i].substring(pre_usernames[i].length - leave_suffix.length) === leave_suffix) leave_detected = true;
-			else if (join_detected && leave_detected) break;//all necessary results recorded
-			//else;//chat message
-		}
-		if (join_detected) {//champ select mode
-			for (let i = 0; i < pre_usernames.length; ++i) {
-				if (pre_usernames[i].substring(pre_usernames[i].length - join_suffix.length) === join_suffix) {
-					present.push(pre_usernames[i].substring(0, pre_usernames[i].length - join_suffix.length).trim());//user joined, add to attendance
-				}
-				else if (pre_usernames[i].substring(pre_usernames[i].length - leave_suffix.length) === leave_suffix) {
-					this.removeAllOccurances(present, pre_usernames[i].substring(0, pre_usernames[i].length - leave_suffix.length).trim());//user left, delete from attendance
-				}
-				//else;//chat message
-			}
-		}
-		else if (leave_detected) {//end game mode
-			for (let i = 0; i < pre_usernames.length; ++i) {
-				if (pre_usernames[i].substring(pre_usernames[i].length - leave_suffix.length) === leave_suffix) {
-					present.push(pre_usernames[i].substring(0, pre_usernames[i].length - leave_suffix.length).trim());//user left, add to attendance
-				}
-				//else;//chat message
-			}
-		}
-		/*
-		if (join) lobby/champ select, so joins add to usernames queried and leaves remove from usernames queried
-		if (leave) end game screen, so leaves add to usernames queried
-		*/
-		return present;
-	}
 	map(x, in_min, in_max, out_min, out_max) {
 		return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+	}
+	conditionalFormat(text, surrounds, condition = true) {
+		return condition ? surrounds + text + surrounds : text;
+	}
+	arbitraryLengthInt(text) {//returns string
+		let answer = "";
+		for (let i = 0; i < text.length; ++i) {
+			if (!isNaN(parseInt(text[i]))) answer += text[i];
+			else break;
+		}
+		return answer;
+	}
+	calcAimAcc(mathjs, parsed, pp_raw) {
+		let topHits = 0;
+		let topMisses = 0;
+		let fms = "";
+		let pfm = "";
+		let pfmp = "";
+		let modCount = {};//counts the frequency of mods
+		let modObject = [];//array of strings which contain the mod identifier and frequency by percentage
+		let modPP = {};//let p in modPP where p is modID and modPP[p] is weighted sum
+		let ppObject = [];//array of strings which contain the mod identifier and sum of pp
+		let pppObject = [];//array of strings which contain the mod identifier and share of pp
+		let modFrequency = 0;
+		let minPP = parsed.length === 0 ? 0 : parsed[parsed.length - 1].pp;
+		let maxPP = parsed.length === 0 ? 0 : parsed[0].pp;
+		let ppRange = parseFloat(maxPP) - parseFloat(minPP);
+		let sRatio = 0;
+		let modsegregated = {};
+		let ppstddev = [];
+		let ppTotal = 0;
+
+		//output("parsed.length is " + parsed.length);
+		for (let i = 0; i < parsed.length; i++) {
+			topHits = topHits + parseInt(parsed[i].count50) + parseInt(parsed[i].count100) + parseInt(parsed[i].count300);
+			topMisses = topMisses + parseInt(parsed[i].countmiss);
+			//output (topHits + " m: " + topMisses);
+			if (!this.exists(modPP[parsed[i].enabled_mods])) modPP[parsed[i].enabled_mods] = parseFloat(parsed[i].pp) * Math.pow(0.95, i);
+			else modPP[parsed[i].enabled_mods] = modPP[parsed[i].enabled_mods] + (parseFloat(parsed[i].pp) * Math.pow(0.95, i));
+			if (!this.exists(modCount[parsed[i].enabled_mods])) modCount[parsed[i].enabled_mods] = 1;
+			else ++modCount[parsed[i].enabled_mods];
+			++modFrequency;
+			if (parsed[i].rank == "S" || parsed[i].rank == "X" || parsed[i].rank == "SH" || parsed[i].rank == "XH") sRatio = sRatio + 1;
+			if (!this.exists(modsegregated[parsed[i].enabled_mods])) modsegregated[parsed[i].enabled_mods] = 1;
+			else ++modsegregated[parsed[i].enabled_mods];
+			ppstddev.push(parseFloat(parsed[i].pp));
+			ppTotal += parseFloat(parsed[i].pp);
+		}
+		sRatio = this.round((sRatio / modFrequency) * 100, 1);
+		let aimAccuracy = (topHits) / (topHits + topMisses);
+		for (let i in modCount) {//stringifying modCount to modObject
+			if (i == "0") modObject.push(["\tNone: `" + this.round((modCount[i] / modFrequency) * 100, 1) + "%`", modCount[i]]);
+			else modObject.push(["\t" + this.getMods(i) + ":`" + this.round((modCount[i] / modFrequency) * 100, 1) + "%`", modCount[i]]);
+		}
+		for (let i in modPP) {//stringifying modPP to ppObject
+			if (i == "0") {
+				ppObject.push(["\tNone: `" + this.round(modPP[i], 1) + "`pp", modPP[i]]);
+				pppObject.push(["\tNone: `" + this.round(modPP[i] * 100 / parseFloat(pp_raw), 1) + "%`", modPP[i] / parseFloat(pp_raw)])
+			}
+			else {
+				ppObject.push(["\t" + this.getMods(i) + ":`" + this.round(modPP[i], 1) + "`pp", modPP[i]]);
+				pppObject.push(["\t" + this.getMods(i) + ":`" + this.round(modPP[i] * 100 / parseFloat(pp_raw), 1) + "%`", modPP[i] / parseFloat(pp_raw)]);
+			}
+		}
+		let mns = {};
+		for (let i in modsegregated) {
+			if (i != "0") {
+				const gml = this.getMods(i).length - 1;
+				for (let c = 1; c < gml + 1; c += 2) {
+					//output(getMods(i) + ":" + getMods(i).substring(c, c + 2));
+					if (this.exists(mns[this.getMods(i).substring(c, c + 2)])) mns[this.getMods(i).substring(c, c + 2)] += modsegregated[i];
+					else mns[this.getMods(i).substring(c, c + 2)] = modsegregated[i];
+				}
+			}
+			else {
+				if (this.exists(mns[i])) mns[i] += modsegregated[i];
+				else mns[i] = modsegregated[i];
+			}
+		}
+		let msarray = [];
+		for (let i in mns) {
+			if (i == "0") msarray.push(["\tNone: `" + this.round((mns[i] * 100) / modFrequency, 1) + "%`", mns[i]]);
+			else msarray.push(["\t+" + i + ": `" + this.round((mns[i] * 100) / modFrequency, 1) + "%`", mns[i]]);
+		}
+		msarray.sort((a, b) => b[1] - a[1]);
+		let ms = msarray.map(a => a[0]).join("");
+		let modMax = modObject.length;
+		for (let i = 0; i < modMax; i++) {
+			let currentMaxFrequency = 0;
+			let indexMaxFrequency = 0;
+			for (let j in modObject) {
+				if (modObject[j][1] > currentMaxFrequency) {
+					indexMaxFrequency = j;
+					currentMaxFrequency = modObject[j][1];
+				}
+			}
+			fms = fms + modObject[indexMaxFrequency][0];
+			modObject.splice(indexMaxFrequency, 1);
+		}
+		modMax = ppObject.length;
+		for (let i = 0; i < modMax; i++) {
+			let currentMaxFrequency = 0;
+			let indexMaxFrequency = 0;
+			for (let j in ppObject) {
+				if (ppObject[j][1] > currentMaxFrequency) {
+					indexMaxFrequency = j;
+					currentMaxFrequency = ppObject[j][1];
+				}
+			}
+			pfm = pfm + ppObject[indexMaxFrequency][0];
+			ppObject.splice(indexMaxFrequency, 1);
+		}
+		modMax = pppObject.length;
+		for (let i = 0; i < modMax; i++) {
+			let currentMaxFrequency = 0;
+			let indexMaxFrequency = 0;
+			for (let j in pppObject) {
+				if (pppObject[j][1] > currentMaxFrequency) {
+					indexMaxFrequency = j;
+					currentMaxFrequency = pppObject[j][1];
+				}
+			}
+			pfmp = pfmp + pppObject[indexMaxFrequency][0];
+			pppObject.splice(indexMaxFrequency, 1);
+		}
+		//this.output(aimAccuracy);
+		return { aimAccuracy, fms, minPP, maxPP, ppRange, sRatio, pfm, pfmp, ms, ppstddev: (parsed.length === 0 ? 0 : this.round(mathjs.std(ppstddev, "uncorrected"), 2)), ppTotal: this.numberWithCommas(this.round(ppTotal, 2)) };
+	}
+	calcAcc(mode, scoreObject) {
+		let hits = (parseInt(scoreObject.count300) * 300) + (parseInt(scoreObject.count100) * 100) + (parseInt(scoreObject.count50) * 50);
+		//output("hits are " + hits);
+		let objects_hit = parseInt(scoreObject.count300) + parseInt(scoreObject.count100) + parseInt(scoreObject.count50) + parseInt(scoreObject.countmiss);//objects encountered
+		let total = objects_hit * 300;
+		//output("total is " + total);
+		let acc = this.round(hits * 100 / total, 2);
+		if (mode == 1) {
+			hits = (parseInt(scoreObject.count300) + (parseInt(scoreObject.count100) * .5)) * 300;
+			total = (parseInt(scoreObject.count300) + parseInt(scoreObject.count100) + parseInt(scoreObject.countmiss)) * 300;
+			objects_hit = parseInt(scoreObject.count300) + parseInt(scoreObject.count100) + parseInt(scoreObject.countmiss);
+			acc = this.round((hits * 100) / total, 2);
+		}
+		else if (mode == 2) {
+			hits = parseInt(scoreObject.count50) + parseInt(scoreObject.count100) + parseInt(scoreObject.count300);
+			total = parseInt(scoreObject.countkatu) + parseInt(scoreObject.count50) + parseInt(scoreObject.count100) + parseInt(scoreObject.count300) + parseInt(scoreObject.countmiss);
+			objects_hit = parseInt(scoreObject.countkatu) + parseInt(scoreObject.count50) + parseInt(scoreObject.count100) + parseInt(scoreObject.count300) + parseInt(scoreObject.countmiss);
+			acc = this.round((hits * 100) / total, 2);
+		}
+		else if (mode == 3) {
+			hits = (parseInt(scoreObject.count300) * 300) + (parseInt(scoreObject.count100) * 100) + (parseInt(scoreObject.count50) * 50) + (parseInt(scoreObject.countgeki) * 300) + (parseInt(scoreObject.countkatu) * 200);
+			total = (parseInt(scoreObject.count300) + parseInt(scoreObject.count100) + parseInt(scoreObject.count50) + parseInt(scoreObject.countmiss) + parseInt(scoreObject.countgeki) + parseInt(scoreObject.countkatu)) * 300;
+			objects_hit = parseInt(scoreObject.count300) + parseInt(scoreObject.count100) + parseInt(scoreObject.count50) + parseInt(scoreObject.countmiss) + parseInt(scoreObject.countgeki) + parseInt(scoreObject.countkatu);
+			acc = this.round(hits * 100 / total, 2);
+		}
+		return acc;
+	}
+	getModNumber(mod_string) {
+		let answer = 0;
+		let answer_object = {};
+		for (let b in short_mod_values) {
+			answer_object[b] = false;
+		}
+		for (let i = 0; i < mod_string.length; i += 2) {
+			if (this.exists(short_mod_values[mod_string.substring(i, i + 2).toUpperCase()])) {
+				answer += short_mod_values[mod_string.substring(i, i + 2).toUpperCase()];
+				answer_object[mod_string.substring(i, i + 2).toUpperCase()] = true;
+			}
+		}
+		let answerstring = this.getMods(answer);
+		answer_object.value = answer;
+		answer_object.string = answerstring;
+		return answer_object;
+	}
+	getMods(modnum) {
+		modnum = parseInt(modnum);
+		let mods = [];
+		for (let i = modnames.length - 1; i >= 0; i--) {
+			if (modnames[i].val <= modnum) {
+				if (modnames[i].short !== "") {
+					mods.push(modnames[i].short);
+				}
+				modnum -= modnames[i].val;
+			}
+		}
+		// handle doublemods
+		for (let i = 0; i < doublemods.length; i++) {
+			if (mods.indexOf(doublemods[i][0]) >= 0) {
+				mods.splice(mods.indexOf(doublemods[i][1]), 1);
+			}
+		}
+		if (mods.length === 0) return "";
+		else return "+" + mods.reverse().join("");
+	}
+	pickPlaystyle(mouse, keyboard, tablet, touchscreen) {
+		let answer = "";
+		if (mouse) answer += "<:mouse:382248628259127307>";
+		if (keyboard) answer += "<:keyboard:382247276422103040>";
+		if (tablet) answer += "<:tablet:382246804449918977>";
+		if (touchscreen) answer += "<:touchscreen:382248053895200780>";
+		return answer;
+	}
+	accessLevel(CONFIG, msg, uid) {
+		if (!this.exists(uid)) uid = msg.author.id;
+		if (this.exists(CONFIG.OWNER_DISCORD_IDS[uid]) && CONFIG.OWNER_DISCORD_IDS[uid].active) return CONFIG.CONSTANTS.BOTOWNERS;
+		const MEMBER = uid === msg.author.id ? msg.member : msg.guild.members.get(uid);
+		if (!this.exists(MEMBER)) return CONFIG.CONSTANTS.NORMALMEMBERS;//PM
+		else if (MEMBER.id === msg.guild.ownerID) return CONFIG.CONSTANTS.SERVEROWNERS;
+		else if (MEMBER.hasPermission(["BAN_MEMBERS", "KICK_MEMBERS", "MANAGE_MESSAGES", "MANAGE_ROLES", "MANAGE_CHANNELS"])) return CONFIG.CONSTANTS.ADMINISTRATORS;
+		else if (MEMBER.hasPermission(["KICK_MEMBERS", "MANAGE_MESSAGES"])) return CONFIG.CONSTANTS.MODERATORS;
+		else if (this.exists(MEMBER.roles.find(r => r.name.toLowerCase() === "bot commander"))) return CONFIG.CONSTANTS.BOTCOMMANDERS;
+		else return CONFIG.CONSTANTS.NORMALMEMBERS;
+	}
+	getCountryName(country_code) {
+		return this.exists(countries[country_code]) ? countries[country_code] : country_code;
+	}
+	generateTeams(summoners) {//generates all possible teams
+		/*summoners is an array of summoner objects from the API
+		00000 00000: 0: invalid
+		00000 11111: 31: valid
+		00001 00000: 32: invalid
+		11111 00000: 992: valid
+		11111 00001: 993: invalid
+		team 0 is always the larger team
+		*/
+		let combinations = [];
+		let min_team_size = Math.trunc(summoners.length / 2);
+		let max_team_size = Math.ceil(summoners.length / 2);
+		for (let i = 0; i < Math.pow(2, summoners.length); ++i) {
+			const candidate = i.toString(2).padStart(summoners.length, "0");
+			if (candidate.count("1") == min_team_size) combinations.push(candidate);
+		}
+		return min_team_size === max_team_size ? combinations.slice(0, combinations.length / 2) : combinations;
+	}
+	calculateTeamStatistics(mathjs, team, data) {
+		/*
+		team = "1100010011"
+		data = []
+		*/
+		let temp = {
+			raw: [[], []],//raw values
+			min: [0, 0],//minimum values
+			med: [0, 0],//median
+			max: [0, 0],//maximum values
+			avg: [0, 0],//team averages
+			stdev: [0, 0],//standard deviation
+			sum: [0, 0],//team_0 sum, team_1 sum
+			diff: 0,//absolute difference of sum
+			abs: 0//team 0 - team 1
+		}
+		for (let i = 0; i < team.length; ++i) {
+			temp.sum[parseInt(team[i])] += data[i];
+			temp.raw[parseInt(team[i])].push(data[i]);
+		}
+		for (let t = 0; t < 2; ++t) {
+			temp.min[t] = mathjs.min(temp.raw[t]);
+			temp.max[t] = mathjs.max(temp.raw[t]);
+			temp.avg[t] = mathjs.mean(temp.raw[t]);
+			temp.med[t] = mathjs.median(temp.raw[t]);
+			temp.stdev[t] = mathjs.std(temp.raw[t], "uncorrected");//σ: population standard deviation
+		}
+		temp.diff = temp.sum[0] - temp.sum[1];//team 0 - team 1
+		temp.abs = Math.abs(temp.sum[0] - temp.sum[1]);
+		return temp;
+	}
+	randomOf(choices) {
+		return choices[Math.trunc(Math.random() * choices.length)];
+	}
+	randomInt(a, b) {//[a, b)
+		return Math.trunc(Math.random() * (b - a)) + a;
+	}
+	disciplinaryStatus(docs) {
+		const now = new Date().getTime();
+		let active_ban = -1;//-1 = no ban, 0 = perma, other = temp ban
+		for (let b in docs) {
+			if (docs[b].ban && docs[b].active) {
+				const ban_date = new Date(docs[b].date);
+				if (ban_date.getTime() == 0) {
+					active_ban = 0;
+					break;
+				}
+				else if (ban_date.getTime() > now) {
+					if (ban_date.getTime() > active_ban) active_ban = ban_date.getTime();
+				}
+			}
+		}
+		let recent_ban = false;
+		for (let b in docs) {
+			if (docs[b].ban) {
+				const ban_date = new Date(docs[b].date);
+				if (now - (180 * 24 * 60 * 60 * 1000) < ban_date.getTime()) {//180 day
+					recent_ban = true;
+					break;
+				}
+			}
+		}
+		let recent_warning = false;
+		for (let b in docs) {
+			if (!docs[b].ban && docs[b].reason.substring(0, 9) == ":warning:") {
+				const warn_date = new Date(docs[b].date);
+				if (now - (180 * 24 * 60 * 60 * 1000) < warn_date.getTime()) {//180 day
+					recent_warning = true;
+					break;
+				}
+			}
+		}
+		let most_recent_note;
+		for (let i = 0; i < docs.length; ++i) {
+			if (!docs[i].ban && docs[i].reason.substring(0, 20) == ":information_source:") {
+				most_recent_note = docs[i].reason;
+				break;
+			}
+		}
+		return { active_ban, recent_ban, recent_warning, most_recent_note };
+	}
+	disciplinaryStatusString(status, user) {
+		this.assert(this.exists(user));
+		let answer = user ? "User: " : "Server: ";
+		if (status.active_ban == -1 && !status.recent_ban && !status.recent_warning) answer += ":white_check_mark: Good standing.";
+		else {
+			if (status.active_ban >= 0) {
+				if (status.active_ban == 0) answer += ":no_entry: Permabanned";
+				else answer += ":no_entry: Temporarily banned until " + this.until(new Date(status.active_ban));
+			}
+			else {
+				if (status.recent_ban && status.recent_warning) answer += ":warning: Recently banned\n:warning: Recently warned";
+				else if (status.recent_warning) answer += ":warning: Recently warned";
+				else if (status.recent_ban) answer += ":warning: Recently banned";
+			}
+		}
+		if (this.exists(status.most_recent_note)) answer += "\nMost recent note: " + status.most_recent_note;
+		return answer;
+	}
+	isInt(x) {
+		x = x + "";
+		let valid = false;
+		for (let i = 0; i < x.length; ++i) {
+			if (!isNaN(parseInt(x[i]))) valid = true;
+			else return false;
+		}
+		return valid;
+	}
+	embedRaw(richembed) {
+		return { author: this.exists(richembed.author) ? this.copy(richembed.author) : undefined,
+		color: richembed.color,
+		description: richembed.description,
+		fields: this.exists(richembed.fields) ? this.copy(richembed.fields) : undefined,
+		footer: this.exists(richembed.footer) ? this.copy(richembed.footer) : undefined,
+		image: this.exists(richembed.image) ? this.copy(richembed.image) : undefined,
+		thumbnail: this.exists(richembed.thumbnail) ? this.copy(richembed.thumbnail) : undefined,
+		timestamp: this.exists(richembed.timestamp) ? new Date(richembed.timestamp) : undefined,
+		title: richembed.title,
+		url: richembed.url };
+	}
+	expectNumber(str) {
+		let newStr = "";
+		for (let i = 0; i < str.length; ++i) {
+			if (!isNaN(parseInt(str[i]))) {
+				newStr += str[i];
+			}
+		}
+		newStr = parseInt(newStr);
+		if (isNaN(newStr)) return NaN;
+		else return newStr;
+	}
+	parseQuery(queryString) {//do not pass in full URL
+		var query = {};
+		var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+		for (var i = 0; i < pairs.length; i++) {
+			var pair = pairs[i].split('=');
+			query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+		}
+		return query;
 	}
 }

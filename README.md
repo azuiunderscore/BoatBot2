@@ -1,17 +1,84 @@
-# SupportBot v1.3.1
-League of Legends Statistics for Discord
+# BoatBot Lazer v2.0.0a
+osu! statistics for discord
+alpha testing, forked from supportbot @ iaace-NA/SupportBot
+(c) 2018; source available, all rights reserved
 
 <a href="https://discord.gg/MTqDXvB" target="_blank" rel="noopener"><img src="https://discordapp.com/api/guilds/384552678161645568/embed.png" alt="current users" /></a>
+## General Features
+- Per server preferences
+  - custom prefixes
+  - enable/disable release notifications
+  - enable/disable forced prefixes
+  - enable/disable automatic op.gg responses
+- 2500-5000 server (guild) capacity with minimal initial configuration involved
+- Processes
+  - 3 shards implemented as separate processes (blocking)
+    - (Future, not implemented) +1 process per shard for realtime music playback/streaming (non-blocking)
+  - 1 parent process to control all 3 shards (blocking)
+  - 1 internal (stateful) API process to cache external API requests and to handle database operations (blocking)
+    - HTTPS for database operations
+    - wss for bidirectional discord shard related communications
+    - api key authentication
+  - (Future, not implemented) 1 child process of the internal API to handle polling and tracking (blocking)
+- Configurable API caching timeouts per endpoint, per command
+- Feedback commands
+- Configurable user and server rate limiting
+  - Owners bypass rate limits
+  - Large servers have higher rate limits
+- Rate limit abuse watch
+- Global disciplinary commands for users and servers
+  - Permaban
+  - Temporary ban
+  - Warn
+  - Make internal note
+- Ability to set multiple owners
+- Ability to audit owner disciplinary actions
+- Ability to globally brodcast messages
+- Tiered permissions system
+  - Bot owners
+  - Server owners
+  - Server administrators
+  - Server moderators
+  - Server bot commanders
+  - Normal members
+## Format of Repository
+### Branches:
+- major: unstable, next major revision v+.0.0 : we removed a feature
+- minor: unstable, next minor revision vX.+.0 : we added a feature
+- patch: unstable, next patch revision vX.X.+ : we fixed a problem
+- master: stable, most current release
+### Folders:
+- api: internal api files
+- data: TLS certs and other local data
+- discord: discord bot files
+- releasenotes: release notes for BoatBot
+- start: startup configs for pm2
+- tests: manual test cases
+
+
 ## Dependencies
-- discord.js 11.3.2
-- mongoose 5.0.0-rc1
-- request 2.83.0
+- mongodb 3.x
+## npm Dependencies
+- pm2 (global)
+- getopts 2.2.1
+- bottleneck 2.12.0
+- discord.js 11.4.2
+- mongoose 5.3.2
+- request 2.88.0
+- mathjs 5.2.0
+- console.table 0.10.0
+- json5 2.1.0
+- express 4.6.3
+- express-ws 4.0.0
+- uws 9.148.0
+- ws 5.2.2
+- xregexp 4.2.0
 ## Minimum System Requirements
-- RAM: 250 MB+
-- HDD: 512 MB+
-- CPU: 2 Thread, Base clock 1GHz+
-- LAN: 10 Mbps Down/2 Mbps Up
+- RAM: 1 GB
+- HDD: 1 GB
+- CPU: 4 Thread, Base clock 1.2GHz+
+- LAN: 12 Mbps Down/4 Mbps Up
 ## Commands
-see https://supportbot.tk/
+see ~~https://supportbot.tk/~~
 ## Installation
-see https://github.com/iaace-NA/SupportBot/wiki
+see ~~https://github.com/iaace-NA/SupportBot/wiki~~

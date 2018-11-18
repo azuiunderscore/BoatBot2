@@ -1,0 +1,127 @@
+{
+	"CONSTANTS": {
+		"SCM_FULL": 2,
+		"SCM_REDUCED": 1,
+		"SCM_COMPACT": 0,
+		"NORMALMEMBERS": 0,
+		"BOTCOMMANDERS": 1,
+		"MODERATORS": 2,
+		"ADMINISTRATORS": 3,
+		"SERVEROWNERS": 4,
+		"BOTOWNERS": 5,
+		"PERMISSION_LEVEL_REVERSE": ["N", "B", "M", "A", "S", "G"]//normal, bot commander, moderator, administrator, server owner, god
+	},
+	"DISCORD_API_KEY": "",
+	"OSU_API_KEY": "",
+	"YOUTUBE_API_KEY": "",
+	"SOUNDCLOUD_API_KEY": "",
+	"TWITCH_API_KEY": "",
+	"CLEVERBOT_API_KEY": "",
+	"OWNER_DISCORD_IDS": {
+		//key is owner uid
+		"109894307070083072": {
+			"name": "iaace",//common name
+			"active": true,//account is active
+			"flags": "🇺🇸"//language flags appended at end of Lmail support messages
+		},
+		"137664238046019585": {
+			"name": "Dab",
+			"active": true,
+			"flags": "🇺🇸"
+		},
+		"338489538320269323": {
+			"name": "Caleb",
+			"active": true,
+			"flags": "🇺🇸"
+		},
+		"170613427893567488": {
+			"name": "dracrosinos",
+			"active": true,
+			"flags": "🇺🇸"
+		},
+		"150224199951187968": {
+			"name": "Proteus",
+			"active": true,
+			"flags": "🇬🇧"
+		},
+		"121052319025594371": {
+			"name": "nomi",
+			"active": true,
+			"flags": "🇺🇸"
+		},
+		"121626156720979968": {
+			"name": "Cyceph",
+			"active": true,
+			"flags": "🇳🇴🇺🇸"
+		}
+	},
+	"DISCORD_COMMAND_PREFIX": "!",
+	"HELP_SERVER_INVITE_LINK": "https://discord.gg/",
+	"LOG_CHANNEL_ID": "insert discord channel id here",
+	"BOT_ADD_LINK": "",
+	"EMOJIS": {
+		"webXH": "<:webXH:459584230650019841>",
+		"webX": "<:webX:365508211022888962>",
+		"webSH": "<:webSH:459584292520198174>",
+		"webS": "<:webS:365508345521766400>",
+		"webA": "<:webA:365508382796546058>"
+	},
+	"API_PORT": 56831,
+	"API_ADDRESS": "localhost",
+	"API_PERIOD": 250,
+	"API_KEY": "insert random string here",
+	"API_CACHETIME": {
+		"GET_USER": 86400,
+		"GET_USER_BEST": 86400,
+		"PHP_PROFILE_LEADER": 86400,
+		"OLD_USER_PAGE": 86400,
+		"USER_PAGE": 86400,
+		"PHP_PROFILE_GENERAL": 86400,
+		"GET_USER_RECENT": 3600
+	},
+	"API_MAXAGE": {
+		"LINK": 60,
+		"SP": {
+			"GET_USER": 120,
+			"GET_USER_BEST": 120,
+			"PHP_PROFILE_LEADER": 120,
+			"OLD_USER_PAGE": 120,
+			"PHP_PROFILE_GENERAL": 120
+		},
+		"SIGNATURE_AUTO": {
+			"GET_USER_RECENT": 20,
+			"GET_USER": 3600
+		},
+		"SIGNATURE_MANUAL": {
+			"GET_USER_RECENT": 20,
+			"GET_USER": 3600
+		},
+		"SPM": {
+			"GET_USER": 120,
+			"GET_USER_BEST": 120
+		},
+		"STATS": 60
+	},
+	"SHARD_COUNT": 3,
+	"OSU_SERVERS": {
+		"OSU": "https://osu.ppy.sh/api/"
+	},
+	"RATE_LIMIT": {
+		"CHANNEL_ID": "channel id here",//reports rate limit incidents in this channel
+		"LARGE_SERVER_THRESHOLD": 200,//the point where a server is large and the rate limit is increased
+		"USER_MESSAGES": 4,
+		"USER_TIME_S": 60,
+		"SERVER_MESSAGES": 6,
+		"SERVER_TIME_S": 60,
+		"LARGE_SERVER_MESSAGES": 8,
+		"LARGE_SERVER_TIME_S": 60
+	},
+	"FEEDBACK": {
+		"EXTERNAL_CID": "channel id here",//where external feedback comes to get approved
+		"COMPLAINT_CID": "channel id here",//approved public complaints channel
+		"PRAISE_CID": "channel id here",//approved public praise channel
+		"SUGGESTION_CID": "channel id here",//approved public suggestion channel
+		"APPROVED_IMAGE_LINK": "https://cdn.discordapp.com/emojis/382263196477685771.png?v=1",//footer image for approved feedback (currently unused)
+		"DENIED_IMAGE_LINK": "https://cdn.discordapp.com/emojis/493118209566965764.png?v=1"//footer image for denied feedback (currently unused)
+	}
+}
