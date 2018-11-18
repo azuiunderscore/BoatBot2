@@ -70,7 +70,6 @@
 	"API_ADDRESS": "localhost",
 	"API_PERIOD": 250,//period (in ms) between requests to osu API servers. this is managed by the iapi. this setting has no effect anymore
 	"API_KEY": "insert random string here",//for internal api use only
-	"API_SEQUENTIAL": true,//whether or not multiple api requests should be sequential or bursted
 	"MONGODB_ADDRESS": "mongodb://localhost/apicache",//mongodb database address
 	"API_CACHETIME": {//how long (in seconds) the api document should remain in cache. set to 0 to never cache
 		"GET_USER": 86400,
