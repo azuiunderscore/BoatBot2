@@ -314,7 +314,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + "` parameter: `" + parameter + "`");
 	});
 	commandGuessUsernameNumber([preferences.get("prefix") + "d2"], false, (index, id, user, number, guess_method) => {
-		reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + " number: `" + number + "` guess_method: `" + guess_method + "`");
+		reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + "` number: `" + number + "` guess_method: `" + guess_method + "`");
 	});
 	commandGuessUsername([preferences.get("prefix") + "statsplus", preferences.get("prefix") + "sp", preferences.get("prefix") + "osu", preferences.get("prefix") + "std", preferences.get("prefix") + "taiko", preferences.get("prefix") + "sptaiko", preferences.get("prefix") + "spt", preferences.get("prefix") + "ctb", preferences.get("prefix") + "spctb", preferences.get("prefix") + "spc", preferences.get("prefix") + "mania", preferences.get("prefix") + "spmania", preferences.get("prefix") + "spm"], false, (index, id, user, parameter) => {
 		let mode;
