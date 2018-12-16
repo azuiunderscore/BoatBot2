@@ -9,6 +9,7 @@
   "author": "iaace",
   "license": "MIT",
   "dependencies": {
+    "bottleneck": "^2.13.2",
     "express": "^4.16.4",
     "express-ws": "^4.0.0",
     "getopts": "^2.2.3",
