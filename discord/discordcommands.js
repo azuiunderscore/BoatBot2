@@ -294,7 +294,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			else reply(":x: You can only have up to 50 shortcuts. Please remove some and try again.");
 		}).catch(console.error);
 	});
-	command([preferences.get("prefix") + "removeshortcut ", preferences.get("prefix") + "rs ", preferences.get("prefix") + "deleteshortcut ", preferences.get("prefix") + "ds "], true, false, (original, index, parameter) => {
+	command([preferences.get("prefix") + "removeshortcut ", preferences.get("prefix") + "deleteshortcut ", preferences.get("prefix") + "ds "], true, false, (original, index, parameter) => {
 		if (parameter[0] !== "$") return reply(":x: The shortcut must begin with an `$`. Please try again.");
 		const from = parameter.substring(1).toLowerCase();
 		if (from.length === 0) return reply(":x: The shortcut name was not specified. Please try again.");
