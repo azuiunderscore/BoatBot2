@@ -319,8 +319,6 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	command(["boatsetprefix"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
 		preferences.set("prefix", "") ? reply(":white_check_mark: The prefix to use this bot has been removed. No prefix is needed to use commands.") : reply(":x: An error has occurred while setting the prefix.");
 	});
-	command(["http://", "https://"], true, false, (original, index, parameter) => {
-	});
 	commandGuessUsername([preferences.get("prefix") + "d1"], false, (index, id, user, parameter) => {
 		reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + "` parameter: `" + parameter + "`");
 	});
