@@ -675,4 +675,17 @@ module.exports = class UTILS {
 		}
 		return "```" + answer + "```";
 	}
+	standardTimestamp(sec) {
+		let mins = Math.floor(parseInt(sec) / 60);
+		let hours = Math.floor(parseInt(mins) / 60);
+		mins = mins % 60;
+		let secs = Math.floor(parseInt(sec) % 60);
+		secs.pad(2);
+		mins.pad(2);
+		hours.pad(2);
+		return sec < 3600 ? mins + ":" + secs : hours + ":" + mins + ":" + secs;
+	}
+	fstr(condition, tstr = "", fstr = "") {
+		return condition ? tstr : fstr;
+	}
 }
