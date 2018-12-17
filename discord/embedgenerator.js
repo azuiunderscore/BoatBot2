@@ -6,6 +6,121 @@ const crypto = require("crypto");
 const HORIZONTAL_SEPARATOR = "------------------------------";
 const VERIFIED_ICON = "✅";
 const TAB = " ";
+const MANIA_KEY_COLOR = [0, 13421823, 13421823, 13421823, 10066431, 6711039, 3289855, 255, 204, 204, 204];
+const MODE_COLOR = ["#ffffff", "#ff0000", "#00ff00", "#0000ff"];
+function getStars(CONFIG, mode, stars) {
+	stars = Math.floor(stars);
+	if (stars > 8) stars = 8;
+	return CONFIG.EMOJIS.stars[parseInt(mode)][stars];
+}
+// the below code related to mod code interpretation was not written by me. it was taken off github here: https://github.com/limjeck/osuplus/blob/master/osuplus.user.js
+// I do not take credit for this portion of code.
+const modnames = [
+	{ val: 1, name: "NoFail", short: "NF" },
+	{ val: 2, name: "Easy", short: "EZ" },
+	//{ val: 4, name: "NoVideo", short: "NV" },//no video or touchscreen
+	{ val: 4, name: "TouchScreen", short: "TS" },//no video or touchscreen
+	{ val: 8, name: "Hidden", short: "HD" },
+	{ val: 16, name: "HardRock", short: "HR" },
+	{ val: 32, name: "SuddenDeath", short: "SD" },
+	{ val: 64, name: "DoubleTime", short: "DT" },
+	{ val: 128, name: "Relax", short: "RX" },
+	{ val: 256, name: "HalfTime", short: "HT" },
+	{ val: 512, name: "Nightcore", short: "NC" },
+	{ val: 1024, name: "Flashlight", short: "FL" },
+	{ val: 2048, name: "Autoplay", short: "AT" },
+	{ val: 4096, name: "SpunOut", short: "SO" },
+	{ val: 8192, name: "Autopilot", short: "AP" },
+	{ val: 16384, name: "Perfect", short: "PF" },
+	{ val: 32768, name: "Key4", short: "4K" },
+	{ val: 65536, name: "Key5", short: "5K" },
+	{ val: 131072, name: "Key6", short: "6K" },
+	{ val: 262144, name: "Key7", short: "7K" },
+	{ val: 524288, name: "Key8", short: "8K" },
+	{ val: 1048576, name: "FadeIn", short: "FI" },
+	{ val: 2097152, name: "Random", short: "RD" },
+	{ val: 4194304, name: "LastMod", short: "LM" },
+	{ val: 16777216, name: "Key9", short: "9K" },
+	{ val: 33554432, name: "Key10", short: "XK" },
+	{ val: 67108864, name: "Key1", short: "1K" },
+	{ val: 134217728, name: "Key3", short: "3K" },
+	{ val: 268435456, name: "Key2", short: "2K" },
+	{ val: 268435456 * 2, name: "ScoreV2", short: "V2" },
+];
+const doublemods = [
+	["NC", "DT"],
+	["PF", "SD"]
+];
+const short_mod_values = {
+	"NF": 1,
+	"EZ": 2,
+	"NV": 4,
+	"TS": 4,
+	"HD": 8,
+	"HR": 16,
+	"SD": 32,
+	"DT": 64,
+	"RX": 128,
+	"RL": 128,
+	"HT": 256,
+	"NC": 512,
+	"FL": 1024,
+	"AT": 2048,
+	"SO": 4096,
+	"AP": 8192,
+	"PF": 16384,
+	"4K": 32768,
+	"5K": 65536,
+	"6K": 131072,
+	"7K": 262144,
+	"8K": 524288,
+	"FI": 1048576,
+	"RD": 2097152,
+	"LM": 4194304,
+	"9K": 16777216,
+	"XK": 33554432,
+	"1K": 67108864,
+	"3K": 134217728,
+	"2K": 268435456,
+	"V2": 268435456 * 2
+};
+function getModNumber(mod_string) {
+	let answer = 0;
+	let answer_object = {};
+	for (let b in short_mod_values) {
+		answer_object[b] = false;
+	}
+	for (let i = 0; i < mod_string.length; i += 2) {
+		if (exists(short_mod_values[mod_string.substring(i, i + 2).toUpperCase()])) {
+			answer += short_mod_values[mod_string.substring(i, i + 2).toUpperCase()];
+			answer_object[mod_string.substring(i, i + 2).toUpperCase()] = true;
+		}
+	}
+	let answerstring = getMods(answer);
+	answer_object.value = answer;
+	answer_object.string = answerstring;
+	return answer_object;
+}
+function getMods(modnum) {
+	modnum = parseInt(modnum);
+	let mods = [];
+	for (let i = modnames.length - 1; i >= 0; i--) {
+		if (modnames[i].val <= modnum) {
+			if (modnames[i].short !== "") {
+				mods.push(modnames[i].short);
+			}
+			modnum -= modnames[i].val;
+		}
+	}
+	// handle doublemods
+	for (let i = 0; i < doublemods.length; i++) {
+		if (mods.indexOf(doublemods[i][0]) >= 0) {
+			mods.splice(mods.indexOf(doublemods[i][1]), 1);
+		}
+	}
+	if (mods.length === 0) return "";
+	else return "+" + mods.reverse().join("");
+}
 function getMatchTags(summonerID, match) {
 	let answer = [];
 	if (!UTILS.exists(summonerID)) return answer;//bot
@@ -923,6 +1038,18 @@ module.exports = class EmbedGenerator {
 		newEmbed.addField("Discord Stats", "Guilds: " + c_eval[0] + "\nUsers: " + c_eval[1] + "\nMembers: " + c_eval[2] + "\nBanned Servers: " + serverbans + "\nBanned Users: " + userbans, true);
 		newEmbed.addField("Discord Load", "Load Average 1/5/15/30/60: " + iapi_stats.discord.min1.round(1) + "/" + iapi_stats.discord.min5.round(1) + "/" + iapi_stats.discord.min15.round(1) + "/" + iapi_stats.discord.min30.round(1) + "/" + iapi_stats.discord.min60.round(1) + "\nCommands / min: " + iapi_stats.discord.total_rate.round(1) + "\nCommand count: " + iapi_stats.discord.total_count, true);
 		newEmbed.setColor(255);
+		return newEmbed;
+	}
+	beatmap(CONFIG, beatmap, creator, mods = 0) {
+		let newEmbed = new Discord.RichEmbed();
+		newEmbed.setAuthor(beatmap.creator, "https://a.ppy.sh/users/" + creator.user_id, "https://osu.ppy.sh/users/" + creator.user_id);
+		newEmbed.setThumbnail("https://b.ppy.sh/thumb/" + beatmap.beatmapset_id + "l.jpg");
+		const modePrefix = beatmap.mode == 3 ? "[" + parseInt(beatmap.diff_size) + "] " : "";//
+		newEmbed.setColor(beatmap.mode == 3 ? MANIA_KEY_COLOR[parseInt(beatmap.diff_size)] : MODE_COLOR[parseInt(beatmap.mode)]);
+		newEmbed.setTitle(modePrefix + UTILS.fstr(beatmap.approved < 1, "~~") + beatmap.artist + " - " + beatmap.title + UTILS.fstr(beatmap.approved < 1, "~~"));
+		newEmbed.addField(getStars(CONFIG, beatmap.mode, beatmap.difficultyrating) + " \\[" + beatmap.version + "\\]" + UTILS.fstr(mods > 0, " ") + getMods(mods), "Length: `" + UTILS.standardTimestamp(parseInt(beatmap.total_length)) + "` (`" + UTILS.standardTimestamp(parseInt(beatmap.hit_length)) + "`) BPM: `" + beatmap.bpm + "` FC: `x" + beatmap.max_combo + "`");
+		//add bloodcat links
+		//add proxy osu direct links
 		return newEmbed;
 	}
 }

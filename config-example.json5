@@ -64,7 +64,42 @@
 		"webX": "<:webX:365508211022888962>",
 		"webSH": "<:webSH:459584292520198174>",
 		"webS": "<:webS:365508345521766400>",
-		"webA": "<:webA:365508382796546058>"
+		"webA": "<:webA:365508382796546058>",
+		"stars": [["<:1star:365189284032020500>",//standard 0 star
+		"<:1star:365189284032020500>",//standard 1 star
+		"<:2star:365189341418618892>",//standard 2 star
+		"<:3star:365189964951977997>",//standard 3 star
+		"<:4star:365190003162218506>",//standard 4 star
+		"<:5star:365190043821932544>",//standard 5 star
+		"<:6star:365191487769804820>",//standard 6 star
+		"<:7star:365223616406618124>"],//standard 7+ star
+		["<:1start:365409293446545408>",//taiko 0 star
+		"<:1start:365409293446545408>",//taiko 1 star
+		"<:2start:365409390334967808>",//taiko 2 star
+		"<:3start:365409426083020803>",//taiko 3 star
+		"<:4start:365409480239742976>",//taiko 4 star
+		"<:5start:365409525672574976>",//taiko 5 star
+		"<:6start:365410052917559297>",//taiko 6 star
+		"<:7start:365410646961160193>"],//taiko 7 star
+		["<:1starc:365411166429773824>",//ctb 0 star
+		"<:1starc:365411166429773824>",//ctb 1 star
+		"<:2starc:365411234734014464>",//ctb 2 star
+		"<:3starc:365411300752490497>",//ctb 3 star
+		"<:4starc:365411346864668683>",//ctb 4 star
+		"<:5starc:365411392855080961>",//ctb 5 star
+		"<:6starc:365411995152809995>",//ctb 6 star
+		"<:7starc:365412220571746305>"],//ctb 7 star
+		["<:1starm:365413040411115532>",//mania 0 star
+		"<:1starm:365413040411115532>",//mania 1 star
+		"<:2starm:365413081519751178>",//mania 2 star
+		"<:3starm:365413109277523968>",//mania 3 star
+		"<:4starm:365413133931511810>",//mania 4 star
+		"<:5starm:365413158762053632>",//mania 5 star
+		"<:6starm:365413772556501003>",//mania 6 star
+		"<:7starm:365413925451464704>"]],//mania 7 star
+		"download": "<:Download_Beatmap:365918878632771586>",//download beatmap
+		"downloadNV": "<:Download_Without_Video:365919812842553356>",//download without video
+		"osu_direct": "<:osu_direct:365920327710146562>"//osu direct
 	},
 	"API_PORT": 56831,
 	"API_ADDRESS": "localhost",
