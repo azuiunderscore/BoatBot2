@@ -106,6 +106,7 @@
 	"API_PERIOD": 250,//period (in ms) between requests to osu API servers. this is managed by the iapi. this setting has no effect anymore
 	"API_KEY": "insert random string here",//for internal api use only
 	"MONGODB_ADDRESS": "mongodb://localhost/apicache",//mongodb database address
+	"EWS_KEY": "insert random string here",//encrypted web services key
 	"API_CACHETIME": {//how long (in seconds) the api document should remain in cache. set to 0 to never cache
 		"GET_USER": 86400,
 		"GET_USER_BEST": 86400,
