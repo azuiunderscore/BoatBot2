@@ -1042,14 +1042,28 @@ module.exports = class EmbedGenerator {
 		newEmbed.setColor(255);
 		return newEmbed;
 	}
-	beatmap(CONFIG, beatmap, creator, mods = 0) {
+	beatmap(CONFIG, beatmap, creator, mod_string = "") {
+		const mods = getModObject(mod_string)
 		let newEmbed = new Discord.RichEmbed();
 		newEmbed.setAuthor(beatmap.creator, "https://a.ppy.sh/users/" + creator.user_id, "https://osu.ppy.sh/users/" + creator.user_id);
 		newEmbed.setThumbnail("https://b.ppy.sh/thumb/" + beatmap.beatmapset_id + "l.jpg");
 		const modePrefix = beatmap.mode == 3 ? "[" + parseInt(beatmap.diff_size) + "] " : "";//
 		newEmbed.setColor(beatmap.mode == 3 ? MANIA_KEY_COLOR[parseInt(beatmap.diff_size)] : MODE_COLOR[parseInt(beatmap.mode)]);
 		newEmbed.setTitle(modePrefix + UTILS.fstr(beatmap.approved < 1, "~~") + beatmap.artist + " - " + beatmap.title + UTILS.fstr(beatmap.approved < 1, "~~"));
-		newEmbed.addField(getStars(CONFIG, beatmap.mode, beatmap.difficultyrating) + " \\[" + beatmap.version + "\\]" + UTILS.fstr(mods > 0, " ") + getMods(mods), "Length: `" + UTILS.standardTimestamp(parseInt(beatmap.total_length)) + "` (`" + UTILS.standardTimestamp(parseInt(beatmap.hit_length)) + "`) BPM: `" + beatmap.bpm + "` FC: `x" + beatmap.max_combo + "`");
+		if (mods.value > 0) {
+			if (mods.DT) {
+				beatmap.total_length /= 1.5;
+				beatmap.hit_length /= 1.5;
+				beatmap.bpm *= 1.5;
+			}
+			else if (mods.HT) {
+				beatmap.total_length *= 1.5;
+				beatmap.hit_length *= 1.5;
+				beatmap.bpm /= 1.5;
+			}
+			beatmap.bpm = UTILS.round(beatmap.bpm, 2);
+		}
+		newEmbed.addField(getStars(CONFIG, beatmap.mode, beatmap.difficultyrating) + " \\[" + beatmap.version + "\\]" + UTILS.fstr(mods.value > 0, " ") + mods.string, "Length: `" + UTILS.standardTimestamp(beatmap.total_length) + "` (`" + UTILS.standardTimestamp(beatmap.hit_length) + "`) BPM: `" + beatmap.bpm + "` FC: `x" + beatmap.max_combo + "`");
 		//add bloodcat links
 		//add proxy osu direct links
 		return newEmbed;
