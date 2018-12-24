@@ -881,7 +881,7 @@ module.exports = class EmbedGenerator {
 			newEmbed.setColor(255);
 		}
 		newEmbed.setAuthor(user_stats.username + "'s " + wordMode + " Profile", null, "https://osu.ppy.sh/users/" + user_stats.user_id);
-		newEmbed.setImage("https://lemmmy.pw/osusig/sig.php?colour=pink&uname=" + user_stats.user_id + "&pp=2&countryrank&removeavmargin&darktriangles&onlineindicator=undefined&xpbar&xpbarhex&mode=" + mode + "&random=" + UTILS.map(Math.random(), 0, 1, 0, 10000));
+		newEmbed.setImage("https://lemmmy.pw/osusig/sig.php?colour=pink&uname=" + user_stats.user_id + "&pp=2&countryrank&removeavmargin&darktriangles&onlineindicator=undefined&xpbar&xpbarhex&mode=" + mode + "&random=" + UTILS.now());
 		newEmbed.setFooter("use " + modeCommand + " " + user_stats.username + " for more information");
 		return newEmbed;
 	}
