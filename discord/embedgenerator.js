@@ -211,6 +211,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setFooter("BoatBot " + CONFIG.VERSION);
 		return newEmbed;
 	}
+	/*
 	summoner(CONFIG, apiobj) {//lsd command
 		let newEmbed = new Discord.RichEmbed();
 		if (!UTILS.exists(apiobj.id)) {
@@ -291,12 +292,12 @@ module.exports = class EmbedGenerator {
 		let newEmbed = new Discord.RichEmbed();
 		newEmbed.setAuthor(summoner.name + (verified ? VERIFIED_ICON : ""), "https://ddragon.leagueoflegends.com/cdn/" + CONFIG.STATIC.n.profileicon + "/img/profileicon/" + summoner.profileIconId + ".png", UTILS.opgg(CONFIG.REGIONS_REVERSE[summoner.region], summoner.name));
 		let common_teammates = {};
-		/*{
-			"name": {
-				w: 0,
-				l: 0
-			}
-		}*/
+		//{
+		//	"name": {
+		//		w: 0,
+		//		l: 0
+		//	}
+		//}
 		let all_results = [];
 		let all_KDA = {
 			K: 0,
@@ -489,11 +490,11 @@ module.exports = class EmbedGenerator {
 		if (match.gameStartTime != 0) newEmbed.setTitle(game_type + " `" + UTILS.standardTimestamp((new Date().getTime() - match.gameStartTime) / 1000) + "`");
 		else newEmbed.setTitle(game_type + " `GAME LOADING`");
 		let common_teammates = {};
-		/*{
-			"username1": {
-				"username2": 4
-			}
-		}*/
+		//{
+		//	"username1": {
+		//		"username2": 4
+		//	}
+		//}
 		let teams = {};
 		for (let b in match.participants) {
 			if (!UTILS.exists(teams[match.participants[b].teamId])) teams[match.participants[b].teamId] = [];
@@ -638,7 +639,8 @@ module.exports = class EmbedGenerator {
 		if (RANK_ORDER.indexOf(tier) != -1) newEmbed.setColor(RANK_COLOR[RANK_ORDER.indexOf(tier)]);
 		newEmbed.setFooter("This information does not reflect this summoner's actual MMR.");
 		return newEmbed;
-	}
+}
+	*/
 	notify(CONFIG, content, username, displayAvatarURL, release) {
 		let newEmbed = new Discord.RichEmbed();
 		newEmbed.setColor([255, 255, 0]);
