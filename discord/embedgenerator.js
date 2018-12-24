@@ -872,7 +872,7 @@ module.exports = class EmbedGenerator {
 		}
 		else if (mode == 2) {
 			wordMode = "CtB";
-			modeCommand = CONFIG.DISCORD_COMMAND_PREFIX + "spc;
+			modeCommand = CONFIG.DISCORD_COMMAND_PREFIX + "spc";
 			newEmbed.setColor(65280);
 		}
 		else if (mode == 3) {
