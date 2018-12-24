@@ -322,6 +322,35 @@ module.exports = class LOLAPI {
 	osuPHPProfileGeneral(user_id, m = 0, maxage) {
 		return this.getOffAPI("https://osu.ppy.sh/pages/include/profile-general.php", { u: user_id, m }, this.CONFIG.API_CACHETIME.PHP_PROFILE_GENERAL, maxage);
 	}
+	osuBeatmap(b, m, maxage) {
+		return new Promise((resolve, reject) => {
+			const options = {
+				b: b,
+				a: 1
+			};
+			if (UTILS.exists(m)) options.m = m;
+			this.get("get_beatmaps", options, this.CONFIG.API_CACHETIME.GET_BEATMAP, maxage).then(result => {
+				if (UTILS.exists(result[0])) result = result[0]
+				else return reject(result);
+				result.approved = parseInt(result.approved);
+				result.approved_date = new Date(result.approved_date);
+				result.last_update = new Date(result.last_update);
+				result.bpm = parseFloat(result.bpm);
+				result.diff_size = parseFloat(result.diff_size);
+				result.diff_overall = parseFloat(result.diff_overall);
+				result.diff_approach = parseFloat(result.diff_approach);
+				result.diff_drain = parseFloat(result.diff_drain);
+				result.hit_length = parseInt(result.hit_length);
+				result.mode = parseInt(result.mode);
+				result.total_length = parseInt(result.total_length);
+				result.favourite_count = parseInt(result.favourite_count);
+				result.playcount = parseInt(result.playcount);
+				result.passcount = parseInt(result.passcount);
+				result.max_combo = parseInt(result.max_combo);
+				resolve(result);
+			}).catch(reject);
+		});
+	}
 	getPreferences(sid) {
 		return this.getIAPI("getpreferences", { id: sid });
 	}
