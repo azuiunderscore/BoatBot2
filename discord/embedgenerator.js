@@ -862,22 +862,22 @@ module.exports = class EmbedGenerator {
 		let modeCommand;
 		if (mode == 0) {
 			wordMode = "Standard";
-			modeCommand = "!sp";
+			modeCommand = CONFIG.DISCORD_COMMAND_PREFIX + "sp";
 			newEmbed.setColor(16777215);
 		}
 		else if (mode == 1) {
 			wordMode = "Taiko";
-			modeCommand = "!spt";
+			modeCommand = CONFIG.DISCORD_COMMAND_PREFIX + "spt";
 			newEmbed.setColor(16711680);
 		}
 		else if (mode == 2) {
 			wordMode = "CtB";
-			modeCommand = "!spm";
+			modeCommand = CONFIG.DISCORD_COMMAND_PREFIX + "spc;
 			newEmbed.setColor(65280);
 		}
 		else if (mode == 3) {
 			wordMode = "Mania";
-			modeCommand = "!spm";
+			modeCommand = CONFIG.DISCORD_COMMAND_PREFIX + "spm";
 			newEmbed.setColor(255);
 		}
 		newEmbed.setAuthor(user_stats.username + "'s " + wordMode + " Profile", null, "https://osu.ppy.sh/users/" + user_stats.user_id);
