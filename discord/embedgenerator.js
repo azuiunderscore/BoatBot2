@@ -888,13 +888,9 @@ module.exports = class EmbedGenerator {
 	statsPlusMods(CONFIG, mode, user_stats, user_best) {
 		let newEmbed = new Discord.RichEmbed();
 		let totalHits = parseInt(user_stats.count300) + parseInt(user_stats.count100) + parseInt(user_stats.count50);
-		//let efficiency = (parseInt(user_stats.ranked_score) / parseInt(user_stats.total_score)) * 100;
 		let bonusPP = 416.6667 * (1 - Math.pow(.9994, (parseInt(user_stats.count_rank_ss) + parseInt(user_stats.count_rank_s) + parseInt(user_stats.count_rank_a))));
-		//let apw = UTILS.round((parseFloat(user_stats.pp_raw) - bonusPP) / 20.0, 2);
 		const aim_acc = UTILS.calcAimAcc(mathjs, user_best, user_stats.pp_raw);
 		let misses = (totalHits / aim_acc.aimAccuracy) - totalHits;
-		//let missRate = 100 - (aim_acc.aimAccuracy * 100);
-		//let cpp = (totalHits + misses) / parseInt(user_stats.playcount);
 		aim_acc.pfm = aim_acc.pfm + "\tbonus: >`" + UTILS.round(bonusPP, 1) + "`pp";
 		aim_acc.pfmp = aim_acc.pfmp + "\tbonus: >`" + UTILS.round(bonusPP * 100 / user_stats.pp_raw, 1) + "%`";
 		if (mode == 0) newEmbed.setColor(16777215);
