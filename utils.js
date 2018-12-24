@@ -688,4 +688,7 @@ module.exports = class UTILS {
 	fstr(condition, tstr = "", fstr = "") {
 		return condition ? tstr : fstr;
 	}
+	now() {
+		return new Date().getTime();
+	}
 }
