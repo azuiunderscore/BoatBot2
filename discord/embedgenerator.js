@@ -82,9 +82,9 @@ const short_mod_values = {
 	"1K": 67108864,
 	"3K": 134217728,
 	"2K": 268435456,
-	"V2": 268435456 * 2
+	"V2": 536870912
 };
-function getModNumber(mod_string) {
+function getModObject(mod_string) {//takes in a string of mods non-comma separated and turns it into the raw value
 	let answer = 0;
 	let answer_object = {};
 	for (let b in short_mod_values) {
