@@ -256,8 +256,10 @@ module.exports = class EmbedGenerator {
 				"RANKED_FLEX_TT": "Flex 3v3"
 			}[ranks[i].queueType] + ": ";
 			title += UTILS.english(ranks[i].tier) + " ";
-			if (ranks[i].tier != "CHALLENGER") title += ranks[i].rank + " ";
-			else {
+			if (ranks[i].tier != "CHALLENGER" && ranks[i].tier != "MASTER" && ranks[i].tier != "GRANDMASTER") title += ranks[i].rank + " ";
+			else if (ranks[i].tier == "MASTER") { }
+			else if (ranks[i].tier == "GRANDMASTER") { }
+			else {//
 				challengers[i].entries.sort((a, b) => b.leaguePoints - a.leaguePoints);//sort by LP
 				const candidate = challengers[i].entries.findIndex(cr => summoner.id == cr.playerOrTeamId);//find placing
 				if (candidate != -1) title += "#" + (candidate + 1) + " ";//add placing if index found
@@ -274,7 +276,7 @@ module.exports = class EmbedGenerator {
 			const fake_losses = fake_games - fake_wins;
 			const fake_wr = UTILS.round(100 * fake_wins / (fake_wins + fake_losses), 2);
 			const challenger_LP = UTILS.round(UTILS.map(fake_wr, 50, 100, 500, 1000));
-			newEmbed.addField("<:Challenger:437262128282599424> Challenger ~#" + challenger_rank + " " + challenger_LP + "LP", fake_games + "G (" + fake_wr + "%) = " + fake_wins + "W + " + fake_losses + "L", true);
+			newEmbed.addField(CONFIG.EMOJIS.ranks[CONFIG.EMOJIS.ranks.length - 1] + " Challenger ~#" + challenger_rank + " " + challenger_LP + "LP", fake_games + "G (" + fake_wr + "%) = " + fake_wins + "W + " + fake_losses + "L", true);
 			newEmbed.setColor(RANK_COLOR[RANK_COLOR.length - 1]);
 		}
 		let cm_description = [];
@@ -610,25 +612,25 @@ module.exports = class EmbedGenerator {
 			tier = UTILS.randomOf(["WOOD", "CLOTH", "IRON", "PLASTIC", "PAPER", "COPPER", "CARDBOARD", "LEAD", "DIRT", "GARBAGE"]);
 			jokeNumber = 0;
 		} else if (mmr < MMR_THRESHOLD[1]) {//bronze
-			tier = RANK_ORDER[0];
+			tier = RANK_ORDER[1];
 			jokeNumber = 1;
 		} else if (mmr < MMR_THRESHOLD[2]) {//silver
-			tier = RANK_ORDER[1];
+			tier = RANK_ORDER[2];
 			jokeNumber = 2;
 		} else if (mmr < MMR_THRESHOLD[3]) {//gold
-			tier = RANK_ORDER[2];
+			tier = RANK_ORDER[3];
 			jokeNumber = 3;
 		} else if (mmr < MMR_THRESHOLD[4]) {//plat
-			tier = RANK_ORDER[3];
+			tier = RANK_ORDER[4];
 			jokeNumber = 4;
 		} else if (mmr < MMR_THRESHOLD[5]) {//dia
-			tier = RANK_ORDER[4];
+			tier = RANK_ORDER[5];
 			jokeNumber = 5;
 		} else if (mmr < MMR_THRESHOLD[6]) {//master
-			tier = RANK_ORDER[5];
+			tier = RANK_ORDER[6];
 			jokeNumber = 6;
 		} else {//challenger
-			tier = RANK_ORDER[6];
+			tier = RANK_ORDER[8];
 			jokeNumber = 7;
 		}
 		const analysis = UTILS.randomOf(MMR_JOKES[jokeNumber]);

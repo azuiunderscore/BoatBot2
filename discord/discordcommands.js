@@ -345,6 +345,44 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			}).catch(console.error);
 		}).catch(console.error);
 	});
+	/*
+	command([preferences.get("prefix") + "verify "], true, false, (original, index, parameter) => {
+		let region = assertRegion(parameter.substring(0, parameter.indexOf(" ")));
+		lolapi.getSummonerIDFromName(region, parameter.substring(parameter.indexOf(" ") + 1), CONFIG.API_MAXAGE.VERIFY.SUMMONER_ID).then(summoner => {
+			summoner.region = region;
+			summoner.guess = parameter.substring(parameter.indexOf(" ") + 1);
+			if (UTILS.exists(summoner.status)) return reply(":x: The username appears to be invalid.");
+			lolapi.getVerifiedAccounts(msg.author.id).then(result => {
+				if (UTILS.exists(result.verifiedAccounts[summoner.puuid])) {
+					reply(":white_check_mark: You have already linked your discord account to " + summoner.name + ". This will expire in " + UTILS.until(new Date(result.verifiedAccounts[summoner.puuid])) + ".");//verified
+				}
+				else {//not verified yet
+					lolapi.getThirdPartyCode(region, summoner.id, CONFIG.API_MAXAGE.VERIFY.THIRD_PARTY_CODE).then(tpc => {
+						let valid_code = 0;
+						const tpc_timestamp_ms = parseInt(tpc.substring(0, tpc.indexOf("-")));
+						const tpc_HMAC_input = tpc_timestamp_ms + "-" + msg.author.id + "-" + summoner.puuid;
+						const tpc_HMAC_output = tpc.substring(tpc.indexOf("-") + 1);
+						UTILS.debug("tpc_timestamp_ms: " + tpc_timestamp_ms);
+						UTILS.debug("tpc_HMAC_input: " + tpc_HMAC_input);
+						UTILS.debug("tpc_HMAC_output: " + tpc_HMAC_output);
+						if (tpc_timestamp_ms < new Date().getTime() - (5 * 60 * 1000)) valid_code += 1;//not expired
+						else if (tpc_HMAC_output !== crypto.createHmac("sha256", CONFIG.TPV_KEY).update(tpc_HMAC_input).digest("hex")) valid_code += 2;//same HMAC
+						if (valid_code === 0) {
+							lolapi.setVerifiedAccount(msg.author.id, summoner.puuid, region, new Date().getTime() + (365 * 24 * 60 * 60000)).then(result2 => {
+								reply(":white_check_mark: You have linked your discord account to " + summoner.name + " for 1 year.");
+							}).catch(console.error);
+						}
+						else {
+							UTILS.debug("valid_code: " + valid_code);
+							replyEmbed(embedgenerator.verify(CONFIG, summoner, msg.author.id));
+						}
+					}).catch();
+				}
+			}).catch(console.error);
+		}).catch(console.error);
+	});
+	*/
+
 	commandGuessUsername([preferences.get("prefix") + "statsplus-m", preferences.get("prefix") + "sp-m", preferences.get("prefix") + "osu-m", preferences.get("prefix") + "std-m", preferences.get("prefix") + "taiko-m", preferences.get("prefix") + "sptaiko-m", preferences.get("prefix") + "spt-m", preferences.get("prefix") + "ctb-m", preferences.get("prefix") + "spctb-m", preferences.get("prefix") + "spc-m", preferences.get("prefix") + "mania-m", preferences.get("prefix") + "spmania-m", preferences.get("prefix") + "spm-m"], false, (index, id, user, parameter) => {
 		let mode;
 		if (index < 4) mode = 0;
