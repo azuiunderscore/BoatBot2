@@ -55,7 +55,7 @@ const modnames = [
 	{ val: 67108864, name: "Key1", short: "1K" },
 	{ val: 134217728, name: "Key3", short: "3K" },
 	{ val: 268435456, name: "Key2", short: "2K" },
-	{ val: 268435456 * 2, name: "ScoreV2", short: "V2" },
+	{ val: 536870912, name: "ScoreV2", short: "V2" },
 ];
 const doublemods = [
 	["NC", "DT"],
@@ -92,7 +92,7 @@ const short_mod_values = {
 	"1K": 67108864,
 	"3K": 134217728,
 	"2K": 268435456,
-	"V2": 268435456 * 2
+	"V2": 536870912
 };
 Number.prototype.round = function(decimal = 0) {
 	return Math.round(this * Math.pow(10, decimal)) / Math.pow(10, decimal);
