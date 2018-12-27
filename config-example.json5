@@ -119,7 +119,8 @@
 		"USER_PAGE": 86400,
 		"PHP_PROFILE_GENERAL": 86400,
 		"GET_USER_RECENT": 3600,
-		"GET_BEATMAP": 86400
+		"GET_BEATMAP": 86400,
+		"OSU_FILE": 604800//1 week
 	},
 	"API_MAXAGE": {
 		"LINK": 60,
@@ -180,5 +181,6 @@
 	},
 	"TPV_KEY": "random string here",//third party verification code HMAC key
 	"AUDIT_TTL": 31536000,//time in seconds to keep logs of command use (default: 1 year)
-	"PATCH_LOCK": "latest"//locks the patch. set to "latest" for latest
+	"PATCH_LOCK": "latest",//locks the patch. set to "latest" for latest
+	"BEATMAP_CACHE_LOCATION": "/home/iaace/bbs/data/bcache/"
 }

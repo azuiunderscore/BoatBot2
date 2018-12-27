@@ -351,6 +351,42 @@ module.exports = class LOLAPI {
 			}).catch(reject);
 		});
 	}
+	osuBeatmapFile(b, maxage) {
+		let that = this;
+		return new Promise((resolve, reject) => {
+			that.getOffAPI("https://osu.ppy.sh/osu/" + b, {}, that.CONFIG.API_CACHETIME.OSU_FILE, maxage).then(data => {
+				fs.exists(that.CONFIG.BEATMAP_CACHE_LOCATION + b + ".osu", val => {
+					if (val) {
+						fs.stat(that.CONFIG.BEATMAP_CACHE_LOCATION + b + ".osu", (err, stat) => {
+							if (err) {
+								console.error(err);
+								fs.writeFile(that.CONFIG.BEATMAP_CACHE_LOCATION + b + ".osu", data, err => {
+									return err ? reject(err) : resolve(data);
+								});
+							}
+							else if (UTILS.now() - stat.mtime.getTime() > maxage * 1000) {//too old
+								UTILS.debug("beatmap file in cache folder too old; overwriting...");
+								fs.writeFile(that.CONFIG.BEATMAP_CACHE_LOCATION + b + ".osu", data, err => {
+									return err ? reject(err) : resolve(data);
+								});
+							}
+							else {//not too old
+								UTILS.debug("beatmap file in cache folder is up to date");
+								return resolve(data);
+							}
+						});
+					}
+					else {
+						UTILS.debug("beatmap file in cache folder does not exist; writing...");
+						fs.writeFile(that.CONFIG.BEATMAP_CACHE_LOCATION + b + ".osu", data, err => {
+							return err ? reject(err) : resolve(data);
+						});
+					}
+				});
+
+			}).catch(reject);
+		});
+	}
 	getPreferences(sid) {
 		return this.getIAPI("getpreferences", { id: sid });
 	}
