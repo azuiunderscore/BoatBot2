@@ -99,7 +99,11 @@
 		"<:7starm:365413925451464704>"]],//mania 7 star
 		"download": "<:Download_Beatmap:365918878632771586>",//download beatmap
 		"downloadNV": "<:Download_Without_Video:365919812842553356>",//download without video
-		"osu_direct": "<:osu_direct:365920327710146562>"//osu direct
+		"osu_direct": "<:osu_direct:365920327710146562>",//osu direct
+		"mouse": "<:mouse:382248628259127307>",
+		"keyboard": "<:keyboard:382247276422103040>",
+		"tablet": "<:tablet:382246804449918977>",
+		"touchscreen": "<:touchscreen:382248053895200780>"
 	},
 	"API_PORT": 56831,
 	"API_ADDRESS": "localhost",

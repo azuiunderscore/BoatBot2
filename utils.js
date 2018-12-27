@@ -435,12 +435,12 @@ module.exports = class UTILS {
 		if (mods.length === 0) return "";
 		else return "+" + mods.reverse().join("");
 	}
-	pickPlaystyle(mouse, keyboard, tablet, touchscreen) {
+	pickPlaystyle(CONFIG, mouse, keyboard, tablet, touchscreen) {
 		let answer = "";
-		if (mouse) answer += "<:mouse:382248628259127307>";
-		if (keyboard) answer += "<:keyboard:382247276422103040>";
-		if (tablet) answer += "<:tablet:382246804449918977>";
-		if (touchscreen) answer += "<:touchscreen:382248053895200780>";
+		if (mouse) answer += CONFIG.EMOJIS.mouse;
+		if (keyboard) answer += CONFIG.EMOJIS.keyboard;
+		if (tablet) answer += CONFIG.EMOJIS.tablet;
+		if (touchscreen) answer += CONFIG.EMOJIS.touchscreen;
 		return answer;
 	}
 	accessLevel(CONFIG, msg, uid) {
