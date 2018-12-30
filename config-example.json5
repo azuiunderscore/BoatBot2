@@ -108,7 +108,7 @@
 	},
 	"API_PORT": 56831,
 	"API_ADDRESS": "localhost",
-	"API_PERIOD": 250,//period (in ms) between requests to osu API servers. this is managed by the iapi. this setting has no effect anymore
+	"API_PERIOD": 250,//period (in ms) between requests to osu API servers. this is managed by the iapi.
 	"API_KEY": "insert random string here",//for internal api use only
 	"MONGODB_ADDRESS": "mongodb://localhost/apicache",//mongodb database address
 	"EWS_KEY": "insert random string here",//encrypted web services key
@@ -182,6 +182,6 @@
 	},
 	"TPV_KEY": "random string here",//third party verification code HMAC key
 	"AUDIT_TTL": 31536000,//time in seconds to keep logs of command use (default: 1 year)
-	"PATCH_LOCK": "latest",//locks the patch. set to "latest" for latest
+	"PATCH_LOCK": "latest",//locks the patch. (LoL only)
 	"BEATMAP_CACHE_LOCATION": "/home/iaace/bbs/data/bcache/"
 }
