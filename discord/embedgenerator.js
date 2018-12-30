@@ -1091,13 +1091,13 @@ module.exports = class EmbedGenerator {
 		newEmbed.setColor(255);
 		return newEmbed;
 	}
-	beatmap(CONFIG, beatmap, creator, mod_string = "") {
+	beatmap(CONFIG, beatmap, beatmapset, creator, mod_string = "") {
 		return new Promise((resolve, reject) => {
 			const mods = getModObject(mod_string);
 			let other_diffs = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]];//1 sub array for each mode
-			const diff_count = beatmap.length;
-			for (let b in beatmaps) {
-				++other_diffs[beatmaps[b].mode][wholeStarValue(beatmaps[b].difficultyrating) - 1];
+			const diff_count = beatmapset.length;
+			for (let b in beatmapset) {
+				++other_diffs[beatmapset[b].mode][wholeStarValue(beatmapset[b].difficultyrating) - 1];
 			}
 			let diffstring = "";
 			for (let i = 0; i < 4; ++i) {//mode
@@ -1105,7 +1105,6 @@ module.exports = class EmbedGenerator {
 					if (other_diffs[i][j] > 0) diffstring += getStars(CONFIG, i, j) + ": " + other_diffs[i][j] + TAB;
 				}
 			}
-			beatmap = beatmap[0];
 			let ppstring = "";
 			if (mode == 0 | mode == 1) {
 				const accs = [95, 98, 99, 100];
@@ -1140,7 +1139,7 @@ module.exports = class EmbedGenerator {
 					beatmap.bpm = beatmap.bpm.round(2);
 				}
 				newEmbed.addField(getStars(CONFIG, beatmap.mode, beatmap.difficultyrating) + " \\[" + beatmap.version + "\\]" + UTILS.fstr(mods.value > 0, " ") + mods.string, "Length: `" + UTILS.standardTimestamp(beatmap.total_length) + "` (`" + UTILS.standardTimestamp(beatmap.hit_length) + "`) BPM: `" + beatmap.bpm + "` FC: `x" + beatmap.max_combo + "`\nDownload Beatmap: [" + CONFIG.EMOJIS.download + "](https://osu.ppy.sh/d/" + beatmap.beatmapset_id + ") [" + CONFIG.EMOJIS.downloadNV + "(https://osu.ppy.sh/d/" + beatmap.beatmapset_id + "n) [" + CONFIG.EMOJIS.osu_direct + "](https://iaace.gg/od/" + beatmap.beatmap_id + ") [" + CONFIG.EMOJIS.bloodcat + "](https://bloodcat.com/osu/s/" + beatmap.beatmapset_id + ")" + ppstring);
-				if (diff_count > 1) newEmbed.addField("This beatmap has " + diff_count + " other difficulties.", diffstring);
+				if (diff_count > 1) newEmbed.addField("This beatmap has " + diff_count + " total difficulties.", diffstring);
 				resolve(newEmbed);
 			}
 		});

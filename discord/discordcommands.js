@@ -444,7 +444,60 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			reply(textgenerator.where(user_stats));
 		}).catch(console.error);
 	});
-
+	if (preferences.get("abi")) {
+		let id, type, mode, mod_string, beatmap;
+		command(["https://osu.ppy.sh/b/", "http://osu.ppy.sh/b/"], true, false, (original, index, parameter) => {//old format beatmap link
+			id = UTILS.arbitraryLengthInt(parameter);
+			type = "b";
+			mode = original.indexOf("&m=") != -1 ? parseInt(original[original.indexOf("&m=") + 3]) : null;
+			mod_string = parameter.substring(parameter.indexOf(" ") + 1);//only get the string after the url
+			mod_string = mod_string.substring(mod_string.indexOf("+"));//only get the string after the '+'
+			lolapi.osuBeatmap(id, type, mode, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(new_beatmap => {
+				beatmap = new_beatmap;
+				id = new_beatmap.beatmapset_id;
+				type = "s";
+				step2();
+			}).catch();
+		});
+		command(["https://osu.ppy.sh/s/", "http://osu.ppy.sh/s/", "https://osu.ppy.sh/d/", "http://osu.ppy.sh/d/"], true, false, (original, index, parameter) => {//old format set links
+			id = UTILS.arbitraryLengthInt(parameter);
+			type = "s";
+			mode = original.indexOf("&m=") != -1 ? parseInt(original[original.indexOf("&m=") + 3]) : null;
+			mod_string = parameter.substring(parameter.indexOf(" ") + 1);//only get the string after the url
+			mod_string = mod_string.substring(mod_string.indexOf("+"));//only get the string after the '+'
+			step2();
+		});
+		command(["https://osu.ppy.sh/beatmapsets/"], true, false, (original, index, parameter) => {
+			let url = original;
+			if (original.indexOf(" ") != -1) url = url.substring(0, url.indexOf(" "));//more comes after the url
+			id = UTILS.arbitraryLengthInt(parameter);
+			type = "s";
+			mode = null;
+			if (url.indexOf("#osu") != -1) mode = 0;
+			else if (url.indexOf("#taiko") != -1) mode = 1;
+			else if (url.indexOf("#fruits") != -1) mode = 2;
+			else if (url.indexOf("#mania") != -1) mode = 3;
+			mod_string = parameter.substring(parameter.indexOf(" ") + 1);//only get the string after the url
+			mod_string = mod_string.substring(mod_string.indexOf("+"));//only get the string after the '+'
+			if (url.indexOfInstance("/", url, 5) != -1) {
+				lolapi.osuBeatmap(UTILS.arbitraryLengthInt(url.substring(indexOfInstance("/", url, 5) + 1)), "b", mode, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(new_beatmap => {
+					beatmap = new_beatmap;
+					step2();
+				}).catch();
+			}
+			else step2();
+		});
+		function step2() {
+			UTILS.assert(type === "s");
+			lolapi.osuBeatmap(id, type, mode, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(beatmapset => {
+				lolapi.osuBeatmapFile(beatmapset[0].beatmap_id, beatmapset[0].last_updated.getTime(), CONFIG.API_MAXAGE.BEATMAP_AUTO.OSU_FILE).then(osu_file => {
+					lolapi.osuGetUser(beatmapset[0].creator_id, beatmapset[0].mode, true, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_USER).then(creator => {
+						embedgenerator.beatmap(CONFIG, UTILS.exists(beatmap) ? beatmap : beatmapset[0], beatmapset, creator, mod_string).then(replyEmbed).catch(console.error);
+					}).catch(console.error);
+				}).catch(console.error);
+			}).catch(console.error);
+		}
+	}
 	if (UTILS.exists(msg.guild)) {//respondable server message only
 		/*
 		command([preferences.get("prefix") + "shutdown"], false, CONFIG.CONSTANTS.BOTOWNERS, () => {
@@ -467,6 +520,10 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		command([preferences.get("prefix") + "setting release-notifications on", preferences.get("prefix") + "setting release-notifications off"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
 			const new_setting = index === 0 ? true : false;
 			preferences.set("release_notifications", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will show new release notifications." : "BoatBot will not show new release notifications."))).catch(reply);
+		});
+		command([preferences.get("prefix") + "setting abi on", preferences.get("prefix") + "setting abi off"], false, CONFIG.CONSTANTS.MODERATORS, (original, index) => {
+			const new_setting = index === 0 ? true : false;
+			preferences.set("abi", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will show beatmap information when a beatmap link is posted." : "BoatBot will not show beatmap information when a beatmap link is posted."))).catch(reply);
 		});
 		/*
 		command(["boatbot settings reset all"], false, CONFIG.CONSTANTS.ADMINISTRATORS, () => reply(":warning: You are about to reset all the preferences associated with this server. To confirm this action, please send the command: `boatbot settings reset all confirm`"));

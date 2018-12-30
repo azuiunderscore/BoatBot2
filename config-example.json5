@@ -120,7 +120,7 @@
 		"USER_PAGE": 86400,
 		"PHP_PROFILE_GENERAL": 86400,
 		"GET_USER_RECENT": 3600,
-		"GET_BEATMAP": 86400,
+		"GET_BEATMAP": 86400,//map or set
 		"OSU_FILE": 604800//1 week
 	},
 	"API_MAXAGE": {
@@ -144,7 +144,12 @@
 			"GET_USER": 120,
 			"GET_USER_BEST": 120
 		},
-		"STATS": 60
+		"STATS": 60,
+		"BEATMAP_AUTO": {
+			"GET_BEATMAP": 86400,
+			"OSU_FILE": 604800,
+			"GET_USER": 86400
+		}
 	},
 	"SHARD_COUNT": 3,
 	"OSU_SERVERS": {
