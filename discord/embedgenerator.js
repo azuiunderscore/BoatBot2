@@ -1059,7 +1059,7 @@ module.exports = class EmbedGenerator {
 				beatmap.hit_length *= 1.5;
 				beatmap.bpm /= 1.5;
 			}
-			beatmap.bpm = UTILS.round(beatmap.bpm, 2);
+			beatmap.bpm = beatmap.bpm.round(2);
 		}
 		newEmbed.addField(getStars(CONFIG, beatmap.mode, beatmap.difficultyrating) + " \\[" + beatmap.version + "\\]" + UTILS.fstr(mods.value > 0, " ") + mods.string, "Length: `" + UTILS.standardTimestamp(beatmap.total_length) + "` (`" + UTILS.standardTimestamp(beatmap.hit_length) + "`) BPM: `" + beatmap.bpm + "` FC: `x" + beatmap.max_combo + "`");
 		//add bloodcat links
