@@ -22,14 +22,14 @@ String.prototype.indexOfInstance = function(searchString, index) {
 }
 Number.prototype.pad = function(size) {
 	let s = String(this);
-	while (s.length < (size || 2)) {s = "0" + s;}
+	while (s.length < (size || 2)) { s = "0" + s; }
 	return s;
 }
 const modnames = [
 	{ val: 1, name: "NoFail", short: "NF" },
 	{ val: 2, name: "Easy", short: "EZ" },
 	//{ val: 4, name: "NoVideo", short: "NV" },//no video or touchscreen
-	{ val: 4, name: "TouchScreen", short: "TS" },//no video or touchscreen
+	{ val: 4, name: "TouchDevice", short: "TD" },//no video or touchscreen
 	{ val: 8, name: "Hidden", short: "HD" },
 	{ val: 16, name: "HardRock", short: "HR" },
 	{ val: 32, name: "SuddenDeath", short: "SD" },
@@ -65,7 +65,7 @@ const short_mod_values = {
 	"NF": 1,
 	"EZ": 2,
 	"NV": 4,
-	"TS": 4,
+	"TD": 4,
 	"HD": 8,
 	"HR": 16,
 	"SD": 32,
@@ -586,16 +586,18 @@ module.exports = class UTILS {
 		return valid;
 	}
 	embedRaw(richembed) {
-		return { author: this.exists(richembed.author) ? this.copy(richembed.author) : undefined,
-		color: richembed.color,
-		description: richembed.description,
-		fields: this.exists(richembed.fields) ? this.copy(richembed.fields) : undefined,
-		footer: this.exists(richembed.footer) ? this.copy(richembed.footer) : undefined,
-		image: this.exists(richembed.image) ? this.copy(richembed.image) : undefined,
-		thumbnail: this.exists(richembed.thumbnail) ? this.copy(richembed.thumbnail) : undefined,
-		timestamp: this.exists(richembed.timestamp) ? new Date(richembed.timestamp) : undefined,
-		title: richembed.title,
-		url: richembed.url };
+		return {
+			author: this.exists(richembed.author) ? this.copy(richembed.author) : undefined,
+			color: richembed.color,
+			description: richembed.description,
+			fields: this.exists(richembed.fields) ? this.copy(richembed.fields) : undefined,
+			footer: this.exists(richembed.footer) ? this.copy(richembed.footer) : undefined,
+			image: this.exists(richembed.image) ? this.copy(richembed.image) : undefined,
+			thumbnail: this.exists(richembed.thumbnail) ? this.copy(richembed.thumbnail) : undefined,
+			timestamp: this.exists(richembed.timestamp) ? new Date(richembed.timestamp) : undefined,
+			title: richembed.title,
+			url: richembed.url
+		};
 	}
 	expectNumber(str) {
 		let newStr = "";

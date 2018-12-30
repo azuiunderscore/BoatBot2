@@ -3,6 +3,7 @@ const Discord = require("discord.js");
 const UTILS = new (require("../utils.js"))();
 const mathjs = require("mathjs");
 const crypto = require("crypto");
+const child_process = require("child_process");
 const HORIZONTAL_SEPARATOR = "------------------------------";
 const VERIFIED_ICON = "✅";
 const TAB = " ";
@@ -24,8 +25,8 @@ function wholeStarValue(stars) {//for emojis only, returns 1-6
 const modnames = [
 	{ val: 1, name: "NoFail", short: "NF" },
 	{ val: 2, name: "Easy", short: "EZ" },
-	//{ val: 4, name: "NoVideo", short: "NV" },//no video or touchscreen
-	{ val: 4, name: "TouchScreen", short: "TS" },//no video or touchscreen
+	//{ val: 4, name: "NoVideo", short: "NV" },//no video or TouchDevice
+	{ val: 4, name: "TouchDevice", short: "TD" },//no video or TouchDevice
 	{ val: 8, name: "Hidden", short: "HD" },
 	{ val: 16, name: "HardRock", short: "HR" },
 	{ val: 32, name: "SuddenDeath", short: "SD" },
@@ -51,7 +52,7 @@ const modnames = [
 	{ val: 67108864, name: "Key1", short: "1K" },
 	{ val: 134217728, name: "Key3", short: "3K" },
 	{ val: 268435456, name: "Key2", short: "2K" },
-	{ val: 268435456 * 2, name: "ScoreV2", short: "V2" },
+	{ val: 536870912, name: "ScoreV2", short: "V2" },
 ];
 const doublemods = [
 	["NC", "DT"],
@@ -61,7 +62,7 @@ const short_mod_values = {
 	"NF": 1,
 	"EZ": 2,
 	"NV": 4,
-	"TS": 4,
+	"TD": 4,
 	"HD": 8,
 	"HR": 16,
 	"SD": 32,
@@ -127,6 +128,68 @@ function getMods(modnum) {
 	if (mods.length === 0) return "";
 	else return "+" + mods.reverse().join("");
 }
+function ppCalculator(pathToOsu, mode, acc = 100) {
+	return new Promise((resolve, reject) => {
+		if (mode == 0 | mode == 1) {
+			child_process.execFile("../oppai", [pathToOsu, getMods(), acc + "%", "-m" + mode, "-ojson"], (err, stdout, stderr) => {
+				let oo = JSON.parse(stdout);//oppai object
+				if (err) return reject(err);
+				if (UTILS.exists(stderr) && stderr != "") return reject(stderr);
+				//check stderr
+				resolve(oo.pp);
+			});
+		}
+		else if (mode == 2) {//ctb
+			resolve(0);
+		}
+		else if (mode == 3) {//mania
+			if (mods != 0) {
+				defaultDisplay();
+				return;
+			}
+			let d = stars; //SR
+			assert(!isNaN(d));
+			if (d < 0) {
+				//console.log("invalid SR");
+				defaultDisplay();
+				return;
+			}
+			assert(!isNaN(OD));
+			if (OD < 0 || OD > 10) {
+				//console.log("invalid OD " + beatmap.od());
+				defaultDisplay();
+				return;
+			}
+			let h = score; //Score
+			assert(!isNaN(h));
+			if (h < 0 || h > 1000000) {
+				//console.log("invalid score");
+				defaultDisplay();
+				return;
+			}
+			let i = acc; //Acc
+			assert(!isNaN(i));
+			if (i < 0 || i > 100) {
+				//console.log("invalid acc");
+				defaultDisplay();
+				return;
+			}
+			let e = beatmap.numObjects(); //Objects
+			assert(!isNaN(e));
+			if (e < 0) {
+				//console.log("invalid objects");
+				defaultDisplay();
+				return;
+			}
+			let f = 64 - 3 * OD;
+			let k = Math.pow((150 / f) * Math.pow(i / 100, 16), 1.8) * 2.5 * Math.min(1.15, Math.pow(e / 1500, 0.3));
+			let l = (Math.pow(5 * Math.max(1, d / 0.0825) - 4, 3) / 110000) * (1 + 0.1 * Math.min(1, e / 1500));
+			let m = (h < 500000) ? h / 500000 * 0.1 : ((h < 600000) ? (h - 500000) / 100000 * 0.2 + 0.1 : ((h < 700000) ? (h - 600000) / 100000 * 0.35 + 0.3 : ((h < 800000) ? (h - 700000) / 100000 * 0.2 + 0.65 : ((h < 900000) ? (h - 800000) / 100000 * 0.1 + 0.85 : (h - 900000) / 100000 * 0.05 + 0.95))));
+			results.pp = Math.pow(Math.pow(k, 1.1) + Math.pow(l * m, 1.1), 1 / 1.1) * 1.1;
+		}
+		else reject(new Error("invalid osu mode: " + mode))
+	});
+}
 function getMatchTags(summonerID, match) {
 	let answer = [];
 	if (!UTILS.exists(summonerID)) return answer;//bot
@@ -155,7 +218,7 @@ function getMatchTags(summonerID, match) {
 	let sortable_team = UTILS.copy(sortable_all);//match with ally team only
 	UTILS.removeAllOccurances(sortable_team.participants, p => p.teamId !== teamID);
 	const criteria = [{ statName: "totalCS", designation: "Most_CS", direct: true },
-	{ statName: "totalDamageDealtToChampions" , designation: "Most_Champion_Damage", direct: true },
+	{ statName: "totalDamageDealtToChampions", designation: "Most_Champion_Damage", direct: true },
 	{ statName: "totalDamageDealt", designation: "Most_Damage", direct: true },
 	{ statName: "visionScore", designation: "Most_Vision", direct: true },
 	{ statName: "assists", designation: "Selfless", direct: true },
@@ -822,13 +885,13 @@ module.exports = class EmbedGenerator {
 		let totalHits = parseInt(user_stats.count300) + parseInt(user_stats.count100) + parseInt(user_stats.count50);
 		let efficiency = (parseInt(user_stats.ranked_score) / parseInt(user_stats.total_score)) * 100;
 		let bonusPP = 416.6667 * (1 - Math.pow(.9994, (parseInt(user_stats.count_rank_ss) + parseInt(user_stats.count_rank_s) + parseInt(user_stats.count_rank_a))));
-		let apw =UTILS.round((parseFloat(user_stats.pp_raw) - bonusPP) / 20.0, 2);
+		let apw = UTILS.round((parseFloat(user_stats.pp_raw) - bonusPP) / 20.0, 2);
 		const aim_acc = UTILS.calcAimAcc(mathjs, user_best, user_stats.pp_raw);
 		const misses = (totalHits / aim_acc.aimAccuracy) - totalHits;
 		let missRate = 100 - (aim_acc.aimAccuracy * 100);
 		let cpp = (totalHits + misses) / parseInt(user_stats.playcount);
-		aim_acc.pfm = aim_acc.pfm + "\tbonus: >`" +UTILS.round(bonusPP, 1) + "`pp";
-		aim_acc.pfmp = aim_acc.pfmp + "\tbonus: >`" +UTILS.round(bonusPP * 100 / user_stats.pp_raw, 1) + "%`";
+		aim_acc.pfm = aim_acc.pfm + "\tbonus: >`" + UTILS.round(bonusPP, 1) + "`pp";
+		aim_acc.pfmp = aim_acc.pfmp + "\tbonus: >`" + UTILS.round(bonusPP * 100 / user_stats.pp_raw, 1) + "%`";
 		if (mode == 0) newEmbed.setColor(16777215);
 		else if (mode == 1) newEmbed.setColor(16711680);
 		else if (mode == 2) newEmbed.setColor(65280);
