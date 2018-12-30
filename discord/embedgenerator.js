@@ -13,6 +13,12 @@ function getStars(CONFIG, mode, stars) {
 	if (stars > 8) stars = 8;
 	return CONFIG.EMOJIS.stars[parseInt(mode)][stars];
 }
+function wholeStarValue(stars) {//for emojis only, returns 1-6
+	stars = Math.floor(stars);
+	if (stars >= 8) stars = 7;
+	else if (stars < 1) stars = 1;
+	return stars;
+}
 // the below code related to mod code interpretation was not written by me. it was taken off github here: https://github.com/limjeck/osuplus/blob/master/osuplus.user.js
 // I do not take credit for this portion of code.
 const modnames = [
@@ -1041,7 +1047,19 @@ module.exports = class EmbedGenerator {
 		return newEmbed;
 	}
 	beatmap(CONFIG, beatmap, creator, mod_string = "") {
-		const mods = getModObject(mod_string)
+		const mods = getModObject(mod_string);
+		let other_diffs = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]];//1 sub array for each mode
+		const diff_count = beatmap.length;
+		for (let b in beatmaps) {
+			++other_diffs[beatmaps[b].mode][wholeStarValue(beatmaps[b].difficultyrating) - 1];
+		}
+		let diffstring = "";
+		for (let i = 0; i < 4; ++i) {//mode
+			for (let j = 0; j < 7; ++j) {//star value
+				if (other_diffs[i][j] > 0) diffstring += getStars(CONFIG, i, j) + ": " + other_diffs[i][j] + TAB;
+			}
+		}
+		beatmap = beatmap[0];
 		let newEmbed = new Discord.RichEmbed();
 		newEmbed.setAuthor(beatmap.creator, "https://a.ppy.sh/users/" + creator.user_id, "https://osu.ppy.sh/users/" + creator.user_id);
 		newEmbed.setThumbnail("https://b.ppy.sh/thumb/" + beatmap.beatmapset_id + "l.jpg");
@@ -1062,6 +1080,7 @@ module.exports = class EmbedGenerator {
 			beatmap.bpm = beatmap.bpm.round(2);
 		}
 		newEmbed.addField(getStars(CONFIG, beatmap.mode, beatmap.difficultyrating) + " \\[" + beatmap.version + "\\]" + UTILS.fstr(mods.value > 0, " ") + mods.string, "Length: `" + UTILS.standardTimestamp(beatmap.total_length) + "` (`" + UTILS.standardTimestamp(beatmap.hit_length) + "`) BPM: `" + beatmap.bpm + "` FC: `x" + beatmap.max_combo + "`\nDownload Beatmap: [" + CONFIG.EMOJIS.download + "](https://osu.ppy.sh/d/" + beatmap.beatmapset_id + ") [" + CONFIG.EMOJIS.downloadNV + "(https://osu.ppy.sh/d/" + beatmap.beatmapset_id + "n) [" + CONFIG.EMOJIS.osu_direct + "](https://iaace.gg/od/" + beatmap.beatmap_id + ") [" + CONFIG.EMOJIS.bloodcat + "](https://bloodcat.com/osu/s/" + beatmap.beatmapset_id + ")");
+		if (diff_count > 1) newEmbed.addField("This beatmap has " + diff_count + " other difficulties.", diffstring);
 		return newEmbed;
 	}
 }

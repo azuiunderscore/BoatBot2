@@ -322,31 +322,33 @@ module.exports = class LOLAPI {
 	osuPHPProfileGeneral(user_id, m = 0, maxage) {
 		return this.getOffAPI("https://osu.ppy.sh/pages/include/profile-general.php", { u: user_id, m }, this.CONFIG.API_CACHETIME.PHP_PROFILE_GENERAL, maxage);
 	}
-	osuBeatmap(b, m, maxage) {
+	osuBeatmap(id, type, m, maxage) {//type is string: "b"/"s"
 		return new Promise((resolve, reject) => {
-			const options = {
-				b: b,
-				a: 1
-			};
+			const options = {};
+			if (type === "b") options.b = id;
+			else if (type === "s") options.s = id;
+			else throw new Error("invalid type: " + type);
+			options.a = 1;
 			if (UTILS.exists(m)) options.m = m;
 			this.get("get_beatmaps", options, this.CONFIG.API_CACHETIME.GET_BEATMAP, maxage).then(result => {
-				if (UTILS.exists(result[0])) result = result[0]
-				else return reject(result);
-				result.approved = parseInt(result.approved);
-				result.approved_date = new Date(result.approved_date);
-				result.last_update = new Date(result.last_update);
-				result.bpm = parseFloat(result.bpm);
-				result.diff_size = parseFloat(result.diff_size);
-				result.diff_overall = parseFloat(result.diff_overall);
-				result.diff_approach = parseFloat(result.diff_approach);
-				result.diff_drain = parseFloat(result.diff_drain);
-				result.hit_length = parseInt(result.hit_length);
-				result.mode = parseInt(result.mode);
-				result.total_length = parseInt(result.total_length);
-				result.favourite_count = parseInt(result.favourite_count);
-				result.playcount = parseInt(result.playcount);
-				result.passcount = parseInt(result.passcount);
-				result.max_combo = parseInt(result.max_combo);
+				if (!UTILS.exists(result[0])) return reject(result);
+				for (let b in result) {
+					result[b].approved = parseInt(result[b].approved);
+					result[b].approved_date = new Date(result[b].approved_date);
+					result[b].last_update = new Date(result[b].last_update);
+					result[b].bpm = parseFloat(result[b].bpm);
+					result[b].diff_size = parseFloat(result[b].diff_size);
+					result[b].diff_overall = parseFloat(result[b].diff_overall);
+					result[b].diff_approach = parseFloat(result[b].diff_approach);
+					result[b].diff_drain = parseFloat(result[b].diff_drain);
+					result[b].hit_length = parseInt(result[b].hit_length);
+					result[b].mode = parseInt(result[b].mode);
+					result[b].total_length = parseInt(result[b].total_length);
+					result[b].favourite_count = parseInt(result[b].favourite_count);
+					result[b].playcount = parseInt(result[b].playcount);
+					result[b].passcount = parseInt(result[b].passcount);
+					result[b].max_combo = parseInt(result[b].max_combo);
+				}
 				resolve(result);
 			}).catch(reject);
 		});
