@@ -128,10 +128,14 @@ function getMods(modnum) {
 	if (mods.length === 0) return "";
 	else return "+" + mods.reverse().join("");
 }
-function ppCalculator(pathToOsu, mode, acc = 100) {
+function ppCalculator(pathToOsu, mode, options) {//options.acc, options.combo, options.mods, options.stars, options.OD, options.score, options.objects
 	return new Promise((resolve, reject) => {
-		if (mode == 0 | mode == 1) {
-			child_process.execFile("../oppai", [pathToOsu, getMods(), acc + "%", "-m" + mode, "-ojson"], (err, stdout, stderr) => {
+		if (mode == 0 | mode == 1) {//specific score or general acc FC
+			let args = [pathToOsu, "-m" + mode, "-ojson"];
+			if (UTILS.exists(options.mods)) args.push(getMods(options.mods));
+			if (UTILS.exists(options.acc)) args.push(options.acc + "%");
+			if (UTILS.exists(options.combo)) args.push(options.combo + "x");
+			child_process.execFile("../oppai", args, (err, stdout, stderr) => {
 				let oo = JSON.parse(stdout);//oppai object
 				if (err) return reject(err);
 				if (UTILS.exists(stderr) && stderr != "") return reject(stderr);
@@ -142,50 +146,28 @@ function ppCalculator(pathToOsu, mode, acc = 100) {
 		else if (mode == 2) {//ctb
 			resolve(0);
 		}
-		else if (mode == 3) {//mania
-			if (mods != 0) {
-				defaultDisplay();
-				return;
-			}
-			let d = stars; //SR
-			assert(!isNaN(d));
-			if (d < 0) {
-				//console.log("invalid SR");
-				defaultDisplay();
-				return;
-			}
-			assert(!isNaN(OD));
-			if (OD < 0 || OD > 10) {
-				//console.log("invalid OD " + beatmap.od());
-				defaultDisplay();
-				return;
-			}
-			let h = score; //Score
-			assert(!isNaN(h));
-			if (h < 0 || h > 1000000) {
-				//console.log("invalid score");
-				defaultDisplay();
-				return;
-			}
-			let i = acc; //Acc
-			assert(!isNaN(i));
-			if (i < 0 || i > 100) {
-				//console.log("invalid acc");
-				defaultDisplay();
-				return;
-			}
-			let e = beatmap.numObjects(); //Objects
-			assert(!isNaN(e));
-			if (e < 0) {
-				//console.log("invalid objects");
-				defaultDisplay();
-				return;
-			}
+		else if (mode == 3) {//mania (mods, stars, OD, score, acc, objects) (specific score only)
+			if (options.mods != 0) resolve(0);
+			let d = options.stars; //SR
+			let OD = options.OD;
+			UTILS.assert(!isNaN(d));
+			if (d < 0) return reject(new Error("invalid SR"));
+			UTILS.assert(!isNaN(OD));
+			if (OD < 0 || OD > 10) return reject(new Error("invalid OD " + options.OD));
+			let h = options.score; //Score
+			UTILS.assert(!isNaN(h));
+			if (h < 0 || h > 1000000) return reject(new Error("invalid score"));
+			let i = options.acc; //Acc
+			UTILS.assert(!isNaN(i));
+			if (i < 0 || i > 100) return reject(new Error("invalid acc"));
+			let e = options.objects; //Objects
+			UTILS.assert(!isNaN(e));
+			if (e < 0) return reject(new Error("invalid objects"));
 			let f = 64 - 3 * OD;
 			let k = Math.pow((150 / f) * Math.pow(i / 100, 16), 1.8) * 2.5 * Math.min(1.15, Math.pow(e / 1500, 0.3));
 			let l = (Math.pow(5 * Math.max(1, d / 0.0825) - 4, 3) / 110000) * (1 + 0.1 * Math.min(1, e / 1500));
 			let m = (h < 500000) ? h / 500000 * 0.1 : ((h < 600000) ? (h - 500000) / 100000 * 0.2 + 0.1 : ((h < 700000) ? (h - 600000) / 100000 * 0.35 + 0.3 : ((h < 800000) ? (h - 700000) / 100000 * 0.2 + 0.65 : ((h < 900000) ? (h - 800000) / 100000 * 0.1 + 0.85 : (h - 900000) / 100000 * 0.05 + 0.95))));
-			results.pp = Math.pow(Math.pow(k, 1.1) + Math.pow(l * m, 1.1), 1 / 1.1) * 1.1;
+			resolve(Math.pow(Math.pow(k, 1.1) + Math.pow(l * m, 1.1), 1 / 1.1) * 1.1);
 		}
 		else reject(new Error("invalid osu mode: " + mode))
 	});
@@ -1110,40 +1092,57 @@ module.exports = class EmbedGenerator {
 		return newEmbed;
 	}
 	beatmap(CONFIG, beatmap, creator, mod_string = "") {
-		const mods = getModObject(mod_string);
-		let other_diffs = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]];//1 sub array for each mode
-		const diff_count = beatmap.length;
-		for (let b in beatmaps) {
-			++other_diffs[beatmaps[b].mode][wholeStarValue(beatmaps[b].difficultyrating) - 1];
-		}
-		let diffstring = "";
-		for (let i = 0; i < 4; ++i) {//mode
-			for (let j = 0; j < 7; ++j) {//star value
-				if (other_diffs[i][j] > 0) diffstring += getStars(CONFIG, i, j) + ": " + other_diffs[i][j] + TAB;
+		return new Promise((resolve, reject) => {
+			const mods = getModObject(mod_string);
+			let other_diffs = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]];//1 sub array for each mode
+			const diff_count = beatmap.length;
+			for (let b in beatmaps) {
+				++other_diffs[beatmaps[b].mode][wholeStarValue(beatmaps[b].difficultyrating) - 1];
 			}
-		}
-		beatmap = beatmap[0];
-		let newEmbed = new Discord.RichEmbed();
-		newEmbed.setAuthor(beatmap.creator, "https://a.ppy.sh/users/" + creator.user_id, "https://osu.ppy.sh/users/" + creator.user_id);
-		newEmbed.setThumbnail("https://b.ppy.sh/thumb/" + beatmap.beatmapset_id + "l.jpg");
-		const modePrefix = beatmap.mode == 3 ? "[" + parseInt(beatmap.diff_size) + "] " : "";//
-		newEmbed.setColor(beatmap.mode == 3 ? MANIA_KEY_COLOR[parseInt(beatmap.diff_size)] : MODE_COLOR[parseInt(beatmap.mode)]);
-		newEmbed.setTitle(modePrefix + UTILS.fstr(beatmap.approved < 1, "~~") + beatmap.artist + " - " + beatmap.title + UTILS.fstr(beatmap.approved < 1, "~~"));
-		if (mods.value > 0) {
-			if (mods.DT) {
-				beatmap.total_length /= 1.5;
-				beatmap.hit_length /= 1.5;
-				beatmap.bpm *= 1.5;
+			let diffstring = "";
+			for (let i = 0; i < 4; ++i) {//mode
+				for (let j = 0; j < 7; ++j) {//star value
+					if (other_diffs[i][j] > 0) diffstring += getStars(CONFIG, i, j) + ": " + other_diffs[i][j] + TAB;
+				}
 			}
-			else if (mods.HT) {
-				beatmap.total_length *= 1.5;
-				beatmap.hit_length *= 1.5;
-				beatmap.bpm /= 1.5;
+			beatmap = beatmap[0];
+			let ppstring = "";
+			if (mode == 0 | mode == 1) {
+				const accs = [95, 98, 99, 100];
+				let calculations = Promise.all(accs.map(acc => ppCalculator(CONFIG.BEATMAP_CACHE_LOCATION + beatmap.beatmap_id + ".osu", beatmap.mode, { mods: mods.value, acc })));
+				calculations.then(results => {
+					ppstring = "\n" + results.map((pp, i) => accs[i] + "%: " + pp.round(2)).join(" | ");
+					step2();
+				}).catch(e => {
+					console.error(e);
+					step2();
+				});
 			}
-			beatmap.bpm = beatmap.bpm.round(2);
-		}
-		newEmbed.addField(getStars(CONFIG, beatmap.mode, beatmap.difficultyrating) + " \\[" + beatmap.version + "\\]" + UTILS.fstr(mods.value > 0, " ") + mods.string, "Length: `" + UTILS.standardTimestamp(beatmap.total_length) + "` (`" + UTILS.standardTimestamp(beatmap.hit_length) + "`) BPM: `" + beatmap.bpm + "` FC: `x" + beatmap.max_combo + "`\nDownload Beatmap: [" + CONFIG.EMOJIS.download + "](https://osu.ppy.sh/d/" + beatmap.beatmapset_id + ") [" + CONFIG.EMOJIS.downloadNV + "(https://osu.ppy.sh/d/" + beatmap.beatmapset_id + "n) [" + CONFIG.EMOJIS.osu_direct + "](https://iaace.gg/od/" + beatmap.beatmap_id + ") [" + CONFIG.EMOJIS.bloodcat + "](https://bloodcat.com/osu/s/" + beatmap.beatmapset_id + ")");
-		if (diff_count > 1) newEmbed.addField("This beatmap has " + diff_count + " other difficulties.", diffstring);
-		return newEmbed;
+			else step2();
+			function step2() {
+				let newEmbed = new Discord.RichEmbed();
+				newEmbed.setAuthor(beatmap.creator, "https://a.ppy.sh/users/" + creator.user_id, "https://osu.ppy.sh/users/" + creator.user_id);
+				newEmbed.setThumbnail("https://b.ppy.sh/thumb/" + beatmap.beatmapset_id + "l.jpg");
+				const modePrefix = beatmap.mode == 3 ? "[" + parseInt(beatmap.diff_size) + "] " : "";//
+				newEmbed.setColor(beatmap.mode == 3 ? MANIA_KEY_COLOR[parseInt(beatmap.diff_size)] : MODE_COLOR[parseInt(beatmap.mode)]);
+				newEmbed.setTitle(modePrefix + UTILS.fstr(beatmap.approved < 1, "~~") + beatmap.artist + " - " + beatmap.title + UTILS.fstr(beatmap.approved < 1, "~~"));
+				if (mods.value > 0) {
+					if (mods.DT) {
+						beatmap.total_length /= 1.5;
+						beatmap.hit_length /= 1.5;
+						beatmap.bpm *= 1.5;
+					}
+					else if (mods.HT) {
+						beatmap.total_length *= 1.5;
+						beatmap.hit_length *= 1.5;
+						beatmap.bpm /= 1.5;
+					}
+					beatmap.bpm = beatmap.bpm.round(2);
+				}
+				newEmbed.addField(getStars(CONFIG, beatmap.mode, beatmap.difficultyrating) + " \\[" + beatmap.version + "\\]" + UTILS.fstr(mods.value > 0, " ") + mods.string, "Length: `" + UTILS.standardTimestamp(beatmap.total_length) + "` (`" + UTILS.standardTimestamp(beatmap.hit_length) + "`) BPM: `" + beatmap.bpm + "` FC: `x" + beatmap.max_combo + "`\nDownload Beatmap: [" + CONFIG.EMOJIS.download + "](https://osu.ppy.sh/d/" + beatmap.beatmapset_id + ") [" + CONFIG.EMOJIS.downloadNV + "(https://osu.ppy.sh/d/" + beatmap.beatmapset_id + "n) [" + CONFIG.EMOJIS.osu_direct + "](https://iaace.gg/od/" + beatmap.beatmap_id + ") [" + CONFIG.EMOJIS.bloodcat + "](https://bloodcat.com/osu/s/" + beatmap.beatmapset_id + ")" + ppstring);
+				if (diff_count > 1) newEmbed.addField("This beatmap has " + diff_count + " other difficulties.", diffstring);
+				resolve(newEmbed);
+			}
+		});
 	}
 }
