@@ -335,7 +335,7 @@ module.exports = class LOLAPI {
 				for (let b in result) {
 					result[b].approved = parseInt(result[b].approved);
 					result[b].approved_date = new Date(result[b].approved_date);
-					result[b].last_update = new Date(result[b].last_update);
+					result[b].last_updated = new Date(result[b].last_updated);
 					result[b].bpm = parseFloat(result[b].bpm);
 					result[b].diff_size = parseFloat(result[b].diff_size);
 					result[b].diff_overall = parseFloat(result[b].diff_overall);
