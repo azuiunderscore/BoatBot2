@@ -660,7 +660,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 							reply(":x: Could not find a recent username queried.");
 						});
 					}
-					else callback(index, false, parameter.substring(1).trim(), parameter);//explicit
+					else callback(index, false, parameter.trim(), parameter);//explicit
 					return true;
 				}
 				else return false;
