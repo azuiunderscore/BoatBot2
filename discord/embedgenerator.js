@@ -98,7 +98,7 @@ function getModObject(mod_string) {//takes in a string of mods non-comma separat
 		answer_object[b] = false;
 	}
 	for (let i = 0; i < mod_string.length; i += 2) {
-		if (exists(short_mod_values[mod_string.substring(i, i + 2).toUpperCase()])) {
+		if (UTILS.exists(short_mod_values[mod_string.substring(i, i + 2).toUpperCase()])) {
 			answer += short_mod_values[mod_string.substring(i, i + 2).toUpperCase()];
 			answer_object[mod_string.substring(i, i + 2).toUpperCase()] = true;
 		}
