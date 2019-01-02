@@ -1097,7 +1097,7 @@ module.exports = class EmbedGenerator {
 			let other_diffs = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]];//1 sub array for each mode
 			const diff_count = beatmapset.length;
 			for (let b in beatmapset) {
-				++other_diffs[beatmapset[b].mode][wholeStarValue(beatmapset[b].difficultyrating) - 1];
+				++other_diffs[beatmapset[b].mode][wholeStarValue(beatmapset[b].difficultyrating)];
 			}
 			let diffstring = "";
 			for (let i = 0; i < 4; ++i) {//mode
