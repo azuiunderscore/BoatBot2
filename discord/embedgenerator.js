@@ -1120,7 +1120,7 @@ module.exports = class EmbedGenerator {
 			else step2();
 			function step2() {
 				let newEmbed = new Discord.RichEmbed();
-				newEmbed.setAuthor(beatmap.creator, "https://a.ppy.sh/users/" + creator.user_id, "https://osu.ppy.sh/users/" + creator.user_id);
+				newEmbed.setAuthor(beatmap.creator, "https://a.ppy.sh/" + creator.user_id, "https://osu.ppy.sh/users/" + creator.user_id);
 				newEmbed.setURL("https://osu.ppy.sh/beatmapsets/" + beatmap.beatmapset_id + "#" + ["osu", "taiko", "fruits", "mania"][beatmap.mode] + "/" + beatmap.beatmap_id);
 				newEmbed.setThumbnail("https://b.ppy.sh/thumb/" + beatmap.beatmapset_id + "l.jpg");
 				const modePrefix = beatmap.mode == 3 ? "[" + parseInt(beatmap.diff_size) + "] " : "";//
