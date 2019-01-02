@@ -1110,7 +1110,7 @@ module.exports = class EmbedGenerator {
 				const accs = [95, 98, 99, 100];
 				let calculations = Promise.all(accs.map(acc => ppCalculator(CONFIG.BEATMAP_CACHE_LOCATION + beatmap.beatmap_id + ".osu", beatmap.mode, { mods: mods.value, acc })));
 				calculations.then(results => {
-					ppstring = "\n" + results.map((pp, i) => accs[i] + "%: " + pp.round(2)).join(" | ");
+					ppstring = "\n" + results.map((pp, i) => accs[i] + "%: " + pp.round(0)).join(" | ");
 					step2();
 				}).catch(e => {
 					console.error(e);
