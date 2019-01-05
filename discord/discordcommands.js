@@ -478,7 +478,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				msgs = msgs.array();
 				let beatmap_link;
 				for (let i = 0; i < msgs.length; ++i) {
-					if (msgs[b].author.id == client.user.id && msgs[b].embeds.length == 1 && exists(msgs[b].embeds[0].url) && msgs[b].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") != -1) {
+					if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url) && msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") !== -1) {
 						beatmap_link = msgs[i].embeds[0].url;
 						break;
 					}
