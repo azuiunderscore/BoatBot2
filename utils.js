@@ -159,11 +159,15 @@ module.exports = class UTILS {
 		let hours = Math.floor(parseInt(mins) / 60);
 		mins = mins % 60;
 		let secs = Math.floor(parseInt(sec) % 60);
-		if (secs < 10) secs = "0" + secs;
-		if (mins < 10) mins = "0" + mins;
-		if (hours < 10) hours = "0" + hours;
-		if (hours == "00") return mins + ":" + secs;
-		else return hours + ":" + mins + ":" + secs;
+		secs = secs.pad(2);
+		if (hours == 0) {
+			return mins + ":" + secs;
+		}
+		else {
+			mins = mins.pad(2);
+			hours = hours.pad(2);
+			return hours + ":" + mins + ":" + secs;
+		}
 	}
 	gold(number) {
 		number /= 1000;
@@ -243,6 +247,11 @@ module.exports = class UTILS {
 	}
 	map(x, in_min, in_max, out_min, out_max) {
 		return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+	}
+	constrain(x, min, max) {
+		if (x <= min) return min;
+		else if (x >= max) return max;
+		return x;
 	}
 	conditionalFormat(text, surrounds, condition = true) {
 		return condition ? surrounds + text + surrounds : text;
@@ -676,16 +685,6 @@ module.exports = class UTILS {
 			else if (r === height - 1) answer += y_min;
 		}
 		return "```" + answer + "```";
-	}
-	standardTimestamp(sec) {
-		let mins = Math.floor(parseInt(sec) / 60);
-		let hours = Math.floor(parseInt(mins) / 60);
-		mins = mins % 60;
-		let secs = Math.floor(parseInt(sec) % 60);
-		secs.pad(2);
-		mins.pad(2);
-		hours.pad(2);
-		return sec < 3600 ? mins + ":" + secs : hours + ":" + mins + ":" + secs;
 	}
 	fstr(condition, tstr = "", fstr = "") {
 		return condition ? tstr : fstr;

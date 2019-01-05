@@ -453,8 +453,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			mod_string = parameter.substring(parameter.indexOf(" ") + 1);//only get the string after the url
 			mod_string = mod_string.substring(mod_string.indexOf("+"));//only get the string after the '+'
 			lolapi.osuBeatmap(id, type, mode, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(new_beatmap => {
-				beatmap = new_beatmap;
-				id = new_beatmap.beatmapset_id;
+				beatmap = new_beatmap[0];
+				id = new_beatmap[0].beatmapset_id;
 				type = "s";
 				step2();
 			}).catch();
@@ -468,8 +468,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			step2();
 		});
 		command(["https://osu.ppy.sh/beatmapsets/"], true, false, (original, index, parameter) => {
-			let url = original;
-			if (original.indexOf(" ") != -1) url = url.substring(0, url.indexOf(" "));//more comes after the url
+			let url = original + parameter;
+			if (url.indexOf(" ") != -1) url = url.substring(0, url.indexOf(" "));//more comes after the url
 			id = UTILS.arbitraryLengthInt(parameter);
 			type = "s";
 			mode = null;
@@ -477,11 +477,15 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			else if (url.indexOf("#taiko") != -1) mode = 1;
 			else if (url.indexOf("#fruits") != -1) mode = 2;
 			else if (url.indexOf("#mania") != -1) mode = 3;
-			mod_string = parameter.substring(parameter.indexOf(" ") + 1);//only get the string after the url
-			mod_string = mod_string.substring(mod_string.indexOf("+"));//only get the string after the '+'
-			if (url.indexOfInstance("/", url, 5) != -1) {
-				lolapi.osuBeatmap(UTILS.arbitraryLengthInt(url.substring(indexOfInstance("/", url, 5) + 1)), "b", mode, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(new_beatmap => {
-					beatmap = new_beatmap;
+			if (parameter.indexOf(" ") != -1 && parameter.indexOf("+") != -1) {
+				mod_string = parameter.substring(parameter.indexOf(" ") + 1);//only get the string after the url
+				mod_string = mod_string.substring(mod_string.indexOf("+"));//only get the string after the '+'
+			}
+			UTILS.debug("url is: " + url);
+			if (url.indexOfInstance("/", 5) != -1) {
+				UTILS.debug("new url: s/b");
+				lolapi.osuBeatmap(UTILS.arbitraryLengthInt(url.substring(url.indexOfInstance("/", 5) + 1)), "b", mode, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(new_beatmap => {
+					beatmap = new_beatmap[0];
 					step2();
 				}).catch();
 			}
