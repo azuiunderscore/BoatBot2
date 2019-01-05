@@ -444,31 +444,51 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			reply(textgenerator.where(user_stats));
 		}).catch(console.error);
 	});
-	if (preferences.get("abi")) {
+	if (true) {//scope limiter
 		let id, type, mode, mod_string, beatmap;
-		command(["https://osu.ppy.sh/b/", "http://osu.ppy.sh/b/"], true, false, (original, index, parameter) => {//old format beatmap link
-			id = UTILS.arbitraryLengthInt(parameter);
-			type = "b";
-			mode = original.indexOf("&m=") != -1 ? parseInt(original[original.indexOf("&m=") + 3]) : null;
-			mod_string = parameter.substring(parameter.indexOf(" ") + 1);//only get the string after the url
-			mod_string = mod_string.substring(mod_string.indexOf("+"));//only get the string after the '+'
-			lolapi.osuBeatmap(id, type, mode, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(new_beatmap => {
-				beatmap = new_beatmap[0];
-				id = new_beatmap[0].beatmapset_id;
+		if (preferences.get("abi")) {
+			command(["https://osu.ppy.sh/b/", "http://osu.ppy.sh/b/"], true, false, (original, index, parameter) => {//old format beatmap link
+				id = UTILS.arbitraryLengthInt(parameter);
+				type = "b";
+				mode = original.indexOf("&m=") != -1 ? parseInt(original[original.indexOf("&m=") + 3]) : null;
+				mod_string = parameter.substring(parameter.indexOf(" ") + 1);//only get the string after the url
+				mod_string = mod_string.substring(mod_string.indexOf("+"));//only get the string after the '+'
+				lolapi.osuBeatmap(id, type, mode, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(new_beatmap => {
+					beatmap = new_beatmap[0];
+					id = new_beatmap[0].beatmapset_id;
+					type = "s";
+					step2();
+				}).catch();
+			});
+			command(["https://osu.ppy.sh/s/", "http://osu.ppy.sh/s/", "https://osu.ppy.sh/d/", "http://osu.ppy.sh/d/"], true, false, (original, index, parameter) => {//old format set links
+				id = UTILS.arbitraryLengthInt(parameter);
 				type = "s";
+				mode = original.indexOf("&m=") != -1 ? parseInt(original[original.indexOf("&m=") + 3]) : null;
+				mod_string = parameter.substring(parameter.indexOf(" ") + 1);//only get the string after the url
+				mod_string = mod_string.substring(mod_string.indexOf("+"));//only get the string after the '+'
 				step2();
-			}).catch();
+			});
+			command(["https://osu.ppy.sh/beatmapsets/"], true, false, (original, index, parameter) => {
+				let url = original + parameter;
+				newLink(url);
+			});
+		}
+		command([preferences.get("prefix") + "beatmapinfo", preferences.get("prefix") + "binfo"], true, false, (original, index, parameter) => {
+			msg.channel.fetchMessages({ limit: 50 }).then(msgs => {
+				msgs = msgs.array();
+				let beatmap_link;
+				for (let i = 0; i < msgs.length; ++i) {
+					if (msgs[b].author.id == client.user.id && msgs[b].embeds.length == 1 && exists(msgs[b].embeds[0].url) && msgs[b].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") != -1) {
+						beatmap_link = msgs[i].embeds[0].url;
+						break;
+					}
+				}
+				if (!UTILS.exists(beatmap_link)) return reply(":x: Could not find a recent scorecard or beatmap.");
+				newLink(beatmap_link + parameter);
+			});
 		});
-		command(["https://osu.ppy.sh/s/", "http://osu.ppy.sh/s/", "https://osu.ppy.sh/d/", "http://osu.ppy.sh/d/"], true, false, (original, index, parameter) => {//old format set links
-			id = UTILS.arbitraryLengthInt(parameter);
-			type = "s";
-			mode = original.indexOf("&m=") != -1 ? parseInt(original[original.indexOf("&m=") + 3]) : null;
-			mod_string = parameter.substring(parameter.indexOf(" ") + 1);//only get the string after the url
-			mod_string = mod_string.substring(mod_string.indexOf("+"));//only get the string after the '+'
-			step2();
-		});
-		command(["https://osu.ppy.sh/beatmapsets/"], true, false, (original, index, parameter) => {
-			let url = original + parameter;
+		function newLink(url) {// handles https://osu.ppy.sh/beatmapsets/ type links (include URL and mod string)
+			let parameter = url.substring(url.indexOfInstance("/", 4) + 1);
 			if (url.indexOf(" ") != -1) url = url.substring(0, url.indexOf(" "));//more comes after the url
 			id = UTILS.arbitraryLengthInt(parameter);
 			type = "s";
@@ -477,20 +497,20 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			else if (url.indexOf("#taiko") != -1) mode = 1;
 			else if (url.indexOf("#fruits") != -1) mode = 2;
 			else if (url.indexOf("#mania") != -1) mode = 3;
-			if (parameter.indexOf(" ") != -1 && parameter.indexOf("+") != -1) {
+			if (parameter.indexOf(" ") != -1 && parameter.indexOf("+") != -1) {//if a mod string is specified
 				mod_string = parameter.substring(parameter.indexOf(" ") + 1);//only get the string after the url
 				mod_string = mod_string.substring(mod_string.indexOf("+"));//only get the string after the '+'
 			}
 			UTILS.debug("url is: " + url);
-			if (url.indexOfInstance("/", 5) != -1) {
+			if (url.indexOfInstance("/", 5) != -1) {//if the link is beatmap specific
 				UTILS.debug("new url: s/b");
-				lolapi.osuBeatmap(UTILS.arbitraryLengthInt(url.substring(url.indexOfInstance("/", 5) + 1)), "b", mode, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(new_beatmap => {
+				lolapi.osuBeatmap(UTILS.arbitraryLengthInt(url.substring(url.indexOfInstance("/", 5) + 1)), "b", mode, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(new_beatmap => {//retrieve the entire set
 					beatmap = new_beatmap[0];
 					step2();
 				}).catch();
 			}
 			else step2();
-		});
+		}
 		function step2() {
 			UTILS.assert(type === "s");
 			lolapi.osuBeatmap(id, type, mode, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(beatmapset => {
