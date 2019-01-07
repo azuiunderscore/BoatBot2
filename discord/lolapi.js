@@ -341,6 +341,7 @@ module.exports = class LOLAPI {
 					result[b].diff_overall = parseFloat(result[b].diff_overall);
 					result[b].diff_approach = parseFloat(result[b].diff_approach);
 					result[b].diff_drain = parseFloat(result[b].diff_drain);
+					result[b].difficultyrating = parseFloat(result[b].difficultyrating);
 					result[b].hit_length = parseInt(result[b].hit_length);
 					result[b].mode = parseInt(result[b].mode);
 					result[b].total_length = parseInt(result[b].total_length);

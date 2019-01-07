@@ -444,21 +444,42 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			reply(textgenerator.where(user_stats));
 		}).catch(console.error);
 	});
+	command([preferences.get("prefix") + "oppai"], true, false, (original, index, parameter) => {
+		parameter = parameter.trim();
+		msg.channel.fetchMessages({ limit: 50 }).then(msgs => {
+			msgs = msgs.array();
+			let id;
+			for (let i = 0; i < msgs.length; ++i) {
+				if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url)) {
+					const url = msgs[i].embeds[0].url;
+					if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") !== -1) {
+						id = UTILS.arbitraryLengthInt(url.substring(url.indexOfInstance("/", 5) + 1));
+						break;
+					}
+					else if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/b/") !== -1) {
+						id = UTILS.arbitraryLengthInt(url.substring(url.indexOfInstance("/", 4) + 1));
+						break;
+					}
+				}
+			}
+			if (UTILS.exists(id)) {
+				lolapi.osuBeatmap(id, "b", null, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(beatmapset => {
+					lolapi.osuBeatmapFile(beatmapset[0].beatmap_id, beatmapset[0].last_updated.getTime(), CONFIG.API_MAXAGE.BEATMAP_AUTO.OSU_FILE).then(osu_file => {
+						textgenerator.oppai(CONFIG.BEATMAP_CACHE_LOCATION + beatmapset[0].beatmap_id + ".osu", parameter).then(a => reply("```" + a + "```")).catch(a => reply("```" + a + "```"));
+					}).catch(console.error);
+				}).catch(console.error);
+			}
+			else reply(":x: Could not find a recent scorecard or beatmap.");
+		}).catch(e => {
+			console.error(e);
+			reply(":x: I need the \"read message history\" permission to process this request.");
+		});
+	});
 	if (true) {//scope limiter
 		let id, type, mode, mod_string, beatmap;
 		if (preferences.get("abi")) {
 			command(["https://osu.ppy.sh/b/", "http://osu.ppy.sh/b/"], true, false, (original, index, parameter) => {//old format beatmap link
-				id = UTILS.arbitraryLengthInt(parameter);
-				type = "b";
-				mode = original.indexOf("&m=") != -1 ? parseInt(original[original.indexOf("&m=") + 3]) : null;
-				mod_string = parameter.substring(parameter.indexOf(" ") + 1);//only get the string after the url
-				mod_string = mod_string.substring(mod_string.indexOf("+"));//only get the string after the '+'
-				lolapi.osuBeatmap(id, type, mode, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(new_beatmap => {
-					beatmap = new_beatmap[0];
-					id = new_beatmap[0].beatmapset_id;
-					type = "s";
-					step2();
-				}).catch();
+				oldLink(parameter);
 			});
 			command(["https://osu.ppy.sh/s/", "http://osu.ppy.sh/s/", "https://osu.ppy.sh/d/", "http://osu.ppy.sh/d/"], true, false, (original, index, parameter) => {//old format set links
 				id = UTILS.arbitraryLengthInt(parameter);
@@ -476,15 +497,16 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		command([preferences.get("prefix") + "beatmapinfo", preferences.get("prefix") + "binfo"], true, false, (original, index, parameter) => {
 			msg.channel.fetchMessages({ limit: 50 }).then(msgs => {
 				msgs = msgs.array();
-				let beatmap_link;
 				for (let i = 0; i < msgs.length; ++i) {
-					if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url) && msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") !== -1) {
-						beatmap_link = msgs[i].embeds[0].url;
-						break;
+					if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url)) {
+						if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") !== -1) return newLink(msgs[i].embeds[0].url + parameter);
+						else if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url + parameter);
 					}
 				}
-				if (!UTILS.exists(beatmap_link)) return reply(":x: Could not find a recent scorecard or beatmap.");
-				newLink(beatmap_link + parameter);
+				reply(":x: Could not find a recent scorecard or beatmap.");
+			}).catch(e => {
+				console.error(e);
+				reply(":x: I need the \"read message history\" permission to process this request.");
 			});
 		});
 		function newLink(url) {// handles https://osu.ppy.sh/beatmapsets/ type links (include URL and mod string)
@@ -510,6 +532,19 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				}).catch();
 			}
 			else step2();
+		}
+		function oldLink(parameter) {
+			id = UTILS.arbitraryLengthInt(parameter);
+			type = "b";
+			mode = original.indexOf("&m=") != -1 ? parseInt(original[original.indexOf("&m=") + 3]) : null;
+			mod_string = parameter.substring(parameter.indexOf(" ") + 1);//only get the string after the url
+			mod_string = mod_string.substring(mod_string.indexOf("+"));//only get the string after the '+'
+			lolapi.osuBeatmap(id, type, mode, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(new_beatmap => {
+				beatmap = new_beatmap[0];
+				id = new_beatmap[0].beatmapset_id;
+				type = "s";
+				step2();
+			}).catch();
 		}
 		function step2() {
 			UTILS.assert(type === "s");

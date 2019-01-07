@@ -1,5 +1,6 @@
 "use strict";
 const UTILS = new (require("../utils.js"))();
+const child_process = require("child_process");
 module.exports = class TextGenerator {
 	constructor() { }
 	ping_callback(msg, nMsg) {
@@ -48,5 +49,14 @@ module.exports = class TextGenerator {
 		let answer = "Here are my bot owners:\n`user id:name`";
 		for (let b in CONFIG.OWNER_DISCORD_IDS) if (CONFIG.OWNER_DISCORD_IDS[b].active) answer += "\n`" + b + ":" + CONFIG.OWNER_DISCORD_IDS[b].name + "`";
 		return answer;
+	}
+	oppai(path_to_beatmap, args = "") {
+		return new Promise((resolve, reject) => {
+			child_process.execFile("../oppai", [path_to_beatmap, args], (err, stdout, stderr) => {
+				if (err) console.error(err);
+				if (UTILS.exists(stderr) && stderr != "") reject(stderr);
+				else resolve(stdout);
+			});
+		});
 	}
 }
