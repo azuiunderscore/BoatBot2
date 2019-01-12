@@ -1091,7 +1091,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setColor(255);
 		return newEmbed;
 	}
-	beatmap(CONFIG, beatmap, beatmapset, creator, mod_string = "") {
+	beatmap(CONFIG, beatmap, beatmapset, creator, mod_string = "") {//returns a promise
 		return new Promise((resolve, reject) => {
 			UTILS.debug("mod_string is \"" + mod_string + "\"", true);
 			const mods = getModObject(mod_string.substring(1));
@@ -1122,7 +1122,8 @@ module.exports = class EmbedGenerator {
 			function step2(oo) {
 				let newEmbed = new Discord.RichEmbed();
 				newEmbed.setAuthor(beatmap.creator, "https://a.ppy.sh/" + creator.user_id, "https://osu.ppy.sh/users/" + creator.user_id);
-				newEmbed.setURL("https://osu.ppy.sh/beatmapsets/" + beatmap.beatmapset_id + "#" + ["osu", "taiko", "fruits", "mania"][beatmap.mode] + "/" + beatmap.beatmap_id);
+				//newEmbed.setURL("https://osu.ppy.sh/beatmapsets/" + beatmap.beatmapset_id + "#" + ["osu", "taiko", "fruits", "mania"][beatmap.mode] + "/" + beatmap.beatmap_id);
+				newEmbed.setURL("https://osu.ppy.sh/b/" + beatmap.beatmap_id + "&m=" + beatmap.mode);//old link for compatibility
 				newEmbed.setThumbnail("https://b.ppy.sh/thumb/" + beatmap.beatmapset_id + "l.jpg");
 				const modePrefix = beatmap.mode == 3 ? "[" + parseInt(beatmap.diff_size) + "] " : "";//
 				newEmbed.setColor(beatmap.mode == 3 ? MANIA_KEY_COLOR[parseInt(beatmap.diff_size)] : MODE_COLOR[parseInt(beatmap.mode)]);
