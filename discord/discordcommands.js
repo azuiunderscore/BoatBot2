@@ -537,7 +537,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		function oldLink(parameter) {
 			id = UTILS.arbitraryLengthInt(parameter);
 			type = "b";
-			mode = original.indexOf("&m=") != -1 ? parseInt(original[original.indexOf("&m=") + 3]) : null;
+			mode = parameter.indexOf("&m=") != -1 ? parseInt(parameter[parameter.indexOf("&m=") + 3]) : null;
 			mod_string = parameter.substring(parameter.indexOf(" ") + 1);//only get the string after the url
 			mod_string = mod_string.substring(mod_string.indexOf("+"));//only get the string after the '+'
 			lolapi.osuBeatmap(id, type, mode, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(new_beatmap => {
