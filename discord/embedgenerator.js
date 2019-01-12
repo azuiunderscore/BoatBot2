@@ -1091,9 +1091,10 @@ module.exports = class EmbedGenerator {
 		newEmbed.setColor(255);
 		return newEmbed;
 	}
-	beatmap(CONFIG, beatmap, beatmapset, creator, mod_string = "") {//returns a promise
+	beatmap(CONFIG, beatmap, beatmapset, creator, mod_string = "", mode) {//returns a promise
 		return new Promise((resolve, reject) => {
-			UTILS.debug("mod_string is \"" + mod_string + "\"", true);
+			UTILS.debug("mod_string is \"" + mod_string + "\"");
+			if (UTILS.exists(mode)) beatmap.mode = mode;
 			const mods = getModObject(mod_string.substring(1));
 			let other_diffs = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]];//1 sub array for each mode
 			const diff_count = beatmapset.length;
@@ -1125,9 +1126,18 @@ module.exports = class EmbedGenerator {
 				//newEmbed.setURL("https://osu.ppy.sh/beatmapsets/" + beatmap.beatmapset_id + "#" + ["osu", "taiko", "fruits", "mania"][beatmap.mode] + "/" + beatmap.beatmap_id);
 				newEmbed.setURL("https://osu.ppy.sh/b/" + beatmap.beatmap_id + "&m=" + beatmap.mode);//old link for compatibility
 				newEmbed.setThumbnail("https://b.ppy.sh/thumb/" + beatmap.beatmapset_id + "l.jpg");
-				const modePrefix = beatmap.mode == 3 ? "[" + parseInt(beatmap.diff_size) + "] " : "";//
-				newEmbed.setColor(beatmap.mode == 3 ? MANIA_KEY_COLOR[parseInt(beatmap.diff_size)] : MODE_COLOR[parseInt(beatmap.mode)]);
-				newEmbed.setTitle(modePrefix + UTILS.fstr(beatmap.approved < 1, "~~") + beatmap.artist + " - " + beatmap.title + UTILS.fstr(beatmap.approved < 1, "~~"));
+				let mode_prefix = "";
+				if (beatmap.mode != 3) {
+					if (beatmap.mode == 1) mode_prefix = "";
+					else if (beatmap.mode == 2) mode_prefix = ""
+					newEmbed.setColor(MODE_COLOR[beatmap.mode]);
+				}
+				else {
+					mode_prefix = "[" + parseInt(beatmap.diff_size) + "K] ";//
+					newEmbed.setColor(MANIA_KEY_COLOR[beatmap.diff_size]);
+				}
+				UTILS.debug("eg.beatmap() mode is " + beatmap.mode);
+				newEmbed.setTitle(mode_prefix + UTILS.fstr(beatmap.approved < 1, "~~") + beatmap.artist + " - " + beatmap.title + UTILS.fstr(beatmap.approved < 1, "~~"));
 				if (mods.value > 0) {
 					//timing
 					if (mods.DT) {

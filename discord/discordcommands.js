@@ -519,6 +519,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			else if (url.indexOf("#taiko") != -1) mode = 1;
 			else if (url.indexOf("#fruits") != -1) mode = 2;
 			else if (url.indexOf("#mania") != -1) mode = 3;
+			UTILS.debug("nL(): mode is " + mode);
 			if (parameter.indexOf(" ") != -1 && parameter.indexOf("+") != -1) {//if a mod string is specified
 				mod_string = parameter.substring(parameter.indexOf(" ") + 1);//only get the string after the url
 				mod_string = mod_string.substring(mod_string.indexOf("+"));//only get the string after the '+'
@@ -551,7 +552,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			lolapi.osuBeatmap(id, type, mode, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(beatmapset => {
 				lolapi.osuBeatmapFile(beatmapset[0].beatmap_id, beatmapset[0].last_updated.getTime(), CONFIG.API_MAXAGE.BEATMAP_AUTO.OSU_FILE).then(osu_file => {
 					lolapi.osuGetUser(beatmapset[0].creator_id, beatmapset[0].mode, true, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_USER).then(creator => {
-						embedgenerator.beatmap(CONFIG, UTILS.exists(beatmap) ? beatmap : beatmapset[0], beatmapset, creator, mod_string).then(replyEmbed).catch(console.error);
+						embedgenerator.beatmap(CONFIG, UTILS.exists(beatmap) ? beatmap : beatmapset[0], beatmapset, creator, mod_string, mode).then(replyEmbed).catch(console.error);
 					}).catch(console.error);
 				}).catch(console.error);
 			}).catch(console.error);
