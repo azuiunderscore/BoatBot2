@@ -139,11 +139,14 @@ function ppCalculator(pathToOsu, mode, options) {//options.acc, options.combo, o
 			if (UTILS.exists(options.acc)) args.push(options.acc + "%");
 			if (UTILS.exists(options.combo)) args.push(options.combo + "x");
 			child_process.execFile("../oppai", args, (err, stdout, stderr) => {
+				try {
 				let oo = JSON.parse(stdout);//oppai object
 				if (err) return reject(err);
 				if (UTILS.exists(stderr) && stderr != "") return reject(stderr);
 				//check stderr
 				resolve(oo);
+				}
+				catch(e) { reject(e); }
 			});
 		}
 		else if (mode == 3) {//mania (mods, stars, OD, score, acc, objects) (specific score only)
