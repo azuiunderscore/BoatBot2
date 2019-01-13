@@ -500,7 +500,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				for (let i = 0; i < msgs.length; ++i) {
 					if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url)) {
 						if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") !== -1) return newLink(msgs[i].embeds[0].url + parameter);
-						else if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url + parameter);
+						else if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21));
 					}
 				}
 				reply(":x: Could not find a recent scorecard or beatmap.");
@@ -525,12 +525,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				mod_string = mod_string.substring(mod_string.indexOf("+"));//only get the string after the '+'
 			}
 			UTILS.debug("url is: " + url);
-			if (url.indexOfInstance("/", 5) != -1) {//if the link is beatmap specific
+			if (url.indexOfInstance("/", 5) != -1 && !isNaN(parseInt(url[url.indexOfInstance("/", 5) + 1]))) {//if the link is beatmap specific
 				UTILS.debug("new url: s/b");
 				lolapi.osuBeatmap(UTILS.arbitraryLengthInt(url.substring(url.indexOfInstance("/", 5) + 1)), "b", mode, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(new_beatmap => {//retrieve the entire set
 					beatmap = new_beatmap[0];
 					step2();
-				}).catch();
+				}).catch(console.error);
 			}
 			else step2();
 		}
@@ -545,7 +545,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				id = new_beatmap[0].beatmapset_id;
 				type = "s";
 				step2();
-			}).catch();
+			}).catch(console.error);
 		}
 		function step2() {
 			UTILS.assert(type === "s");
