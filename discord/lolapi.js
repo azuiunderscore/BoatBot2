@@ -329,7 +329,7 @@ module.exports = class LOLAPI {
 			else if (type === "s") options.s = id;
 			else throw new Error("invalid type: " + type);
 			options.a = 1;
-			if (UTILS.exists(m)) options.m = m;
+			if (UTILS.exists(m) && type !== "s") options.m = m;
 			this.get("get_beatmaps", options, this.CONFIG.API_CACHETIME.GET_BEATMAP, maxage).then(result => {
 				if (!UTILS.exists(result[0])) return reject(result);
 				for (let b in result) {
