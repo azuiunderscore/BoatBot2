@@ -52,7 +52,7 @@ module.exports = class TextGenerator {
 	}
 	oppai(path_to_beatmap, args = "") {
 		return new Promise((resolve, reject) => {
-			child_process.execFile("../oppai", [path_to_beatmap, args], (err, stdout, stderr) => {
+			child_process.execFile("../oppai", args.split(" ").unshift(path_to_beatmap), (err, stdout, stderr) => {
 				if (err) console.error(err);
 				if (UTILS.exists(stderr) && stderr != "") reject(stderr);
 				else resolve(stdout);
