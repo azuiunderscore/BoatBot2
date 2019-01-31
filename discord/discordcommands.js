@@ -799,8 +799,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			let number;
 			const space_index = parameter.indexOf(" ");
 			if (parameter === "") number = 1;//no number specified, no username specified
-			else if (space_index === -1) {
-				number = parseInt(parameter);//it's either "!c" or "!c123" with params "" or "123"
+			else if (space_index === -1) {//there is no space
+				number = UTILS.strictParseInt(parameter);//it's either "!c" or "!c123" with params "" or "123"
 				parameter = "";
 			}
 			else if (space_index === 0) number = 1;//"!c user" with params " user"
