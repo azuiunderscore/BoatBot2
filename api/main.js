@@ -23,7 +23,7 @@ const dc_load_average = new LoadAverage(60);//discord command load average
 const express = require("express");
 const website = express();
 
-const UTILS = new (require("../utils.js"))();
+const UTILS = new (require("../utils/utils.js"))();
 let Profiler = require("../timeprofiler.js");
 let request = require("request");
 let wsRoutes = require("./websockets.js");
@@ -316,6 +316,23 @@ function serveWebRequest(branch, callback, validate = false) {
 			});
 		}
 	}
+}
+function rawAPIRequest(region, tag, endpoint, maxage, cachetime) {
+	return new Promise((resolve, reject) => {
+		riotRequest.request(region, tag, endpoint, { maxage, cachetime }, (err, data) => {
+			if (err) {
+				if (!err.riotInternal || !UTILS.exists(err.response)) {//real error
+					reject(500);
+				}
+				else {
+					const oldFormat = endpointToURL(region, endpoint);
+					if (cachetime != 0) addCache(oldFormat.url, err.response.res.text, cachetime);
+					reject(err);
+				}
+			}
+			else resolve(data);
+		});
+	});
 }
 function checkCache(url, maxage, request_id) {
 	return new Promise((resolve, reject) => {

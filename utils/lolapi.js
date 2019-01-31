@@ -1,5 +1,5 @@
 "use strict";
-const UTILS = new (require("../utils.js"))();
+const UTILS = new (require("./utils.js"))();
 const fs = require("fs");
 const REQUEST = require("request");
 const XRegExp = require("xregexp");
@@ -18,7 +18,7 @@ const tags = {
 	tpv: "tpv"
 };
 module.exports = class LOLAPI {
-	constructor(INIT_CONFIG, request_id) {
+	constructor(INIT_CONFIG, request_id, internal = false, customGet) {
 		this.CONFIG = INIT_CONFIG;
 		this.request_id = request_id;
 		if (!UTILS.exists(this.CONFIG)) throw new Error("config.json required to access osu api.");
@@ -28,6 +28,10 @@ module.exports = class LOLAPI {
 		this.port = this.CONFIG.API_PORT;
 		this.created = new Date().getTime();
 		this.calls = 0;
+		this.internal = internal;
+		if (this.internal) {
+			this.customGet = customGet;
+		}
 	}
 	ping() {
 		return new Promise((resolve, reject) => {
@@ -48,23 +52,38 @@ module.exports = class LOLAPI {
 			for (let i in options) {
 				url += "&" + i + "=" + encodeURIComponent(options[i]);
 			}
-			//UTILS.output("IAPI req sent: " + url.replace(that.CONFIG.OSU_API_KEY, ""));
-			url = this.address + ":" + this.port + "/osu/" + cachetime + "/" + maxage + "/" + this.request_id + "/?k=" + encodeURIComponent(this.CONFIG.API_KEY) +"&url=" + encodeURIComponent(url);
-			this.request({ url, agentOptions }, (error, response, body) => {
-				if (UTILS.exists(error)) {
-					reject(error);
-				}
-				else {
-					try {
+			if (!this.internal) {
+				//UTILS.output("IAPI req sent: " + url.replace(that.CONFIG.OSU_API_KEY, ""));
+				const iurl = this.address + ":" + this.port + "/osu/" + cachetime + "/" + maxage + "/" + this.request_id + "/?k=" + encodeURIComponent(this.CONFIG.API_KEY) + "&url=" + encodeURIComponent(url);
+				this.request({ iurl, agentOptions }, (error, response, body) => {
+					if (UTILS.exists(error)) {
+						reject(error);
+					}
+					else {
+						try {
+							const answer = JSON.parse(body);
+							UTILS.debug(url + " : " + body);
+							resolve(answer);
+							if (typeof (options[i]) === "object") endpoint += options[i].map(e => "&" + i + "=" + encodeURIComponent(e)).join("");//array type
+							else endpoint += "&" + i + "=" + encodeURIComponent(options[i]);
+						}
+						catch (e) {
+							reject(e);
+						}
+					}
+				});
+			}
+			else {
+				this.customGet(region, tag, endpoint, maxage, cachetime).then(body => {
+					if (parseJSON) {
 						const answer = JSON.parse(body);
-						UTILS.debug(url + " : " + body);
+						if (UTILS.exists(answer.status)) UTILS.output(iurl + " : " + body);
+						UTILS.assert(typeof (answer) === "object");
 						resolve(answer);
 					}
-					catch (e) {
-						reject(e);
-					}
-				}
-			});
+					else resolve(body);
+				}).catch(reject);
+			}
 		});
 	}
 	getOffAPI(path, options, cachetime, maxage) {
@@ -88,6 +107,7 @@ module.exports = class LOLAPI {
 		});
 	}
 	getIAPI(path, options, response_expected = true, json_expected = true) {//get internal API
+		if (this.internal) throw new Error("Can't call LOLAPI.getIAPI() in internal mode");
 		let that = this;
 		options.k = this.CONFIG.API_KEY;
 		return new Promise((resolve, reject) => {

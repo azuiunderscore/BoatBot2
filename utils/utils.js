@@ -3,6 +3,7 @@ let ta = require("./timeago.js");
 let seq = require("./promise-sequential.js");
 const fs = require("fs");
 const countries = JSON.parse(fs.readFileSync("../data/countries.json", "utf-8"));
+let child_process = require("child_process");
 String.prototype.replaceAll = function(search, replacement) {
 	let target = this;
 	return target.replace(new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), replacement);
@@ -95,7 +96,7 @@ const short_mod_values = {
 	"V2": 536870912
 };
 Number.prototype.round = function(decimal = 0) {
-	return Math.round(this * Math.pow(10, decimal)) / Math.pow(10, decimal);
+	return decimal < 0 ? Math.round(this * Math.pow(10, decimal)) / Math.pow(10, decimal) : this.toFixed(decimal);
 }
 module.exports = class UTILS {
 	output(t) {//general utility function
@@ -123,7 +124,7 @@ module.exports = class UTILS {
 		else return "";
 	}
 	round(num, decimal = 0) {
-		return Math.round(num * Math.pow(10, decimal)) / Math.pow(10, decimal);
+		return decimal < 0 ? Math.round(num * Math.pow(10, decimal)) / Math.pow(10, decimal) : num.toFixed(decimal);
 	}
 	assert(condition, message) {
 		if (typeof (condition) != "boolean") {
@@ -233,7 +234,7 @@ module.exports = class UTILS {
 				++deleted;
 			}
 		}
-		return deleted;
+		return deleted;//number of deleted items
 	}
 	defaultChannelNames() {
 		return ["general", "bot", "bots", "bot-commands", "botcommands", "commands", "osu", "games", "standard", "taiko", "mania", "ctb", "catch-the-beat", "fruit", "fruits", "boatbot", "boat-bot", "spam"];
@@ -452,9 +453,17 @@ module.exports = class UTILS {
 		if (touchscreen) answer += CONFIG.EMOJIS.touchscreen;
 		return answer;
 	}
-	accessLevel(CONFIG, msg, uid) {
+	constrain(x, min, max) {
+		if (x <= min) return min;
+		else if (x >= max) return max;
+		return x;
+	}
+	conditionalFormat(text, surrounds, condition = true) {
+		return condition ? surrounds + text + surrounds : text;
+	}
+	accessLevel(CONFIG, msg, uid) {//uid optional
 		if (!this.exists(uid)) uid = msg.author.id;
-		if (this.exists(CONFIG.OWNER_DISCORD_IDS[uid]) && CONFIG.OWNER_DISCORD_IDS[uid].active) return CONFIG.CONSTANTS.BOTOWNERS;
+		if (this.exists(CONFIG.OWNER_DISCORD_IDS[uid]) && CONFIG.OWNER_DISCORD_IDS[uid].active) return CONFIG.CONSTANTS.BOTOWNERS;//if it's an owner id
 		const MEMBER = uid === msg.author.id ? msg.member : msg.guild.members.get(uid);
 		if (!this.exists(MEMBER)) return CONFIG.CONSTANTS.NORMALMEMBERS;//PM
 		else if (MEMBER.id === msg.guild.ownerID) return CONFIG.CONSTANTS.SERVEROWNERS;
@@ -624,7 +633,13 @@ module.exports = class UTILS {
 		var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
 		for (var i = 0; i < pairs.length; i++) {
 			var pair = pairs[i].split('=');
-			query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+			if (this.exists(query[decodeURIComponent(pair[0])])) {//already exists, so must be a set
+				if (typeof(query[decodeURIComponent(pair[0])]) !== "object") {//is not an array yet
+					query[decodeURIComponent(pair[0])] = [query[decodeURIComponent(pair[0])]];//make array
+				}
+				query[decodeURIComponent(pair[0])].push(pair[1]);//put at end of array
+			}
+			else query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
 		}
 		return query;
 	}
@@ -691,5 +706,45 @@ module.exports = class UTILS {
 	}
 	now() {
 		return new Date().getTime();
+	}
+	strictParseInt(str) {
+		let ans = ""
+		for (let i = 0; i < str.length; ++i) {
+			const temp = parseInt(str[i]);
+			if (!isNaN(temp)) ans += temp;
+			else return NaN;
+		}
+		return parseInt(ans);
+	}
+	gnuPlotGoldAdvantageGraph(array_of_points, x_size = 52, y_size = 18) {//[{x, y}, ...]
+		let that = this;
+		return new Promise((resolve, reject) => {
+			const wincmd = "powershell.exe -Command \"\\\"" + array_of_points.map(p => p.x + " " + p.y).join("`n") + "\\\" | gnuplot -e \\\"set terminal dumb nofeed " + x_size + " " + y_size + "; set xlabel 'Minutes'; set tics scale 0; plot '-' with filledcurves y=0 notitle\\\"\"";
+			const linuxcmd = "printf \"" + array_of_points.map(p => p.x + " " + p.y).join("\\n") + "\\\" | gnuplot -e \"set terminal dumb nofeed " + x_size + " " + y_size + "; set xlabel 'Minutes'; set tics scale 0; plot '-' with filledcurves y=0 notitle\"";
+			if (process.platform === "win32") {
+				child_process.exec(wincmd, { timeout: 1000 }, (err, stdout, stderr) => {
+					if (err) reject(err);
+					if (that.exists(stderr) && stderr != "") reject(stderr);
+					else {
+						let answer = stdout.split("\n");
+						answer.splice(0, 1);//remove first line
+						answer.splice(answer.length - 1, 1);//remove last line
+						resolve(answer.join("\n"));
+					}
+				});
+			}
+			else {
+				child_process.exec(linuxcmd, { timeout: 1000 }, (err, stdout, stderr) => {
+					if (err) reject(err);
+					if (that.exists(stderr) && stderr != "") reject(stderr);
+					else {
+						let answer = stdout.split("\n");
+						answer.splice(0, 1);//remove first line
+						answer.splice(answer.length - 1, 1);//remove last line
+						resolve(answer.join("\n"));
+					}
+				});
+			}
+		});
 	}
 }

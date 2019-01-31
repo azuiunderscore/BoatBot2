@@ -2,9 +2,9 @@
 let embedgenerator = new (require("./embedgenerator.js"))();
 let textgenerator = new (require("./textgenerator.js"))();
 let child_process = require("child_process");
-const UTILS = new (require("../utils.js"))();
-let LOLAPI = require("./lolapi.js");
-let Profiler = require("../timeprofiler.js");
+const UTILS = new (require("../utils/utils.js"))();
+let LOLAPI = require("../utils/lolapi.js");
+let Profiler = require("../utils/timeprofiler.js");
 let ctable = require("console.table");
 const crypto = require("crypto");
 module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedToChannel, preferences, ACCESS_LEVEL, server_RL, user_RL) {
@@ -172,11 +172,11 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		});
 	});
 	command([preferences.get("prefix") + "permissionstest", preferences.get("prefix") + "pt"], false, false, () => {
-		reply("You have " + (isOwner(undefined, false) ? "owner" : "normal") + " permissions.");
+		reply("You have " + ["normal", "bot commander", "moderator", "server admin", "server owner", "bot owner"][ACCESS_LEVEL] + " permissions.");
 	});
 	command([preferences.get("prefix") + "permissionstest ", preferences.get("prefix") + "pt "], true, false, () => {
 		if (msg.mentions.users.size != 1) return reply(":x: A user must be mentioned.");
-		reply(msg.mentions.users.first().tag + " has " + (isOwner(msg.mentions.users.first().id, false) ? "owner" : "normal") + " permissions.");
+		reply(msg.mentions.users.first().tag + " has " + ["normal", "bot commander", "moderator", "server admin", "server owner", "bot owner"][UTILS.accessLevel(CONFIG, msg, msg.mentions.users.first().id)] + " permissions.");
 	});
 	command([preferences.get("prefix") + "cs"], false, CONFIG.CONSTANTS.BOTOWNERS, () => {
 		lolapi.stats().then(iapi_stats => {
@@ -408,6 +408,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			}).catch(console.error);
 		});
 	});
+	command([preferences.get("prefix") + "about", preferences.get("prefix") + "credits", preferences.get("prefix") + "acknowledgements", preferences.get("prefix") + "contributors", preferences.get("prefix") + "contributions"], false, false, (original, index) => reply(CONFIG.ACKNOWLEDGEMENTS));
 	commandGuessUsername([preferences.get("prefix") + "osusignature", preferences.get("prefix") + "osusign", preferences.get("prefix") + "osusig"], false, (index, id, user, parameter) => {
 		lolapi.osuMostRecentMode(user, id, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER_RECENT).then(mrm => {
 			lolapi.osuGetUser(user, mrm, id, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
@@ -613,7 +614,25 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 					approvable.edit({ embed: candidate.edit });//change internal feedback message
 					sendEmbedToChannel(candidate.to_public_cid, candidate.to_public);//publish to public feedback channel
 				}
-			}).catch(console.error);
+			}).catch(e => reply(":x: Could not find the message. Check permissions and message id."));
+		});
+		command([preferences.get("prefix") + "deny "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
+			const mid = parameter;
+			if (!UTILS.isInt(mid)) return reply(":x: Message ID not recognizable.");
+			msg.channel.fetchMessage(mid).then(approvable => {
+				if (approvable.author.id != client.user.id) return reply(":x: Cannot approve messages not sent from this account.");
+				const candidate = embedgenerator.reviewFeedback(CONFIG, approvable, msg.author, false);
+				if (typeof(candidate) == "number") {
+					UTILS.debug(CONFIG.DISCORD_COMMAND_PREFIX + "deny error type " + candidate);
+					if (candidate == 1) return reply(":x: No embed found.");
+					else return reply(":x: This type of message is not approvable.");
+				}
+				else {//success
+					//do not notify user of success
+					approvable.edit({ embed: candidate.edit });//change internal feedback message
+					//do not publish to public feedback channel
+				}
+			}).catch(e => reply(":x: Could not find the message. Check permissions and message id."));
 		});
 	}
 	else {//PM/DM only
@@ -844,7 +863,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			}
 			return false;
 		}
-		else {
+		else {//retrieve access level for a different user
 			const other_ACCESS_LEVEL = UTILS.accessLevel(CONFIG, msg);
 			return other_ACCESS_LEVEL >= PLEVEL;//never notifies
 		}
@@ -933,12 +952,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		let valid = 0;//bitwise
 		if (!msg.PM) {
 			if (!server_RL.check()) {
-				sendToChannel(CONFIG.RATE_LIMIT.CHANNEL_ID, ":no_entry::busts_in_silhouette: Server exceeded rate limit. uID: `" + msg.author.id + "` sID: `" + msg.guild.id + "`\n" + msg.author.tag + " on " + msg.guild.name);
+				sendToChannel(CONFIG.RATE_LIMIT.CHANNEL_ID, ":no_entry::busts_in_silhouette: Server exceeded rate limit. uID: `" + msg.author.id + "` sID: `" + msg.guild.id + "`\n" + msg.author.tag + " on " + msg.guild.name + " attempted to use: " + msg.cleanContent.substring(0, 50));
 				valid += 1;//bit 0
 			}
 		}
 		if (!user_RL.check()) {
-			sendToChannel(CONFIG.RATE_LIMIT.CHANNEL_ID, ":no_entry::bust_in_silhouette: User exceeded rate limit. uID: `" + msg.author.id + "` sID: `" + (msg.PM ? "N/A" : msg.guild.id) + "`\n" + msg.author.tag + " on " + (msg.PM ? "N/A" : msg.guild.name));
+			sendToChannel(CONFIG.RATE_LIMIT.CHANNEL_ID, ":no_entry::bust_in_silhouette: User exceeded rate limit. uID: `" + msg.author.id + "` sID: `" + (msg.PM ? "N/A" : msg.guild.id) + "`\n" + msg.author.tag + " on " + (msg.PM ? "N/A" : msg.guild.name) + " attempted to use: " + msg.cleanContent.substring(0, 50));
 			valid += 2;//bit 1
 		}
 		if (valid === 0) {
