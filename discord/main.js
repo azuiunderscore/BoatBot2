@@ -1,4 +1,5 @@
 "use strict";
+console.log("                              __\r\n                     \/\\    .-\" \/\r\n                    \/  ; .\'  .\' \r\n                   :   :\/  .\'   \r\n                    \\  ;-.\'     \r\n       .--\"\"\"\"--..__\/     `.    \r\n     .\'           .\'    `o  \\   \r\n    \/                    `   ;  \r\n   :                  \\      :  \r\n .-;        -.         `.__.-\'  \r\n:  ;          \\     ,   ;       \r\n\'._:           ;   :   (        \r\n    \\\/  .__    ;    \\   `-.     \r\n    ;     \"-,\/_..--\"`-..__)    \r\n     \'\"\"--.._:");
 const fs = require("fs");
 const argv_options = new (require("getopts"))(process.argv.slice(2), {
 	alias: { c: ["config"] },

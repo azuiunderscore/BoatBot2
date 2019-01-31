@@ -6,6 +6,7 @@ const UTILS = new (require("../utils.js"))();
 let LOLAPI = require("./lolapi.js");
 let Profiler = require("../timeprofiler.js");
 let ctable = require("console.table");
+const crypto = require("crypto");
 module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedToChannel, preferences, ACCESS_LEVEL, server_RL, user_RL) {
 	if (msg.author.bot || msg.author.id === client.user.id) return;//ignore all messages from [BOT] users and own messages
 	if (!msg.PM && !msg.channel.permissionsFor(client.user).has(["VIEW_CHANNEL", "SEND_MESSAGES"])) return;//dont read messages that can't be responded to
@@ -47,8 +48,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	command([preferences.get("prefix") + "banuser "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		//Lbanuser <uid> <duration> <reason>
 		const id = parameter.substring(0, parameter.indexOf(" "));
-		const reason = parameter.substring(UTILS.indexOfInstance(parameter, " ", 2) + 1);
-		let duration = parameter.substring(UTILS.indexOfInstance(parameter, " ", 1) + 1, UTILS.indexOfInstance(parameter, " ", 2));
+		const reason = parameter.substring(parameter.indexOfInstance(" ", 2) + 1);
+		let duration = parameter.substring(parameter.indexOfInstance(" ", 1) + 1, parameter.indexOfInstance(" ", 2));
 		duration = duration == "0" ? duration = 0 : UTILS.durationParse(duration);
 		if (isNaN(duration)) return reply(":x: The duration is invalid.");
 		const end_date = duration == 0 ? 0 : new Date().getTime() + duration;
@@ -64,8 +65,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	command([preferences.get("prefix") + "banserver "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		//Lbanserver <sid> <duration> <reason>
 		const id = parameter.substring(0, parameter.indexOf(" "));
-		const reason = parameter.substring(UTILS.indexOfInstance(parameter, " ", 2) + 1);
-		let duration = parameter.substring(UTILS.indexOfInstance(parameter, " ", 1) + 1, UTILS.indexOfInstance(parameter, " ", 2));
+		const reason = parameter.substring(parameter.indexOfInstance(" ", 2) + 1);
+		let duration = parameter.substring(parameter.indexOfInstance(" ", 1) + 1, parameter.indexOfInstance(" ", 2));
 		duration = duration == "0" ? duration = 0 : UTILS.durationParse(duration);
 		if (isNaN(duration)) return reply(":x: The duration is invalid.");
 		const end_date = duration == 0 ? 0 : new Date().getTime() + duration;
@@ -94,7 +95,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		if (id.length < 1 || reason.length < 1) return reply(":x: The id or the reason could not be found.");
 		lolapi.warnServer(id, reason, msg.author.id, msg.author.tag, msg.author.displayAvatarURL).then(result => {
 			sendToChannel(CONFIG.LOG_CHANNEL_ID, ":warning: Server warned, id " + id + " by " + msg.author.tag + ": " + reason);
-			reply(CONFIG.LOG_CHANNEL_ID, ":warning: Server warned, id " + id + " by " + msg.author.tag + ": " + reason);
+			reply(":warning: Server warned, id " + id + " by " + msg.author.tag + ": " + reason);
 		}).catch(console.error);
 	});
 	command([preferences.get("prefix") + "noteuser "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
@@ -178,13 +179,22 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		reply(msg.mentions.users.first().tag + " has " + (isOwner(msg.mentions.users.first().id, false) ? "owner" : "normal") + " permissions.");
 	});
 	command([preferences.get("prefix") + "cs"], false, CONFIG.CONSTANTS.BOTOWNERS, () => {
-		reply("This is shard " + process.env.SHARD_ID);
+		lolapi.stats().then(iapi_stats => {
+			UTILS.aggregateClientEvals(client, [["this.guilds.size", r => r.reduce((prev, val) => prev + val, 0) + " (" + r.join(", ") + ")"],
+				["this.users.size", r => r.reduce((prev, val) => prev + val, 0) + " (" + r.join(", ") + ")"],
+				["this.guilds.map(g => g.memberCount).reduce((prev, val) => prev + val, 0)", r => r.reduce((prev, val) => prev + val, 0) + " (" + r.join(", ") + ")"]]).then(c_eval => {
+				replyEmbed(embedgenerator.debug(CONFIG, client, iapi_stats, c_eval));
+			});
+		}).catch(console.error);
 	});
 	command([preferences.get("prefix") + "ping", preferences.get("prefix") + "latency"], false, false, () => {
 		reply("command to response time: ", nMsg => textgenerator.ping_callback(msg, nMsg));
 	});
 	command(["iping"], false, false, () => {
 		lolapi.ping().then(times => reply(textgenerator.internal_ping(times))).catch(console.error);
+	});
+	command(["wping"], false, false, () => {
+		wsapi.ping(times => reply(textgenerator.ws_ping(times)));
 	});
 	command([preferences.get("prefix") + "ping "], true, false, function (original, index, parameter) {
 		reply("you said: " + parameter);
@@ -272,18 +282,19 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	});*/
 	command([preferences.get("prefix") + "setshortcut ", preferences.get("prefix") + "ss ", preferences.get("prefix") + "createshortcut ", preferences.get("prefix") + "addshortcut "], true, false, (original, index, parameter) => {
 		if (parameter[0] !== "$") return reply(":x: The shortcut must begin with an `$`. Please try again.");
-		if (parameter.indexOf(" ") === -1) return reply(":x: The shortcut word and the username must be separated by a space. Please try again.");
-		if (parameter.length > 60) return reply(":x: The shortcut name or the username is too long.");
+		else if (parameter.indexOf(" ") === -1) return reply(":x: The shortcut word and the username must be separated by a space. Please try again.");
+		else if (parameter.length > 60) return reply(":x: The shortcut name or the username is too long.");
 		const from = parameter.substring(1, parameter.indexOf(" ")).toLowerCase();
 		if (from.length === 0) return reply(":x: The shortcut name was not specified. Please try again.");
 		const to = parameter.substring(parameter.indexOf(" ") + 1);
 		if (to.length === 0) return reply(":x: The username was not specified. Please try again.");
+		else if (parameter.substring(1).indexOf("$") !== -1) return reply(":x: The shortcut cannot contain more than 1 `$` character.");
 		lolapi.createShortcut(msg.author.id, from, to).then(result => {
 			if (result.success) reply(":white_check_mark: `$" + from + "` will now point to `" + to + "`.");
 			else reply(":x: You can only have up to 50 shortcuts. Please remove some and try again.");
 		}).catch(console.error);
 	});
-	command([preferences.get("prefix") + "removeshortcut ", preferences.get("prefix") + "rs ", preferences.get("prefix") + "deleteshortcut ", preferences.get("prefix") + "ds "], true, false, (original, index, parameter) => {
+	command([preferences.get("prefix") + "removeshortcut ", preferences.get("prefix") + "deleteshortcut ", preferences.get("prefix") + "ds "], true, false, (original, index, parameter) => {
 		if (parameter[0] !== "$") return reply(":x: The shortcut must begin with an `$`. Please try again.");
 		const from = parameter.substring(1).toLowerCase();
 		if (from.length === 0) return reply(":x: The shortcut name was not specified. Please try again.");
@@ -307,8 +318,6 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	});
 	command(["boatsetprefix"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
 		preferences.set("prefix", "") ? reply(":white_check_mark: The prefix to use this bot has been removed. No prefix is needed to use commands.") : reply(":x: An error has occurred while setting the prefix.");
-	});
-	command(["http://", "https://"], true, false, (original, index, parameter) => {
 	});
 	commandGuessUsername([preferences.get("prefix") + "d1"], false, (index, id, user, parameter) => {
 		reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + "` parameter: `" + parameter + "`");
@@ -336,6 +345,44 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			}).catch(console.error);
 		}).catch(console.error);
 	});
+	/*
+	command([preferences.get("prefix") + "verify "], true, false, (original, index, parameter) => {
+		let region = assertRegion(parameter.substring(0, parameter.indexOf(" ")));
+		lolapi.getSummonerIDFromName(region, parameter.substring(parameter.indexOf(" ") + 1), CONFIG.API_MAXAGE.VERIFY.SUMMONER_ID).then(summoner => {
+			summoner.region = region;
+			summoner.guess = parameter.substring(parameter.indexOf(" ") + 1);
+			if (UTILS.exists(summoner.status)) return reply(":x: The username appears to be invalid.");
+			lolapi.getVerifiedAccounts(msg.author.id).then(result => {
+				if (UTILS.exists(result.verifiedAccounts[summoner.puuid])) {
+					reply(":white_check_mark: You have already linked your discord account to " + summoner.name + ". This will expire in " + UTILS.until(new Date(result.verifiedAccounts[summoner.puuid])) + ".");//verified
+				}
+				else {//not verified yet
+					lolapi.getThirdPartyCode(region, summoner.id, CONFIG.API_MAXAGE.VERIFY.THIRD_PARTY_CODE).then(tpc => {
+						let valid_code = 0;
+						const tpc_timestamp_ms = parseInt(tpc.substring(0, tpc.indexOf("-")));
+						const tpc_HMAC_input = tpc_timestamp_ms + "-" + msg.author.id + "-" + summoner.puuid;
+						const tpc_HMAC_output = tpc.substring(tpc.indexOf("-") + 1);
+						UTILS.debug("tpc_timestamp_ms: " + tpc_timestamp_ms);
+						UTILS.debug("tpc_HMAC_input: " + tpc_HMAC_input);
+						UTILS.debug("tpc_HMAC_output: " + tpc_HMAC_output);
+						if (tpc_timestamp_ms < new Date().getTime() - (5 * 60 * 1000)) valid_code += 1;//not expired
+						else if (tpc_HMAC_output !== crypto.createHmac("sha256", CONFIG.TPV_KEY).update(tpc_HMAC_input).digest("hex")) valid_code += 2;//same HMAC
+						if (valid_code === 0) {
+							lolapi.setVerifiedAccount(msg.author.id, summoner.puuid, region, new Date().getTime() + (365 * 24 * 60 * 60000)).then(result2 => {
+								reply(":white_check_mark: You have linked your discord account to " + summoner.name + " for 1 year.");
+							}).catch(console.error);
+						}
+						else {
+							UTILS.debug("valid_code: " + valid_code);
+							replyEmbed(embedgenerator.verify(CONFIG, summoner, msg.author.id));
+						}
+					}).catch();
+				}
+			}).catch(console.error);
+		}).catch(console.error);
+	});
+	*/
+
 	commandGuessUsername([preferences.get("prefix") + "statsplus-m", preferences.get("prefix") + "sp-m", preferences.get("prefix") + "osu-m", preferences.get("prefix") + "std-m", preferences.get("prefix") + "taiko-m", preferences.get("prefix") + "sptaiko-m", preferences.get("prefix") + "spt-m", preferences.get("prefix") + "ctb-m", preferences.get("prefix") + "spctb-m", preferences.get("prefix") + "spc-m", preferences.get("prefix") + "mania-m", preferences.get("prefix") + "spmania-m", preferences.get("prefix") + "spm-m"], false, (index, id, user, parameter) => {
 		let mode;
 		if (index < 4) mode = 0;
@@ -397,7 +444,120 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			reply(textgenerator.where(user_stats));
 		}).catch(console.error);
 	});
-
+	command([preferences.get("prefix") + "oppai"], true, false, (original, index, parameter) => {
+		parameter = parameter.trim();
+		msg.channel.fetchMessages({ limit: 50 }).then(msgs => {
+			msgs = msgs.array();
+			let id;
+			for (let i = 0; i < msgs.length; ++i) {
+				if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url)) {
+					const url = msgs[i].embeds[0].url;
+					if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") !== -1) {
+						id = UTILS.arbitraryLengthInt(url.substring(url.indexOfInstance("/", 5) + 1));
+						break;
+					}
+					else if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/b/") !== -1) {
+						id = UTILS.arbitraryLengthInt(url.substring(url.indexOfInstance("/", 4) + 1));
+						break;
+					}
+				}
+			}
+			if (UTILS.exists(id)) {
+				lolapi.osuBeatmap(id, "b", null, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(beatmapset => {
+					lolapi.osuBeatmapFile(beatmapset[0].beatmap_id, beatmapset[0].last_updated.getTime(), CONFIG.API_MAXAGE.BEATMAP_AUTO.OSU_FILE).then(osu_file => {
+						textgenerator.oppai(CONFIG.BEATMAP_CACHE_LOCATION + beatmapset[0].beatmap_id + ".osu", parameter).then(a => reply("```" + a + "```")).catch(a => reply("```" + a + "```"));
+					}).catch(console.error);
+				}).catch(console.error);
+			}
+			else reply(":x: Could not find a recent scorecard or beatmap.");
+		}).catch(e => {
+			console.error(e);
+			reply(":x: I need the \"read message history\" permission to process this request.");
+		});
+	});
+	if (true) {//scope limiter
+		let id, type, mode, mod_string, beatmap;
+		if (preferences.get("abi")) {
+			command(["https://osu.ppy.sh/b/", "http://osu.ppy.sh/b/"], true, false, (original, index, parameter) => {//old format beatmap link
+				oldLink(parameter);
+			});
+			command(["https://osu.ppy.sh/s/", "http://osu.ppy.sh/s/", "https://osu.ppy.sh/d/", "http://osu.ppy.sh/d/"], true, false, (original, index, parameter) => {//old format set links
+				id = UTILS.arbitraryLengthInt(parameter);
+				type = "s";
+				mode = original.indexOf("&m=") != -1 ? parseInt(original[original.indexOf("&m=") + 3]) : null;
+				mod_string = parameter.substring(parameter.indexOf(" ") + 1);//only get the string after the url
+				mod_string = mod_string.substring(mod_string.indexOf("+"));//only get the string after the '+'
+				step2();
+			});
+			command(["https://osu.ppy.sh/beatmapsets/"], true, false, (original, index, parameter) => {
+				let url = original + parameter;
+				newLink(url);
+			});
+		}
+		command([preferences.get("prefix") + "beatmapinfo", preferences.get("prefix") + "binfo"], true, false, (original, index, parameter) => {
+			msg.channel.fetchMessages({ limit: 50 }).then(msgs => {
+				msgs = msgs.array();
+				for (let i = 0; i < msgs.length; ++i) {
+					if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url)) {
+						if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") !== -1) return newLink(msgs[i].embeds[0].url + parameter);
+						else if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21));
+					}
+				}
+				reply(":x: Could not find a recent scorecard or beatmap.");
+			}).catch(e => {
+				console.error(e);
+				reply(":x: I need the \"read message history\" permission to process this request.");
+			});
+		});
+		function newLink(url) {// handles https://osu.ppy.sh/beatmapsets/ type links (include URL and mod string)
+			let parameter = url.substring(url.indexOfInstance("/", 4) + 1);
+			if (url.indexOf(" ") != -1) url = url.substring(0, url.indexOf(" "));//more comes after the url
+			id = UTILS.arbitraryLengthInt(parameter);
+			type = "s";
+			mode = null;
+			if (url.indexOf("#osu") != -1) mode = 0;
+			else if (url.indexOf("#taiko") != -1) mode = 1;
+			else if (url.indexOf("#fruits") != -1) mode = 2;
+			else if (url.indexOf("#mania") != -1) mode = 3;
+			UTILS.debug("nL(): mode is " + mode);
+			if (parameter.indexOf(" ") != -1 && parameter.indexOf("+") != -1) {//if a mod string is specified
+				mod_string = parameter.substring(parameter.indexOf(" ") + 1);//only get the string after the url
+				mod_string = mod_string.substring(mod_string.indexOf("+"));//only get the string after the '+'
+			}
+			UTILS.debug("url is: " + url);
+			if (url.indexOfInstance("/", 5) != -1 && !isNaN(parseInt(url[url.indexOfInstance("/", 5) + 1]))) {//if the link is beatmap specific
+				UTILS.debug("new url: s/b");
+				lolapi.osuBeatmap(UTILS.arbitraryLengthInt(url.substring(url.indexOfInstance("/", 5) + 1)), "b", mode, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(new_beatmap => {//retrieve the entire set
+					beatmap = new_beatmap[0];
+					step2();
+				}).catch(console.error);
+			}
+			else step2();
+		}
+		function oldLink(parameter) {
+			id = UTILS.arbitraryLengthInt(parameter);
+			type = "b";
+			mode = parameter.indexOf("&m=") != -1 ? parseInt(parameter[parameter.indexOf("&m=") + 3]) : null;
+			mod_string = parameter.substring(parameter.indexOf(" ") + 1);//only get the string after the url
+			mod_string = mod_string.substring(mod_string.indexOf("+"));//only get the string after the '+'
+			lolapi.osuBeatmap(id, type, mode, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(new_beatmap => {
+				beatmap = new_beatmap[0];
+				id = new_beatmap[0].beatmapset_id;
+				type = "s";
+				step2();
+			}).catch(console.error);
+		}
+		function step2() {
+			UTILS.assert(type === "s");
+			lolapi.osuBeatmap(id, type, mode, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(beatmapset => {
+				lolapi.osuBeatmapFile(beatmapset[0].beatmap_id, beatmapset[0].last_updated.getTime(), CONFIG.API_MAXAGE.BEATMAP_AUTO.OSU_FILE).then(osu_file => {
+					lolapi.osuGetUser(beatmapset[0].creator_id, beatmapset[0].mode, true, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_USER).then(creator => {
+						embedgenerator.beatmap(CONFIG, UTILS.exists(beatmap) ? beatmap : beatmapset[0], beatmapset, creator, mod_string, mode).then(replyEmbed).catch(console.error);
+					}).catch(console.error);
+				}).catch(console.error);
+			}).catch(console.error);
+		}
+	}
 	if (UTILS.exists(msg.guild)) {//respondable server message only
 		/*
 		command([preferences.get("prefix") + "shutdown"], false, CONFIG.CONSTANTS.BOTOWNERS, () => {
@@ -420,6 +580,10 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		command([preferences.get("prefix") + "setting release-notifications on", preferences.get("prefix") + "setting release-notifications off"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
 			const new_setting = index === 0 ? true : false;
 			preferences.set("release_notifications", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will show new release notifications." : "BoatBot will not show new release notifications."))).catch(reply);
+		});
+		command([preferences.get("prefix") + "setting abi on", preferences.get("prefix") + "setting abi off"], false, CONFIG.CONSTANTS.MODERATORS, (original, index) => {
+			const new_setting = index === 0 ? true : false;
+			preferences.set("abi", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will show beatmap information when a beatmap link is posted." : "BoatBot will not show beatmap information when a beatmap link is posted."))).catch(reply);
 		});
 		/*
 		command(["boatbot settings reset all"], false, CONFIG.CONSTANTS.ADMINISTRATORS, () => reply(":warning: You are about to reset all the preferences associated with this server. To confirm this action, please send the command: `boatbot settings reset all confirm`"));
@@ -556,7 +720,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 							reply(":x: Could not find a recent username queried.");
 						});
 					}
-					else callback(index, false, parameter.substring(1).trim(), parameter);//explicit
+					else callback(index, false, parameter.trim(), parameter);//explicit
 					return true;
 				}
 				else return false;
@@ -651,7 +815,6 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 					}
 					else if (parameter[0] == " ") callback(index, false, parameter.substring(1).trim(), number, 0);//explicit (required trailing space after command trigger)
 					else return false;
-					return true;
 				}
 			}
 			else {//username not provided
@@ -696,7 +859,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	}
 	function reply(reply_text, callback, errorCallback) {
 		printMessage("reply (" + (new Date().getTime() - msg_receive_time) + "ms): " + reply_text + "\n");
-		lolapi.terminate();
+		lolapi.terminate(msg, ACCESS_LEVEL, reply_text);
 		msg.channel.send(reply_text, { split: true }).then((nMsg) => {
 			if (UTILS.exists(callback)) callback(nMsg);
 		}).catch((e) => {
@@ -707,7 +870,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 
 	function replyToAuthor(reply_text, callback, errorCallback) {
 		printMessage("reply to author (" + (new Date().getTime() - msg_receive_time) + "ms): " + reply_text + "\n");
-		lolapi.terminate();
+		lolapi.terminate(msg, ACCESS_LEVEL, reply_text);
 		msg.author.send(reply_text, { split: true }).then((nMsg) => {
 			if (UTILS.exists(callback)) callback(nMsg);
 		}).catch((e) => {
@@ -718,12 +881,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 
 	function replyEmbed(reply_embed, callback, errorCallback) {
 		if (!msg.PM && !msg.channel.permissionsFor(client.user).has(["EMBED_LINKS"])) {//doesn't have permission to embed links in server
-			lolapi.terminate();
+			lolapi.terminate(msg, ACCESS_LEVEL, ":x: I cannot respond to your request without the \"embed links\" permission.");
 			reply(":x: I cannot respond to your request without the \"embed links\" permission.");
 		}
 		else {//has permission to embed links, or is a DM/PM
 			printMessage("reply embedded (" + (new Date().getTime() - msg_receive_time) + "ms)\n");
-			lolapi.terminate();
+			lolapi.terminate(msg, ACCESS_LEVEL, undefined, reply_embed);
 			msg.channel.send("", { embed: reply_embed }).then((nMsg) => {
 				if (UTILS.exists(callback)) callback(nMsg);
 			}).catch((e) => {
@@ -735,7 +898,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 
 	function replyEmbedToAuthor(reply_embed, callback, errorCallback) {
 		printMessage("reply embedded to author (" + (new Date().getTime() - msg_receive_time) + "ms)\n");
-		lolapi.terminate();
+		lolapi.terminate(msg, ACCESS_LEVEL, undefined, reply_embed);
 		msg.author.send("", { embed: reply_embed }).then((nMsg) => {
 			if (UTILS.exists(callback)) callback(nMsg);
 		}).catch((e) => {

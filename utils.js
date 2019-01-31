@@ -10,16 +10,26 @@ String.prototype.replaceAll = function(search, replacement) {
 String.prototype.count = function(search) {
 	return (this.match(new RegExp(search, "g")) || []).length;
 }
+String.prototype.indexOfInstance = function(searchString, index) {
+	let answer = -1;
+	for (let i = 0, count = 0; i < this.length - searchString.length; ++i) {
+		if (this.substring(i, i + searchString.length) == searchString) {
+			++count;
+			if (count == index) answer = i;
+		}
+	}
+	return answer;
+}
 Number.prototype.pad = function(size) {
 	let s = String(this);
-	while (s.length < (size || 2)) {s = "0" + s;}
+	while (s.length < (size || 2)) { s = "0" + s; }
 	return s;
 }
 const modnames = [
 	{ val: 1, name: "NoFail", short: "NF" },
 	{ val: 2, name: "Easy", short: "EZ" },
 	//{ val: 4, name: "NoVideo", short: "NV" },//no video or touchscreen
-	{ val: 4, name: "TouchScreen", short: "TS" },//no video or touchscreen
+	{ val: 4, name: "TouchDevice", short: "TD" },//no video or touchscreen
 	{ val: 8, name: "Hidden", short: "HD" },
 	{ val: 16, name: "HardRock", short: "HR" },
 	{ val: 32, name: "SuddenDeath", short: "SD" },
@@ -45,7 +55,7 @@ const modnames = [
 	{ val: 67108864, name: "Key1", short: "1K" },
 	{ val: 134217728, name: "Key3", short: "3K" },
 	{ val: 268435456, name: "Key2", short: "2K" },
-	{ val: 268435456 * 2, name: "ScoreV2", short: "V2" },
+	{ val: 536870912, name: "ScoreV2", short: "V2" },
 ];
 const doublemods = [
 	["NC", "DT"],
@@ -55,7 +65,7 @@ const short_mod_values = {
 	"NF": 1,
 	"EZ": 2,
 	"NV": 4,
-	"TS": 4,
+	"TD": 4,
 	"HD": 8,
 	"HR": 16,
 	"SD": 32,
@@ -82,8 +92,11 @@ const short_mod_values = {
 	"1K": 67108864,
 	"3K": 134217728,
 	"2K": 268435456,
-	"V2": 268435456 * 2
+	"V2": 536870912
 };
+Number.prototype.round = function(decimal = 0) {
+	return Math.round(this * Math.pow(10, decimal)) / Math.pow(10, decimal);
+}
 module.exports = class UTILS {
 	output(t) {//general utility function
 		if (this.exists(t)) {
@@ -112,14 +125,14 @@ module.exports = class UTILS {
 	round(num, decimal = 0) {
 		return Math.round(num * Math.pow(10, decimal)) / Math.pow(10, decimal);
 	}
-	assert(condition) {
+	assert(condition, message) {
 		if (typeof (condition) != "boolean") {
 			console.trace();
 			throw new Error("asserting non boolean value: " + typeof (condition));
 		}
 		if (!condition) {
 			console.trace();
-			throw new Error("assertion false");
+			throw new Error("assertion false" + (this.exists(message) ? ": " + message : ""));
 		}
 		return true;
 	}
@@ -146,11 +159,15 @@ module.exports = class UTILS {
 		let hours = Math.floor(parseInt(mins) / 60);
 		mins = mins % 60;
 		let secs = Math.floor(parseInt(sec) % 60);
-		if (secs < 10) secs = "0" + secs;
-		if (mins < 10) mins = "0" + mins;
-		if (hours < 10) hours = "0" + hours;
-		if (hours == "00") return mins + ":" + secs;
-		else return hours + ":" + mins + ":" + secs;
+		secs = secs.pad(2);
+		if (hours == 0) {
+			return mins + ":" + secs;
+		}
+		else {
+			mins = mins.pad(2);
+			hours = hours.pad(2);
+			return hours + ":" + mins + ":" + secs;
+		}
 	}
 	gold(number) {
 		number /= 1000;
@@ -173,7 +190,7 @@ module.exports = class UTILS {
 			});
 			if (this.exists(candidate)) return candidate;
 		}
-		return collection.find(ch => { if (ch.type === type && ch.permissionsFor(client.user).has(permissions)) return true; });
+		return collection.find(ch => ch.type === type && ch.permissionsFor(client.user).has(permissions));
 	}
 	trim(network) {
 		let count = 0;
@@ -200,7 +217,23 @@ module.exports = class UTILS {
 		return JSON.parse(JSON.stringify(obj));
 	}
 	removeAllOccurances(arr, deletable) {
-		while (arr.indexOf(deletable) != -1) arr.splice(arr.indexOf(deletable), 1);
+		let deleted = 0;
+		if (typeof(deletable) === "function") {
+			for (let i = 0; i < arr.length; ++i) {
+				if (deletable(arr[i])) {
+					arr.splice(i, 1);
+					--i;
+					++deleted;
+				}
+			}
+		}
+		else {
+			while (arr.indexOf(deletable) != -1) {
+				arr.splice(arr.indexOf(deletable), 1);
+				++deleted;
+			}
+		}
+		return deleted;
 	}
 	defaultChannelNames() {
 		return ["general", "bot", "bots", "bot-commands", "botcommands", "commands", "osu", "games", "standard", "taiko", "mania", "ctb", "catch-the-beat", "fruit", "fruits", "boatbot", "boat-bot", "spam"];
@@ -214,6 +247,11 @@ module.exports = class UTILS {
 	}
 	map(x, in_min, in_max, out_min, out_max) {
 		return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+	}
+	constrain(x, min, max) {
+		if (x <= min) return min;
+		else if (x >= max) return max;
+		return x;
 	}
 	conditionalFormat(text, surrounds, condition = true) {
 		return condition ? surrounds + text + surrounds : text;
@@ -406,12 +444,12 @@ module.exports = class UTILS {
 		if (mods.length === 0) return "";
 		else return "+" + mods.reverse().join("");
 	}
-	pickPlaystyle(mouse, keyboard, tablet, touchscreen) {
+	pickPlaystyle(CONFIG, mouse, keyboard, tablet, touchscreen) {
 		let answer = "";
-		if (mouse) answer += "<:mouse:382248628259127307>";
-		if (keyboard) answer += "<:keyboard:382247276422103040>";
-		if (tablet) answer += "<:tablet:382246804449918977>";
-		if (touchscreen) answer += "<:touchscreen:382248053895200780>";
+		if (mouse) answer += CONFIG.EMOJIS.mouse;
+		if (keyboard) answer += CONFIG.EMOJIS.keyboard;
+		if (tablet) answer += CONFIG.EMOJIS.tablet;
+		if (touchscreen) answer += CONFIG.EMOJIS.touchscreen;
 		return answer;
 	}
 	accessLevel(CONFIG, msg, uid) {
@@ -481,6 +519,8 @@ module.exports = class UTILS {
 		return choices[Math.trunc(Math.random() * choices.length)];
 	}
 	randomInt(a, b) {//[a, b)
+		a = Math.ceil(a);
+		b = Math.floor(b);
 		return Math.trunc(Math.random() * (b - a)) + a;
 	}
 	disciplinaryStatus(docs) {
@@ -528,7 +568,7 @@ module.exports = class UTILS {
 		return { active_ban, recent_ban, recent_warning, most_recent_note };
 	}
 	disciplinaryStatusString(status, user) {
-		this.assert(this.exists(user));
+		this.assert(this.exists(user), "UTILS.dSS(status, user): user doesn't exist");
 		let answer = user ? "User: " : "Server: ";
 		if (status.active_ban == -1 && !status.recent_ban && !status.recent_warning) answer += ":white_check_mark: Good standing.";
 		else {
@@ -555,16 +595,18 @@ module.exports = class UTILS {
 		return valid;
 	}
 	embedRaw(richembed) {
-		return { author: this.exists(richembed.author) ? this.copy(richembed.author) : undefined,
-		color: richembed.color,
-		description: richembed.description,
-		fields: this.exists(richembed.fields) ? this.copy(richembed.fields) : undefined,
-		footer: this.exists(richembed.footer) ? this.copy(richembed.footer) : undefined,
-		image: this.exists(richembed.image) ? this.copy(richembed.image) : undefined,
-		thumbnail: this.exists(richembed.thumbnail) ? this.copy(richembed.thumbnail) : undefined,
-		timestamp: this.exists(richembed.timestamp) ? new Date(richembed.timestamp) : undefined,
-		title: richembed.title,
-		url: richembed.url };
+		return {
+			author: this.exists(richembed.author) ? this.copy(richembed.author) : undefined,
+			color: richembed.color,
+			description: richembed.description,
+			fields: this.exists(richembed.fields) ? this.copy(richembed.fields) : undefined,
+			footer: this.exists(richembed.footer) ? this.copy(richembed.footer) : undefined,
+			image: this.exists(richembed.image) ? this.copy(richembed.image) : undefined,
+			thumbnail: this.exists(richembed.thumbnail) ? this.copy(richembed.thumbnail) : undefined,
+			timestamp: this.exists(richembed.timestamp) ? new Date(richembed.timestamp) : undefined,
+			title: richembed.title,
+			url: richembed.url
+		};
 	}
 	expectNumber(str) {
 		let newStr = "";
@@ -585,5 +627,69 @@ module.exports = class UTILS {
 			query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
 		}
 		return query;
+	}
+	aggregateClientEvals(client, arr) {//numerical only
+		let par = [];
+		let that = this;
+		for (let b of arr) {
+			par.push(new Promise((resolve, reject) => {
+				client.shard.broadcastEval(b[0]).then(r => {
+					resolve(that.exists(b[1]) ? b[1](r) : r);
+				}).catch(reject);
+			}));
+		}
+		return Promise.all(par);
+	}
+	generateGraph(mathjs, raw, height = 5, width = 35) {
+		let answer = "";
+		let min = raw[0][0];//start time
+		let max = raw[raw.length - 1][0];//end time
+		const y_vals = raw.map(point => point[1]);
+		const y_min = mathjs.min(y_vals);
+		const y_max = mathjs.max(y_vals);
+		const raw_normalized = raw.map(point => {
+			point[1] = this.map(point[1], y_min, y_max, 0, 1);
+			return point;
+		});
+		for (let r = 0; r < height; ++r) {
+			answer += "\n";
+			for (let i = 0; i < width; ++i) {
+				const targetTime = this.map(i, 0, width, min, max);
+				let closestTimeLeft = min;
+				let closestHealthLeft = raw_normalized[0][1];
+				let closestTimeRight = max;
+				let closestHealthRight = raw_normalized[raw_normalized.length - 1][1];
+				for (let j = 1; j < raw_normalized.length; ++j) {
+					if (raw_normalized[j][0] >= targetTime) {
+						closestTimeLeft = raw_normalized[j - 1][0];
+						closestHealthLeft = raw_normalized[j - 1][1];
+						closestTimeRight = raw_normalized[j][0];
+						closestHealthRight = raw_normalized[j][1];
+						break;
+					}
+				}
+				let slope = (closestHealthRight - closestHealthLeft) / (closestTimeRight - closestTimeLeft);
+				let healthValue = (slope * (targetTime - closestTimeRight)) + closestHealthRight;
+				//output("(" + r + "," + i + ") is " + healthValue);
+				if (healthValue >= 0.95 - (r * 0.2)) {
+					answer += "█";
+				}
+				else if (healthValue < 0.95 - (r * 0.2) && healthValue >= 1 - ((r + 1) * 0.2)) {
+					answer += "▄";
+				}
+				else {
+					answer += " ";
+				}
+			}
+			if (r === 0) answer += y_max;
+			else if (r === height - 1) answer += y_min;
+		}
+		return "```" + answer + "```";
+	}
+	fstr(condition, tstr = "", fstr = "") {
+		return condition ? tstr : fstr;
+	}
+	now() {
+		return new Date().getTime();
 	}
 }

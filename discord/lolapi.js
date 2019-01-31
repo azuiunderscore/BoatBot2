@@ -14,7 +14,8 @@ const tags = {
 	account: "accountid",//summoners by account id
 	cm: "championmastery",//summoner champion mastery
 	spectator: "spectator",
-	status: "status"
+	status: "status",
+	tpv: "tpv"
 };
 module.exports = class LOLAPI {
 	constructor(INIT_CONFIG, request_id) {
@@ -25,6 +26,8 @@ module.exports = class LOLAPI {
 		this.request = REQUEST;
 		this.address = "https://" + this.CONFIG.API_ADDRESS;
 		this.port = this.CONFIG.API_PORT;
+		this.created = new Date().getTime();
+		this.calls = 0;
 	}
 	ping() {
 		return new Promise((resolve, reject) => {
@@ -84,7 +87,7 @@ module.exports = class LOLAPI {
 			});
 		});
 	}
-	getIAPI(path, options, response_expected = true) {//get internal API
+	getIAPI(path, options, response_expected = true, json_expected = true) {//get internal API
 		let that = this;
 		options.k = this.CONFIG.API_KEY;
 		return new Promise((resolve, reject) => {
@@ -95,6 +98,7 @@ module.exports = class LOLAPI {
 				else url += "&" + i + "=" + encodeURIComponent(options[i]);
 				++paramcount;
 			}
+			++that.calls;
 			this.request({ url , agentOptions }, (error, response, body) => {
 				if (!response_expected) {
 					resolve();
@@ -109,9 +113,14 @@ module.exports = class LOLAPI {
 				else {
 					try {
 						//UTILS.debug(body, true);
-						const answer = JSON.parse(body);
-						UTILS.output("IAPI req: " + url);
-						resolve(answer);
+						if (json_expected) {
+							const answer = JSON.parse(body);
+							UTILS.output("IAPI req: " + url);
+							resolve(answer);
+						}
+						else {
+							resolve(body);
+						}
 					}
 					catch (e) {
 						reject(e);
@@ -141,8 +150,45 @@ module.exports = class LOLAPI {
 	getShortcuts(uid) {
 		return this.getIAPI("getshortcuts/" + uid, {});
 	}
-	terminate() {
-		this.getIAPI("terminate_request/" + this.request_id, {}, false).catch();
+	getVerifiedAccounts(uid) {
+		return this.getIAPI("getverified/" + uid, {});
+	}
+	setVerifiedAccount(uid, puuid, region, expiry) {
+		return this.getIAPI("setverified/" + uid, { from: region + ":" + puuid, to: expiry });
+	}
+	checkVerifiedAccount(uid, puuid, region) {
+		return new Promise((resolve, reject) => {
+			this.getIAPI("getverified/" + uid, {}).then(result => {
+				resolve(UTILS.exists(result.verifiedAccounts[region + ":" + puuid]));
+			}).catch(reject);
+		});
+	}
+	terminate(msg, plevel, response, embed) {
+		const now = new Date().getTime();
+		let opts = {
+			mid: msg.id,
+			uid: msg.author.id,
+			tag: msg.author.tag,
+			cid: msg.channel.id,
+			calls: this.calls,
+			creation_time: msg.createdTimestamp,
+			reply_time: now,
+			ttr: now - this.created,
+			permission: plevel,
+			shard: process.env.SHARD_ID
+		};
+		if (!msg.PM) {
+			opts.sid = msg.guild.id,
+			opts.guild_name = msg.guild.name,
+			opts.channel_name = msg.channel.name
+		}
+		if (UTILS.exists(msg.content)) {
+			opts.content = msg.content;
+			opts.clean_content = msg.cleanContent;
+		}
+		if (UTILS.exists(response)) opts.response = response;
+		if (UTILS.exists(embed)) opts.embed = JSON.stringify(embed);
+		this.getIAPI("terminate_request/" + this.request_id, opts, false).catch(console.error);
 	}
 	IAPIEval(script) {
 		return this.getIAPI("eval/" + encodeURIComponent(script), {});
@@ -276,13 +322,89 @@ module.exports = class LOLAPI {
 	osuPHPProfileGeneral(user_id, m = 0, maxage) {
 		return this.getOffAPI("https://osu.ppy.sh/pages/include/profile-general.php", { u: user_id, m }, this.CONFIG.API_CACHETIME.PHP_PROFILE_GENERAL, maxage);
 	}
+	osuBeatmap(id, type, m, maxage) {//type is string: "b"/"s"
+		return new Promise((resolve, reject) => {
+			const options = {};
+			if (type === "b") options.b = id;
+			else if (type === "s") options.s = id;
+			else throw new Error("invalid type: " + type);
+			options.a = 1;
+			if (UTILS.exists(m) && type !== "s") options.m = m;
+			this.get("get_beatmaps", options, this.CONFIG.API_CACHETIME.GET_BEATMAP, maxage).then(result => {
+				if (!UTILS.exists(result[0])) return reject(result);
+				for (let b in result) {
+					result[b].approved = parseInt(result[b].approved);
+					result[b].approved_date = new Date(result[b].approved_date);
+					result[b].last_updated = new Date(result[b].last_updated);
+					result[b].bpm = parseFloat(result[b].bpm);
+					result[b].diff_size = parseFloat(result[b].diff_size);
+					result[b].diff_overall = parseFloat(result[b].diff_overall);
+					result[b].diff_approach = parseFloat(result[b].diff_approach);
+					result[b].diff_drain = parseFloat(result[b].diff_drain);
+					result[b].difficultyrating = parseFloat(result[b].difficultyrating);
+					result[b].hit_length = parseInt(result[b].hit_length);
+					result[b].mode = parseInt(result[b].mode);
+					result[b].total_length = parseInt(result[b].total_length);
+					result[b].favourite_count = parseInt(result[b].favourite_count);
+					result[b].playcount = parseInt(result[b].playcount);
+					result[b].passcount = parseInt(result[b].passcount);
+					result[b].max_combo = parseInt(result[b].max_combo);
+				}
+				resolve(result);
+			}).catch(reject);
+		});
+	}
+	osuBeatmapFile(b, last_updated, maxage) {
+		let that = this;
+		return new Promise((resolve, reject) => {
+			that.getOffAPI("https://osu.ppy.sh/osu/" + b, {}, that.CONFIG.API_CACHETIME.OSU_FILE, maxage).then(data => {
+				fs.exists(that.CONFIG.BEATMAP_CACHE_LOCATION + b + ".osu", val => {//check if beatmap is in cache folder
+					if (val) {//beatmap file present in cache folder
+						fs.stat(that.CONFIG.BEATMAP_CACHE_LOCATION + b + ".osu", (err, stat) => {//get stats about the cached beatmap file
+							if (err) {
+								console.error(err);
+								overwrite();
+							}
+							else if (UTILS.now() - stat.mtime.getTime() > maxage * 1000) {//too old (maxage)
+								UTILS.debug("beatmap file in cache folder too old; overwriting...");
+								overwrite();//update it
+							}
+							else if (last_updated > stat.mtime.getTime()) {
+								UTILS.debug("beatmap file in cache folder needs to be updated; overwriting...");
+								overwrite();
+							}
+							else {//not too old
+								UTILS.debug("beatmap file in cache folder is up to date");
+								return resolve(data);
+							}
+						});
+					}
+					else {
+						UTILS.debug("beatmap file in cache folder does not exist; writing...");
+						overwrite();
+					}
+				});
+				function overwrite() {
+					fs.writeFile(that.CONFIG.BEATMAP_CACHE_LOCATION + b + ".osu", data, err => {
+						return err ? reject(err) : resolve(data);
+					});
+				}
+			}).catch(reject);
+		});
+	}
 	getPreferences(sid) {
 		return this.getIAPI("getpreferences", { id: sid });
+	}
+	checkPreferences(sid) {
+		return this.getIAPI("existspreferences", { id: sid });
 	}
 	setPreferences(sid, prop, val, type) {
 		return this.getIAPI("setpreferences", { id: sid, prop, val, type });
 	}
 	resetPreferences(sid) {
 		return this.getIAPI("resetpreferences", { id: sid });
+	}
+	stats() {
+		return this.getIAPI("stats", {});
 	}
 }

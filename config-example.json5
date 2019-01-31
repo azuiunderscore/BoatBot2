@@ -64,20 +64,64 @@
 		"webX": "<:webX:365508211022888962>",
 		"webSH": "<:webSH:459584292520198174>",
 		"webS": "<:webS:365508345521766400>",
-		"webA": "<:webA:365508382796546058>"
+		"webA": "<:webA:365508382796546058>",
+		"stars": [["<:1star:365189284032020500>",//standard 0 star
+		"<:1star:365189284032020500>",//standard 1 star
+		"<:2star:365189341418618892>",//standard 2 star
+		"<:3star:365189964951977997>",//standard 3 star
+		"<:4star:365190003162218506>",//standard 4 star
+		"<:5star:365190043821932544>",//standard 5 star
+		"<:6star:365191487769804820>",//standard 6 star
+		"<:7star:365223616406618124>"],//standard 7+ star
+		["<:1start:365409293446545408>",//taiko 0 star
+		"<:1start:365409293446545408>",//taiko 1 star
+		"<:2start:365409390334967808>",//taiko 2 star
+		"<:3start:365409426083020803>",//taiko 3 star
+		"<:4start:365409480239742976>",//taiko 4 star
+		"<:5start:365409525672574976>",//taiko 5 star
+		"<:6start:365410052917559297>",//taiko 6 star
+		"<:7start:365410646961160193>"],//taiko 7 star
+		["<:1starc:365411166429773824>",//ctb 0 star
+		"<:1starc:365411166429773824>",//ctb 1 star
+		"<:2starc:365411234734014464>",//ctb 2 star
+		"<:3starc:365411300752490497>",//ctb 3 star
+		"<:4starc:365411346864668683>",//ctb 4 star
+		"<:5starc:365411392855080961>",//ctb 5 star
+		"<:6starc:365411995152809995>",//ctb 6 star
+		"<:7starc:365412220571746305>"],//ctb 7 star
+		["<:1starm:365413040411115532>",//mania 0 star
+		"<:1starm:365413040411115532>",//mania 1 star
+		"<:2starm:365413081519751178>",//mania 2 star
+		"<:3starm:365413109277523968>",//mania 3 star
+		"<:4starm:365413133931511810>",//mania 4 star
+		"<:5starm:365413158762053632>",//mania 5 star
+		"<:6starm:365413772556501003>",//mania 6 star
+		"<:7starm:365413925451464704>"]],//mania 7 star
+		"download": "<:Download_Beatmap:365918878632771586>",//download beatmap
+		"downloadNV": "<:Download_Without_Video:365919812842553356>",//download without video
+		"osu_direct": "<:osu_direct:365920327710146562>",//osu direct
+		"bloodcat": "<:bloodcat:528897756937584651>",
+		"mouse": "<:mouse:382248628259127307>",
+		"keyboard": "<:keyboard:382247276422103040>",
+		"tablet": "<:tablet:382246804449918977>",
+		"touchscreen": "<:touchscreen:382248053895200780>",
 	},
 	"API_PORT": 56831,
 	"API_ADDRESS": "localhost",
-	"API_PERIOD": 250,
-	"API_KEY": "insert random string here",
-	"API_CACHETIME": {
+	"API_PERIOD": 250,//period (in ms) between requests to osu API servers. this is managed by the iapi.
+	"API_KEY": "insert random string here",//for internal api use only
+	"MONGODB_ADDRESS": "mongodb://localhost/apicache",//mongodb database address
+	"EWS_KEY": "insert random string here",//encrypted web services key
+	"API_CACHETIME": {//how long (in seconds) the api document should remain in cache. set to 0 to never cache
 		"GET_USER": 86400,
 		"GET_USER_BEST": 86400,
 		"PHP_PROFILE_LEADER": 86400,
 		"OLD_USER_PAGE": 86400,
 		"USER_PAGE": 86400,
 		"PHP_PROFILE_GENERAL": 86400,
-		"GET_USER_RECENT": 3600
+		"GET_USER_RECENT": 3600,
+		"GET_BEATMAP": 86400,//map or set
+		"OSU_FILE": 604800//1 week
 	},
 	"API_MAXAGE": {
 		"LINK": 60,
@@ -100,7 +144,12 @@
 			"GET_USER": 120,
 			"GET_USER_BEST": 120
 		},
-		"STATS": 60
+		"STATS": 60,
+		"BEATMAP_AUTO": {
+			"GET_BEATMAP": 86400,
+			"OSU_FILE": 604800,
+			"GET_USER": 86400
+		}
 	},
 	"SHARD_COUNT": 3,
 	"OSU_SERVERS": {
@@ -108,13 +157,25 @@
 	},
 	"RATE_LIMIT": {
 		"CHANNEL_ID": "channel id here",//reports rate limit incidents in this channel
-		"LARGE_SERVER_THRESHOLD": 200,//the point where a server is large and the rate limit is increased
-		"USER_MESSAGES": 4,
+		"USER_MESSAGES": 3,
 		"USER_TIME_S": 60,
-		"SERVER_MESSAGES": 6,
-		"SERVER_TIME_S": 60,
-		"LARGE_SERVER_MESSAGES": 8,
-		"LARGE_SERVER_TIME_S": 60
+		"SERVERS": [{
+			MESSAGES: 3,
+			TIME_S: 60,
+			MEMBER_COUNT: 0//minimum members required to qualify
+		}, {
+			MESSAGES: 4,
+			TIME_S: 60,
+			MEMBER_COUNT: 5
+		}, {
+			MESSAGES: 6,
+			TIME_S: 60,
+			MEMBER_COUNT: 200
+		}, {
+			MESSAGES: 8,
+			TIME_S: 60,
+			MEMBER_COUNT: 1000
+		}]
 	},
 	"FEEDBACK": {
 		"EXTERNAL_CID": "channel id here",//where external feedback comes to get approved
@@ -123,5 +184,9 @@
 		"SUGGESTION_CID": "channel id here",//approved public suggestion channel
 		"APPROVED_IMAGE_LINK": "https://cdn.discordapp.com/emojis/382263196477685771.png?v=1",//footer image for approved feedback (currently unused)
 		"DENIED_IMAGE_LINK": "https://cdn.discordapp.com/emojis/493118209566965764.png?v=1"//footer image for denied feedback (currently unused)
-	}
+	},
+	"TPV_KEY": "random string here",//third party verification code HMAC key
+	"AUDIT_TTL": 31536000,//time in seconds to keep logs of command use (default: 1 year)
+	"PATCH_LOCK": "latest",//locks the patch. (LoL only)
+	"BEATMAP_CACHE_LOCATION": "/home/iaace/bbs/data/bcache/"
 }
