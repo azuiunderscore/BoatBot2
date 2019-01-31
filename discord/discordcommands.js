@@ -483,7 +483,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			reply(":x: I need the \"read message history\" permission to process this request.");
 		});
 	});
-	if (true) {//scope limiter
+	commandGuessUsernameNumber()
+	if (true) {//scope limiter for beatmap links
 		let id, type, mode, mod_string, beatmap;
 		if (preferences.get("abi")) {
 			command(["https://osu.ppy.sh/b/", "http://osu.ppy.sh/b/"], true, false, (original, index, parameter) => {//old format beatmap link
@@ -786,6 +787,14 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			valid: discord mention
 			valid: $shortcut
 			valid: ^
+			*/
+			/*all cases:
+			!c: valid
+			!c user: valid
+			!c1: valid
+			!c1 user: valid
+			!c123: valid
+			!c123 user: valid
 			*/
 			let number;
 			const space_index = parameter.indexOf(" ");
