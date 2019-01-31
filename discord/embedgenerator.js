@@ -10,6 +10,9 @@ const TAB = " ";
 const MANIA_KEY_COLOR = [0, 13421823, 13421823, 13421823, 10066431, 6711039, 3289855, 255, 204, 204, 204];
 const MODE_COLOR = ["#ffffff", "#ff0000", "#00ff00", "#0000ff"];
 function getStars(CONFIG, mode, stars) {
+	UTILS.assert(UTILS.exists(CONFIG));
+	UTILS.assert(UTILS.exists(mode));
+	UTILS.assert(!isNaN(stars));
 	stars = Math.floor(stars);
 	if (stars > 8) stars = 8;
 	return CONFIG.EMOJIS.stars[parseInt(mode)][stars];
@@ -98,7 +101,7 @@ function getModObject(mod_string) {//takes in a string of mods non-comma separat
 		answer_object[b] = false;
 	}
 	for (let i = 0; i < mod_string.length; i += 2) {
-		if (exists(short_mod_values[mod_string.substring(i, i + 2).toUpperCase()])) {
+		if (UTILS.exists(short_mod_values[mod_string.substring(i, i + 2).toUpperCase()])) {
 			answer += short_mod_values[mod_string.substring(i, i + 2).toUpperCase()];
 			answer_object[mod_string.substring(i, i + 2).toUpperCase()] = true;
 		}
@@ -135,16 +138,16 @@ function ppCalculator(pathToOsu, mode, options) {//options.acc, options.combo, o
 			if (UTILS.exists(options.mods)) args.push(getMods(options.mods));
 			if (UTILS.exists(options.acc)) args.push(options.acc + "%");
 			if (UTILS.exists(options.combo)) args.push(options.combo + "x");
-			child_process.execFile("../oppai", args, (err, stdout, stderr) => {
-				let oo = JSON.parse(stdout);//oppai object
-				if (err) return reject(err);
-				if (UTILS.exists(stderr) && stderr != "") return reject(stderr);
-				//check stderr
-				resolve(oo.pp);
+			child_process.execFile("../oppai", args, { timeout: 2500 }, (err, stdout, stderr) => {
+				try {
+					let oo = JSON.parse(stdout);//oppai object
+					if (err) return reject(err);
+					if (UTILS.exists(stderr) && stderr != "") return reject(stderr);
+					//check stderr
+					resolve(oo);
+				}
+				catch(e) { reject(e); }
 			});
-		}
-		else if (mode == 2) {//ctb
-			resolve(0);
 		}
 		else if (mode == 3) {//mania (mods, stars, OD, score, acc, objects) (specific score only)
 			if (options.mods != 0) resolve(0);
@@ -1091,13 +1094,15 @@ module.exports = class EmbedGenerator {
 		newEmbed.setColor(255);
 		return newEmbed;
 	}
-	beatmap(CONFIG, beatmap, beatmapset, creator, mod_string = "") {
+	beatmap(CONFIG, beatmap, beatmapset, creator, mod_string = "", mode) {//returns a promise
 		return new Promise((resolve, reject) => {
-			const mods = getModObject(mod_string);
+			UTILS.debug("mod_string is \"" + mod_string + "\"");
+			if (UTILS.exists(mode)) beatmap.mode = mode;
+			const mods = getModObject(mod_string.substring(1));
 			let other_diffs = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]];//1 sub array for each mode
 			const diff_count = beatmapset.length;
 			for (let b in beatmapset) {
-				++other_diffs[beatmapset[b].mode][wholeStarValue(beatmapset[b].difficultyrating) - 1];
+				++other_diffs[beatmapset[b].mode][wholeStarValue(beatmapset[b].difficultyrating)];
 			}
 			let diffstring = "";
 			for (let i = 0; i < 4; ++i) {//mode
@@ -1106,26 +1111,38 @@ module.exports = class EmbedGenerator {
 				}
 			}
 			let ppstring = "";
-			if (mode == 0 | mode == 1) {
+			if (beatmap.mode == 0 | beatmap.mode == 1) {
 				const accs = [95, 98, 99, 100];
 				let calculations = Promise.all(accs.map(acc => ppCalculator(CONFIG.BEATMAP_CACHE_LOCATION + beatmap.beatmap_id + ".osu", beatmap.mode, { mods: mods.value, acc })));
 				calculations.then(results => {
-					ppstring = "\n" + results.map((pp, i) => accs[i] + "%: " + pp.round(2)).join(" | ");
-					step2();
+					ppstring = "\n" + results.map((oo, i) => accs[i] + "%: " + oo.pp.round(0) + "pp").join(" | ");
+					step2(results[0]);
 				}).catch(e => {
 					console.error(e);
 					step2();
 				});
 			}
 			else step2();
-			function step2() {
+			function step2(oo) {
 				let newEmbed = new Discord.RichEmbed();
-				newEmbed.setAuthor(beatmap.creator, "https://a.ppy.sh/users/" + creator.user_id, "https://osu.ppy.sh/users/" + creator.user_id);
+				newEmbed.setAuthor(beatmap.creator, "https://a.ppy.sh/" + creator.user_id, "https://osu.ppy.sh/users/" + creator.user_id);
+				//newEmbed.setURL("https://osu.ppy.sh/beatmapsets/" + beatmap.beatmapset_id + "#" + ["osu", "taiko", "fruits", "mania"][beatmap.mode] + "/" + beatmap.beatmap_id);
+				newEmbed.setURL("https://osu.ppy.sh/b/" + beatmap.beatmap_id + "&m=" + beatmap.mode);//old link for compatibility
 				newEmbed.setThumbnail("https://b.ppy.sh/thumb/" + beatmap.beatmapset_id + "l.jpg");
-				const modePrefix = beatmap.mode == 3 ? "[" + parseInt(beatmap.diff_size) + "] " : "";//
-				newEmbed.setColor(beatmap.mode == 3 ? MANIA_KEY_COLOR[parseInt(beatmap.diff_size)] : MODE_COLOR[parseInt(beatmap.mode)]);
-				newEmbed.setTitle(modePrefix + UTILS.fstr(beatmap.approved < 1, "~~") + beatmap.artist + " - " + beatmap.title + UTILS.fstr(beatmap.approved < 1, "~~"));
+				let mode_prefix = "";
+				if (beatmap.mode != 3) {
+					if (beatmap.mode == 1) mode_prefix = "";
+					else if (beatmap.mode == 2) mode_prefix = ""
+					newEmbed.setColor(MODE_COLOR[beatmap.mode]);
+				}
+				else {
+					mode_prefix = "[" + parseInt(beatmap.diff_size) + "K] ";//
+					newEmbed.setColor(MANIA_KEY_COLOR[beatmap.diff_size]);
+				}
+				UTILS.debug("eg.beatmap() mode is " + beatmap.mode);
+				newEmbed.setTitle(mode_prefix + UTILS.fstr(beatmap.approved < 1, "~~") + beatmap.artist + " - " + beatmap.title + UTILS.fstr(beatmap.approved < 1, "~~"));
 				if (mods.value > 0) {
+					//timing
 					if (mods.DT) {
 						beatmap.total_length /= 1.5;
 						beatmap.hit_length /= 1.5;
@@ -1137,9 +1154,26 @@ module.exports = class EmbedGenerator {
 						beatmap.bpm /= 1.5;
 					}
 					beatmap.bpm = beatmap.bpm.round(2);
+					//CS, AR, OD, HP
+					if ((beatmap.mode == 0 || beatmap.mode == 1) && UTILS.exists(oo)) {
+						beatmap.diff_size = oo.cs.round(2);
+						beatmap.diff_overall = oo.od.round(2);
+						beatmap.diff_approach = oo.ar.round(2);
+						beatmap.diff_drain = oo.hp.round(2);
+						beatmap.difficultyrating = oo.stars;
+					}
+					else {
+						beatmap.diff_size = beatmap.diff_size.round(2);
+						beatmap.diff_approach = beatmap.diff_approach.round(2);
+						beatmap.diff_overall = beatmap.diff_overall.round(2);
+						beatmap.diff_drain = beatmap.diff_drain.round(2);
+					}
 				}
-				newEmbed.addField(getStars(CONFIG, beatmap.mode, beatmap.difficultyrating) + " \\[" + beatmap.version + "\\]" + UTILS.fstr(mods.value > 0, " ") + mods.string, "Length: `" + UTILS.standardTimestamp(beatmap.total_length) + "` (`" + UTILS.standardTimestamp(beatmap.hit_length) + "`) BPM: `" + beatmap.bpm + "` FC: `x" + beatmap.max_combo + "`\nDownload Beatmap: [" + CONFIG.EMOJIS.download + "](https://osu.ppy.sh/d/" + beatmap.beatmapset_id + ") [" + CONFIG.EMOJIS.downloadNV + "(https://osu.ppy.sh/d/" + beatmap.beatmapset_id + "n) [" + CONFIG.EMOJIS.osu_direct + "](https://iaace.gg/od/" + beatmap.beatmap_id + ") [" + CONFIG.EMOJIS.bloodcat + "](https://bloodcat.com/osu/s/" + beatmap.beatmapset_id + ")" + ppstring);
-				if (diff_count > 1) newEmbed.addField("This beatmap has " + diff_count + " total difficulties.", diffstring);
+				newEmbed.addField(getStars(CONFIG, beatmap.mode, beatmap.difficultyrating) + " \\[" + beatmap.version + "\\]" + UTILS.fstr(mods.value > 0, " ") + mods.string, "Length: `" + UTILS.standardTimestamp(beatmap.total_length) + "` (`" + UTILS.standardTimestamp(beatmap.hit_length) + "`) BPM: `" + beatmap.bpm + "` FC: `x" + beatmap.max_combo + "`\nCS: `" + beatmap.diff_size + "` AR: `" + beatmap.diff_approach + "` OD: `" + beatmap.diff_overall + "` HP: `" + beatmap.diff_drain + "` Stars: `" + beatmap.difficultyrating.round(2) + "`" + ppstring + "\nDownload Beatmap: [" + CONFIG.EMOJIS.download + "](https://osu.ppy.sh/d/" + beatmap.beatmapset_id + ") [" + CONFIG.EMOJIS.downloadNV + "](https://osu.ppy.sh/d/" + beatmap.beatmapset_id + "n) [" + CONFIG.EMOJIS.osu_direct + "](https://iaace.gg/od/" + beatmap.beatmap_id + ") [" + CONFIG.EMOJIS.bloodcat + "](https://bloodcat.com/osu/s/" + beatmap.beatmapset_id + ")");
+				if (diff_count == 500) newEmbed.addField("This beatmap set has at least " + diff_count + " difficulties.", diffstring);
+				else if (diff_count > 1) newEmbed.addField("This beatmap set has " + diff_count + " difficulties.", diffstring);
+				newEmbed.setFooter("Map last updated " + UTILS.ago(beatmap.last_update) + " at/on");
+				newEmbed.setTimestamp(beatmap.last_update);
 				resolve(newEmbed);
 			}
 		});

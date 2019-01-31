@@ -329,18 +329,19 @@ module.exports = class LOLAPI {
 			else if (type === "s") options.s = id;
 			else throw new Error("invalid type: " + type);
 			options.a = 1;
-			if (UTILS.exists(m)) options.m = m;
+			if (UTILS.exists(m) && type !== "s") options.m = m;
 			this.get("get_beatmaps", options, this.CONFIG.API_CACHETIME.GET_BEATMAP, maxage).then(result => {
 				if (!UTILS.exists(result[0])) return reject(result);
 				for (let b in result) {
 					result[b].approved = parseInt(result[b].approved);
 					result[b].approved_date = new Date(result[b].approved_date);
-					result[b].last_update = new Date(result[b].last_update);
+					result[b].last_updated = new Date(result[b].last_updated);
 					result[b].bpm = parseFloat(result[b].bpm);
 					result[b].diff_size = parseFloat(result[b].diff_size);
 					result[b].diff_overall = parseFloat(result[b].diff_overall);
 					result[b].diff_approach = parseFloat(result[b].diff_approach);
 					result[b].diff_drain = parseFloat(result[b].diff_drain);
+					result[b].difficultyrating = parseFloat(result[b].difficultyrating);
 					result[b].hit_length = parseInt(result[b].hit_length);
 					result[b].mode = parseInt(result[b].mode);
 					result[b].total_length = parseInt(result[b].total_length);
