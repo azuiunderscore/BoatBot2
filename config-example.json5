@@ -160,22 +160,22 @@
 	},
 	"RATE_LIMIT": {
 		"CHANNEL_ID": "channel id here",//reports rate limit incidents in this channel
-		"USER_MESSAGES": 3,
+		"USER_MESSAGES": 4,
 		"USER_TIME_S": 60,
 		"SERVERS": [{
-			MESSAGES: 3,
+			MESSAGES: 4,
 			TIME_S: 60,
 			MEMBER_COUNT: 0//minimum members required to qualify
 		}, {
-			MESSAGES: 4,
+			MESSAGES: 6,
 			TIME_S: 60,
 			MEMBER_COUNT: 5
 		}, {
-			MESSAGES: 6,
+			MESSAGES: 8,
 			TIME_S: 60,
 			MEMBER_COUNT: 200
 		}, {
-			MESSAGES: 8,
+			MESSAGES: 10,
 			TIME_S: 60,
 			MEMBER_COUNT: 1000
 		}]
