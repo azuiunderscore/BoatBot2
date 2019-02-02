@@ -167,11 +167,15 @@ module.exports = class Preferences {
 		else return newPreferences[prop];
 	}
 	set(prop, val) {
-		UTILS.debug("Attempting to set preferences[\"" + this.sid + "\"][\"" + prop + "\"] = " + val + ";");
-		if (!this.server_message || !UTILS.exists(preferencesFormat[prop]) || typeof(val) !== preferencesFormat[prop]) return false;
-		cache[this.sid][prop] = val;
-		fs.writeFile(this.path, JSON.stringify(cache[this.sid]), console.error);
-		return true;
+		return new Promise((resolve, reject) => {
+			UTILS.debug("Attempting to set preferences[\"" + this.sid + "\"][\"" + prop + "\"] = " + val + ";");
+			if (!this.server_message || !UTILS.exists(preferencesFormat[prop]) || typeof(val) !== preferencesFormat[prop]) return reject();
+			cache[this.sid][prop] = val;
+			fs.writeFile(this.path, JSON.stringify(cache[this.sid]), e => {
+				if (e) reject(e);
+				else resolve();
+			});
+		});
 	}
 	clearAllCache() {
 		cache = {};
