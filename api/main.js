@@ -14,6 +14,7 @@ catch (e) {
 	console.error(e);
 	process.exit(1);
 }
+const lolapi = new (require("../utils/lolapi.js"))(CONFIG, "0", true, rawAPIRequest);
 
 let https = require('https');
 let LoadAverage = require("../loadaverage.js");
@@ -115,6 +116,7 @@ let server_preferences_doc = new apicache.Schema({
 	auto_opgg: { type: Boolean, required: true, default: true },//automatically embed respond to op.gg links
 	force_prefix: { type: Boolean, required: true, default: false },
 	release_notifications: { type: Boolean, required: true, default: true },
+	feedback_enabled: { type: Boolean, required: true, default: true},
 	//music
 
 	max_music_length: { type: Number, required: true, default: 360 },//in seconds

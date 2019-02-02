@@ -51,7 +51,8 @@ const preferencesFormat = {
 	"scorecardmode": "number",
 	"replaycount": "boolean",
 	"abi": "boolean",
-	"force_prefix": "boolean"
+	"force_prefix": "boolean",
+	"feedback_enabled": "boolean"
 };
 const newPreferences = {//new server defaults
 	"id": "",
@@ -100,7 +101,8 @@ const newPreferences = {//new server defaults
 	"scorecardmode": 1,//SCM_REDUCED
 	"replaycount": true,
 	"abi": true,
-	"force_prefix": false
+	"force_prefix": false,
+	"feedback_enabled": true//allow use of global feedback commands
 };
 let CONFIG;
 const JSON5 = require("json5");
