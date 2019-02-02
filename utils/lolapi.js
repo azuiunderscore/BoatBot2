@@ -55,7 +55,7 @@ module.exports = class LOLAPI {
 			if (!this.internal) {
 				//UTILS.output("IAPI req sent: " + url.replace(that.CONFIG.OSU_API_KEY, ""));
 				const iurl = this.address + ":" + this.port + "/osu/" + cachetime + "/" + maxage + "/" + this.request_id + "/?k=" + encodeURIComponent(this.CONFIG.API_KEY) + "&url=" + encodeURIComponent(url);
-				this.request({ iurl, agentOptions }, (error, response, body) => {
+				this.request({ url: iurl, agentOptions }, (error, response, body) => {
 					if (UTILS.exists(error)) {
 						reject(error);
 					}
