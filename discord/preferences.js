@@ -156,7 +156,15 @@ module.exports = class Preferences {
 		});
 	}
 	get(prop) {
-		return this.server_message ? cache[this.sid][prop] : newPreferences[prop];
+		if (this.server_message) {
+			if (UTILS.exists(cache[this.sid][prop]) && typeof(cache[this.sid][prop]) === preferencesFormat[this.sid][prop]) return cache[this.sid][prop];
+			else {
+				UTILS.debug("Preferences retrieval for " + this.sid + " resulted in a corrupted format. Attempting to set default for property: " + prop);
+				this.set(prop, newPreferences[prop]);
+				return newPreferences[prop];
+			}
+		}
+		else return newPreferences[prop];
 	}
 	set(prop, val) {
 		UTILS.debug("Attempting to set preferences[\"" + this.sid + "\"][\"" + prop + "\"] = " + val + ";");
