@@ -603,12 +603,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		command([preferences.get("prefix") + "setting abi on", preferences.get("prefix") + "setting abi off"], false, CONFIG.CONSTANTS.MODERATORS, (original, index) => {
 			const new_setting = index === 0 ? true : false;
 			preferences.set("abi", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will show beatmap information when a beatmap link is posted." : "BoatBot will not show beatmap information when a beatmap link is posted."))).catch(reply);
-
+		});
 		command([preferences.get("prefix") + "setting global-feedback on", preferences.get("prefix") + "setting global-feedback off"], false, CONFIG.CONSTANTS.MODERATORS, (original, index) => {
 			const new_setting = index === 0 ? true : false;
 			preferences.set("feedback_enabled", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will allow the use of global feedback commands in this server." : "BoatBot will not allow the use of global feedback commands in this server."))).catch(reply);
 		});
-		});
+
 		/*
 		command(["boatbot settings reset all"], false, CONFIG.CONSTANTS.ADMINISTRATORS, () => reply(":warning: You are about to reset all the preferences associated with this server. To confirm this action, please send the command: `boatbot settings reset all confirm`"));
 		command(["boatbot settings reset all confirm"], false, CONFIG.CONSTANTS.ADMINISTRATORS, () => {
