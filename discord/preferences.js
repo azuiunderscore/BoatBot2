@@ -157,7 +157,7 @@ module.exports = class Preferences {
 	}
 	get(prop) {
 		if (this.server_message) {
-			if (UTILS.exists(cache[this.sid][prop]) && typeof(cache[this.sid][prop]) === preferencesFormat[this.sid][prop]) return cache[this.sid][prop];
+			if (UTILS.exists(cache[this.sid][prop]) && typeof(cache[this.sid][prop]) === preferencesFormat[prop]) return cache[this.sid][prop];
 			else {
 				UTILS.debug("Preferences retrieval for " + this.sid + " resulted in a corrupted format. Attempting to set default for property: " + prop);
 				this.set(prop, newPreferences[prop]);
