@@ -483,7 +483,15 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			reply(":x: I need the \"read message history\" permission to process this request.");
 		});
 	});
-	commandGuessUsernameNumber()
+	/*
+	commandGuessUsername([preferences.get("prefix") + "recent"], false, (index, id, user, parameter) => {//this doesn't support play #s
+		lolapi.osuMostRecentMode(user, id, false, CONFIG.API_MAXAGE.GET_USER_RECENT).then(mode => {
+			lolapi.osuGetUserRecent(user, mode, undefined, id, CONFIG.API_MAXAGE.GET_USER_RECENT).then(recent_plays => {}).catch(console.error);
+		}).reject(e => {
+			console.error(e);
+			reply(":x: This user has no recent plays.");
+		});
+	});*/
 	if (true) {//scope limiter for beatmap links
 		let id, type, mode, mod_string, beatmap;
 		if (preferences.get("abi")) {

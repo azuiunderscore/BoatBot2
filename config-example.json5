@@ -149,6 +149,9 @@
 			"GET_BEATMAP": 86400,
 			"OSU_FILE": 604800,
 			"GET_USER": 86400
+		},
+		"RECENT": {
+			"GET_USER_RECENT": 25,
 		}
 	},
 	"SHARD_COUNT": 3,
