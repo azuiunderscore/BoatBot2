@@ -124,7 +124,7 @@ module.exports = class UTILS {
 		else return "";
 	}
 	round(num, decimal = 0) {
-		return decimal < 0 ? Math.round(num * Math.pow(10, decimal)) / Math.pow(10, decimal) : num.toFixed(decimal);
+		return Math.round(num * Math.pow(10, decimal)) / Math.pow(10, decimal);
 	}
 	assert(condition, message) {
 		if (typeof (condition) != "boolean") {
