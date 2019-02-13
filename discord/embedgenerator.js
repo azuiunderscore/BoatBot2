@@ -1136,7 +1136,7 @@ module.exports = class EmbedGenerator {
 			UTILS.debug("mod_string is \"" + mod_string + "\"");
 			if (UTILS.exists(mode)) beatmap.mode = mode;
 			const mods = getModObject(mod_string.substring(1));
-			let other_diffs = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]];//1 sub array for each mode
+			let other_diffs = [[0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0]];//1 sub array for each mode
 			const diff_count = beatmapset.length;
 			for (let b in beatmapset) {
 				++other_diffs[beatmapset[b].mode][wholeStarValue(beatmapset[b].difficultyrating)];
