@@ -14,7 +14,7 @@ function getStars(CONFIG, mode, stars) {
 	UTILS.assert(UTILS.exists(mode));
 	UTILS.assert(!isNaN(stars));
 	stars = Math.floor(stars);
-	if (stars > 8) stars = 8;
+	if (stars >= 8) stars = 7;
 	return CONFIG.EMOJIS.stars[parseInt(mode)][stars];
 }
 function wholeStarValue(stars) {//for emojis only, returns 1-6
@@ -1143,7 +1143,7 @@ module.exports = class EmbedGenerator {
 			}
 			let diffstring = "";
 			for (let i = 0; i < 4; ++i) {//mode
-				for (let j = 0; j < 7; ++j) {//star value
+				for (let j = 0; j < 8; ++j) {//star value
 					if (other_diffs[i][j] > 0) diffstring += getStars(CONFIG, i, j) + ": " + other_diffs[i][j] + TAB;
 				}
 			}
