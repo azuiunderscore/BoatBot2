@@ -419,6 +419,15 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			}).catch(console.error);
 		});
 	});
+	commandGuessUsername([preferences.get("prefix") + "recent"], false, (index, id, user, parameter) => {
+		lolapi.osuMostRecentMode(user, id, false, CONFIG.API_MAXAGE.RECENT).then(mode => {
+			lolapi.osuGetUserRecent(user, mode, )
+			//getuserrecentbeta
+		}).catch(e => {
+			if (e) console.error(e);
+			reply(":x: No recent plays for `" + user + "`.");
+		 });
+	 });
 	command([preferences.get("prefix") + "roll"], false, false, (original, index) => {
 		reply(textgenerator.roll(100, msg.author));
 	});
