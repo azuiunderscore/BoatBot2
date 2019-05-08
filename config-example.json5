@@ -151,7 +151,7 @@
 			"GET_USER": 86400
 		},
 		"RECENT": {
-			"GET_USER_RECENT": 25,
+			"GET_USER_RECENT": 20,
 		}
 	},
 	"SHARD_COUNT": 3,

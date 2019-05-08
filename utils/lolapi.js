@@ -266,7 +266,9 @@ module.exports = class LOLAPI {
 	osuGetUserRecent(u, m = 0, limit = 50, id, maxage) {
 		const type = id ? "id" : "string";
 		if (typeof(u) == "string") u = u.toLowerCase();
-		return this.get("get_user_recent", { u, m, limit, type }, this.CONFIG.API_CACHETIME.GET_USER_RECENT, maxage);
+		return new Promise((resolve, reject) => {
+			this.get("get_user_recent", { u, m, limit: 50, type }, this.CONFIG.API_CACHETIME.GET_USER_RECENT, maxage).then(a => a.slice(0, limit)).catch(reject);
+		});
 	}
 	osuMostRecentMode(u, id, timeout = false, maxage) {
 		const type = id ? "id" : "string";
