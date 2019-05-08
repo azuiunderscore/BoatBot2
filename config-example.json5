@@ -121,7 +121,9 @@
 		"PHP_PROFILE_GENERAL": 86400,
 		"GET_USER_RECENT": 3600,
 		"GET_BEATMAP": 86400,//map or set
-		"OSU_FILE": 604800//1 week
+		"OSU_FILE": 604800,//1 week
+		"GET_SCORE_USER": 86400,
+		"GET_SCORE": 86400
 	},
 	"API_MAXAGE": {
 		"LINK": 60,
@@ -152,6 +154,9 @@
 		},
 		"RECENT": {
 			"GET_USER_RECENT": 20,
+			"GET_BEATMAP": 86400,
+			"GET_SCORE_USER": 20,
+			"GET_SCORE": 20
 		}
 	},
 	"SHARD_COUNT": 3,
