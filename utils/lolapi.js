@@ -344,6 +344,80 @@ module.exports = class LOLAPI {
 	osuPHPProfileGeneral(user_id, m = 0, maxage) {
 		return this.getOffAPI("https://osu.ppy.sh/pages/include/profile-general.php", { u: user_id, m }, this.CONFIG.API_CACHETIME.PHP_PROFILE_GENERAL, maxage);
 	}
+	getRecentPlay(u, id, mode, previous = 1) {
+		const type = id ? "id" : "string";
+		if (typeof(u) == "string") u = u.toLowerCase();
+		return new Promise((resolve, reject) => {
+			if (!UTILS.exists(mode)) {//detect most recent mode
+				this.osuMostRecentMode(u, id, false, this.CONFIG.API_MAXAGE.RECENT.GET_USER_RECENT).then(mode => {
+					this.osuGetUser(u, mode, id, this.CONFIG.API_MAXAGE.RECENT.GET_USER).then(user => {
+						step2(mode, user)
+					}).catch(e => {
+						if (e) console.error(e);
+						reject(":x: No user found for `" + u + "`.");
+					});
+				}).catch(e => {
+					if (e) console.error(e);
+					reject(":x: No recent plays for `" + u + "`.");
+				});
+			}
+			else {//mode is specified
+				this.osuGetUser(u, mode, id, this.CONFIG.API_MAXAGE.RECENT.GET_USER).then(user => {
+					step2(mode, user);
+				}).catch();
+				step2(mode);
+			}
+			function step2(mode, user) {
+				this.osuGetUserRecent(u, mode, undefined, id, this.CONFIG.API_MAXAGE.RECENT.GET_USER_RECENT).then(plays => {
+					if (plays.length < previous) reject();
+					let trycount = 1;
+					const beatmapid = plays[0].beatmap_id;
+					const mods = plays[0].enabled_mods;
+					for (let i = 1; i < plays.length; ++i) {//start 1 off
+						if (plays[i].beatmap_id == beatmapid && plays[i].enabled_mods == mods) {
+							++trycount;
+						}
+					}
+					//compileUserRecent
+					let spd = plays[previous - 1];//specific play data
+					this.osuBeatmap(spd.beatmap_id, "b", mode, this.CONFIG.API_MAXAGE.RECENT.GET_BEATMAP).then(beatmap => {
+						this.osuScoreUser(u, id, mode, beatmapid, this.CONFIG.API_MAXAGE.GET_SCORE).then(scores => {
+							scores.sort((a, b) => parseFloat(b.pp) - parseFloat(a.pp));
+							this.osuScore(mode, beatmapid, this.CONFIG.API_MAXAGE.RECENT.GET_SCORE).then(beatmap_top100 => {
+								this.osuGetUserBest(user.user_id, mode, 100, true, this.CONFIG.API_MAXAGE.RECENT.GET_USER_BEST).then(user_top_100 => {
+									resolve({ mode, user, plays, beatmap, scores, beatmap_top100, user_top_100 });
+								}).catch(e => {
+									if (e) console.error(e);
+									reject(":x: Scores not found.");
+								});
+								resolve();
+							}).catch(e => {
+								if (e) console.error(e);
+								reject(":x: Scores not found.");
+							});
+						}).catch();
+					}).catch(e => {
+						if (e) console.error(e);
+						reject(":x: Beatmap not found.");
+					});//beatmap doesn't exist (likely cache data too old)
+				}).catch(e => {
+					if (e) console.error(e);
+					reject(":x: No recent plays for `" + u + "`.");
+				});
+				//getuserrecentbeta
+			}
+		});
+	}
+	osuScoreUser(u, id, m, b, maxage) {
+		const type = id ? "id" : "string";
+		if (typeof(u) == "string") u = u.toLowerCase();
+		return this.get("get_scores", { u, type, m, b }, this.API_CACHETIME.GET_SCORE_USER, maxage);
+	}
+	osuScore(m, b, maxage) {
+		const type = id ? "id" : "string";
+		if (typeof(u) == "string") u = u.toLowerCase();
+		return this.get("get_scores", { m, b, limit: 100 }, this.API_CACHETIME.GET_SCORE, maxage);
+	}
 	osuBeatmap(id, type, m, maxage) {//type is string: "b"/"s"
 		return new Promise((resolve, reject) => {
 			const options = {};
