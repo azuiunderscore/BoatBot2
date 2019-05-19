@@ -9,10 +9,11 @@ const VERIFIED_ICON = "✅";
 const TAB = " ";
 const MANIA_KEY_COLOR = [0, 13421823, 13421823, 13421823, 10066431, 6711039, 3289855, 255, 204, 204, 204];
 const MODE_COLOR = ["#ffffff", "#ff0000", "#00ff00", "#0000ff"];
-function getStars(CONFIG, mode, stars) {
+function getStars(CONFIG, mode, stars, diff_aim) {
 	UTILS.assert(UTILS.exists(CONFIG));
 	UTILS.assert(UTILS.exists(mode));
-	UTILS.assert(!isNaN(stars));
+	UTILS.assert(!isNaN(stars) || !isNaN(diff_aim));
+	if (isNaN(stars)) stars = diff_aim;
 	stars = Math.floor(stars);
 	if (stars >= 8) stars = 7;
 	return CONFIG.EMOJIS.stars[parseInt(mode)][stars];
@@ -1206,7 +1207,7 @@ module.exports = class EmbedGenerator {
 						beatmap.diff_drain = beatmap.diff_drain.round(2);
 					}
 				}
-				newEmbed.addField(getStars(CONFIG, beatmap.mode, beatmap.difficultyrating) + " \\[" + beatmap.version + "\\]" + UTILS.fstr(mods.value > 0, " ") + mods.string, "Length: `" + UTILS.standardTimestamp(beatmap.total_length) + "` (`" + UTILS.standardTimestamp(beatmap.hit_length) + "`) BPM: `" + beatmap.bpm + "` FC: `x" + beatmap.max_combo + "`\nCS: `" + beatmap.diff_size + "` AR: `" + beatmap.diff_approach + "` OD: `" + beatmap.diff_overall + "` HP: `" + beatmap.diff_drain + "` Stars: `" + beatmap.difficultyrating.round(2) + "`" + ppstring + "\nDownload Beatmap: [" + CONFIG.EMOJIS.download + "](https://osu.ppy.sh/d/" + beatmap.beatmapset_id + ") [" + CONFIG.EMOJIS.downloadNV + "](https://osu.ppy.sh/d/" + beatmap.beatmapset_id + "n) [" + CONFIG.EMOJIS.osu_direct + "](https://iaace.gg/od/" + beatmap.beatmap_id + ") [" + CONFIG.EMOJIS.bloodcat + "](https://bloodcat.com/osu/s/" + beatmap.beatmapset_id + ")");
+				newEmbed.addField(getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim) + " \\[" + beatmap.version + "\\]" + UTILS.fstr(mods.value > 0, " ") + mods.string, "Length: `" + UTILS.standardTimestamp(beatmap.total_length) + "` (`" + UTILS.standardTimestamp(beatmap.hit_length) + "`) BPM: `" + beatmap.bpm + "` FC: `x" + beatmap.max_combo + "`\nCS: `" + beatmap.diff_size + "` AR: `" + beatmap.diff_approach + "` OD: `" + beatmap.diff_overall + "` HP: `" + beatmap.diff_drain + "` Stars: `" + beatmap.difficultyrating.round(2) + "`" + ppstring + "\nDownload Beatmap: [" + CONFIG.EMOJIS.download + "](https://osu.ppy.sh/d/" + beatmap.beatmapset_id + ") [" + CONFIG.EMOJIS.downloadNV + "](https://osu.ppy.sh/d/" + beatmap.beatmapset_id + "n) [" + CONFIG.EMOJIS.osu_direct + "](https://iaace.gg/od/" + beatmap.beatmap_id + ") [" + CONFIG.EMOJIS.bloodcat + "](https://bloodcat.com/osu/s/" + beatmap.beatmapset_id + ")");
 				if (diff_count == 500) newEmbed.addField("This beatmap set has at least " + diff_count + " difficulties.", diffstring);
 				else if (diff_count > 1) newEmbed.addField("This beatmap set has " + diff_count + " difficulties.", diffstring);
 				newEmbed.setFooter("Map last updated " + UTILS.ago(beatmap.last_update) + " at/on");
