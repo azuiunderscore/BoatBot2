@@ -496,6 +496,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				request_profiler.end("user_recent");
 				request_profiler.begin("beatmap");
 				lolapi.osuBeatmap(recent_plays[0].beatmap_id, "b", mode, CONFIG.API_MAXAGE.RECENT.GET_BEATMAP).then(beatmap => {
+					beatmap = beatmap[0];
 					request_profiler.end("beatmap");
 					request_profiler.begin("dynamic");
 					let jobs = [];
