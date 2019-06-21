@@ -512,12 +512,13 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 						jobtype.push(CONFIG.CONSTANTS.SCORE_USER);
 					}
 					Promise.all(jobs).then(jra => {//job result array
+						request_profiler.end("dynamic");
 						UTILS.debug("\n" + ctable.getTable(request_profiler.endAllCtable()));
 						let user_best = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER_BEST)];
 						let leaderboard = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE)];
 						let user_scores = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE_USER)];
 						reply("test");
-					}).catch();
+					}).catch(console.error);
 				}).catch(console.error);
 			}).catch(console.error);
 		}).catch(e => {
