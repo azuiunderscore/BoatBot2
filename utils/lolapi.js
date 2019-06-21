@@ -307,7 +307,9 @@ module.exports = class LOLAPI {
 		const type = id ? "id" : "string";
 		if (typeof(u) == "string") u = u.toLowerCase();
 		return new Promise((resolve, reject) => {
+			UTILS.debug("launched oMRM()");
 			Promise.all([this.osuGetUserRecent(u, 0, 50, id, maxage), this.osuGetUserRecent(u, 1, 50, id, maxage), this.osuGetUserRecent(u, 2, 50, id, maxage), this.osuGetUserRecent(u, 3, 50, id, maxage)]).then(values => {
+				UTILS.debug("returned from getting all user modes");
 				let latest = 0;
 				let latest_index = -1;
 				for (let b in values) {
