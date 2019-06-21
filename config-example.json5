@@ -1,5 +1,8 @@
 {
 	"CONSTANTS": {
+		"USER_BEST": 1,
+		"SCORE": 2,
+		"SCORE_USER": 4,
 		"SCM_FULL": 2,
 		"SCM_REDUCED": 1,
 		"SCM_COMPACT": 0,

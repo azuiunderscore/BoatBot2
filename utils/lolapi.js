@@ -261,13 +261,45 @@ module.exports = class LOLAPI {
 	osuGetUserBest(u, m = 0, limit = 100, id, maxage) {
 		const type = id ? "id" : "string";
 		if (typeof(u) == "string") u = u.toLowerCase();
-		return this.get("get_user_best", { u, m, limit, type }, this.CONFIG.API_CACHETIME.GET_USER_BEST, maxage);
+		return new Promise((resolve, reject) => {
+			this.get("get_user_best", { u, m, limit: 100, type }, this.CONFIG.API_CACHETIME.GET_USER_BEST, maxage).then(a => {
+				a.map(score => {
+					score.score = parseInt(score.score);
+					score.maxcombo = parseInt(score.maxcombo);
+					score.count50 = parseInt(score.count50);
+					score.count100 = parseInt(score.count100);
+					score.count300 = parseInt(score.count300);
+					score.countmiss = parseInt(score.countmiss);
+					score.countkatu = parseInt(score.countkatu);
+					score.countgeki = parseInt(score.countgeki);
+					score.perfect = score.perfect === "1" ? true : false;
+					score.enabled_mods = parseInt(score.enabled_mods);
+					score.date = new Date(score.date);
+					return score;
+				}).slice(0, limit);
+			}).catch(reject);
+		});
 	}
 	osuGetUserRecent(u, m = 0, limit = 50, id, maxage) {
 		const type = id ? "id" : "string";
 		if (typeof(u) == "string") u = u.toLowerCase();
 		return new Promise((resolve, reject) => {
-			this.get("get_user_recent", { u, m, limit: 50, type }, this.CONFIG.API_CACHETIME.GET_USER_RECENT, maxage).then(a => a.slice(0, limit)).catch(reject);
+			this.get("get_user_recent", { u, m, limit: 50, type }, this.CONFIG.API_CACHETIME.GET_USER_RECENT, maxage).then(a => {
+				a.map(score => {
+					score.score = parseInt(score.score);
+					score.maxcombo = parseInt(score.maxcombo);
+					score.count50 = parseInt(score.count50);
+					score.count100 = parseInt(score.count100);
+					score.count300 = parseInt(score.count300);
+					score.countmiss = parseInt(score.countmiss);
+					score.countkatu = parseInt(score.countkatu);
+					score.countgeki = parseInt(score.countgeki);
+					score.perfect = score.perfect === "1" ? true : false;
+					score.enabled_mods = parseInt(score.enabled_mods);
+					score.date = new Date(score.date);
+					return score;
+				}).slice(0, limit);
+			}).catch(reject);
 		});
 	}
 	osuMostRecentMode(u, id, timeout = false, maxage) {
@@ -415,7 +447,6 @@ module.exports = class LOLAPI {
 	}
 	osuScore(m, b, maxage) {
 		const type = id ? "id" : "string";
-		if (typeof(u) == "string") u = u.toLowerCase();
 		return this.get("get_scores", { m, b, limit: 100 }, this.API_CACHETIME.GET_SCORE, maxage);
 	}
 	osuBeatmap(id, type, m, maxage) {//type is string: "b"/"s"

@@ -429,9 +429,6 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			}).catch(console.error);
 		});
 	});
-	commandGuessUsername([preferences.get("prefix") + "recent"], false, (index, id, user, parameter) => {
-		
-	 });
 	command([preferences.get("prefix") + "roll"], false, false, (original, index) => {
 		reply(textgenerator.roll(100, msg.author));
 	});
@@ -488,15 +485,44 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			reply(":x: I need the \"read message history\" permission to process this request.");
 		});
 	});
-	/*
+
 	commandGuessUsername([preferences.get("prefix") + "recent"], false, (index, id, user, parameter) => {//this doesn't support play #s
+	request_profiler.begin("mode_detect");
 		lolapi.osuMostRecentMode(user, id, false, CONFIG.API_MAXAGE.GET_USER_RECENT).then(mode => {
-			lolapi.osuGetUserRecent(user, mode, undefined, id, CONFIG.API_MAXAGE.GET_USER_RECENT).then(recent_plays => {}).catch(console.error);
+			request_profiler.end("mode_detect");
+			request_profiler.begin("user_recent");
+			lolapi.osuGetUserRecent(user, mode, undefined, id, CONFIG.API_MAXAGE.GET_USER_RECENT).then(recent_plays => {
+				request_profiler.end("user_recent");
+				request_profiler.begin("beatmap");
+				lolapi.osuBeatmap(recent_plays[0].beatmap_id, "b", mode, CONFIG.API_MAXAGE.GET_BEATMAP).then(beatmap => {
+					request_profiler.end("beatmap");
+					request_profiler.begin("dynamic");
+					let jobs = [];
+					let jobtype = [];
+					if (beatmap.approved === 1 || beatmap.approved === 2) {//ranked or approved (possible top pp change)
+						jobs.push(lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.GET_USER_BEST));//get user best
+						jobtype.push(CONFIG.CONSTANTS.USER_BEST);
+					}
+					if (beatmap.approved > 0) {//leaderboarded score (check beatmap leaderboards)
+						jobs.push(lolapi.osuScore(mode, recent_plays[0].beatmap_id, CONFIG.API_MAXAGE.GET_SCORE));
+						jobtype.push(CONFIG.CONSTANTS.SCORE);
+						jobs.push(lolapi.osuScoreUser(user, id, mode, recent_plays[0].beatmap_id, CONFIG.API_MAXAGE.GET_SCORE_USER));
+						jobtype.push(CONFIG.CONSTANTS.SCORE_USER);
+					}
+					Promise.all(jobs).then(jra => {//job result array
+						UTILS.debug("\n" + ctable.getTable(request_profiler.endAllCtable()));
+						let user_best = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER_BEST)];
+						let leaderboard = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE)];
+						let user_scores = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE_USER)];
+						reply("test");
+					}).catch();
+				}).catch(console.error);
+			}).catch(console.error);
 		}).reject(e => {
 			console.error(e);
 			reply(":x: This user has no recent plays.");
 		});
-	});*/
+	});
 	if (true) {//scope limiter for beatmap links
 		let id, type, mode, mod_string, beatmap;
 		if (preferences.get("abi")) {
