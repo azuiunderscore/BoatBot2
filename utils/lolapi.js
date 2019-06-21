@@ -65,8 +65,6 @@ module.exports = class LOLAPI {
 							const answer = JSON.parse(body);
 							UTILS.debug(url + " : " + body);
 							resolve(answer);
-							if (typeof (options[i]) === "object") endpoint += options[i].map(e => "&" + i + "=" + encodeURIComponent(e)).join("");//array type
-							else endpoint += "&" + i + "=" + encodeURIComponent(options[i]);
 						}
 						catch (e) {
 							UTILS.output("Failed to parse JSON for:\n" + iurl + "\n" + body);
