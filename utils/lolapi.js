@@ -70,6 +70,7 @@ module.exports = class LOLAPI {
 						}
 						catch (e) {
 							UTILS.output("Failed to parse JSON for:\n" + iurl + "\n" + body);
+							console.error(e);
 							reject(e);
 						}
 					}
