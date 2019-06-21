@@ -519,7 +519,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 					}).catch();
 				}).catch(console.error);
 			}).catch(console.error);
-		}).reject(e => {
+		}).catch(e => {
 			console.error(e);
 			reply(":x: This user has no recent plays.");
 		});
