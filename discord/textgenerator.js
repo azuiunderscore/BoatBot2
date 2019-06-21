@@ -53,8 +53,8 @@ module.exports = class TextGenerator {
 	oppai(path_to_beatmap, args = "") {
 		return new Promise((resolve, reject) => {
 			args = args.trim().split(" ");
-			args.unshift(path_to_beatmap);
-			child_process.execFile("../oppai", args, { timeout: 5000 }, (err, stdout, stderr) => {
+			//args.unshift(path_to_beatmap);
+			child_process.execFile("../oppai", [path_to_beatmap].concat(args), { timeout: 5000 }, (err, stdout, stderr) => {
 				if (err) console.error(err);
 				if (UTILS.exists(stderr) && stderr != "") reject(stderr);
 				else resolve(stdout);
