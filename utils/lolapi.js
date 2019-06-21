@@ -446,10 +446,10 @@ module.exports = class LOLAPI {
 	osuScoreUser(u, id, m, b, maxage) {
 		const type = id ? "id" : "string";
 		if (typeof(u) == "string") u = u.toLowerCase();
-		return this.get("get_scores", { u, type, m, b }, this.API_CACHETIME.GET_SCORE_USER, maxage);
+		return this.get("get_scores", { u, type, m, b }, this.CONFIG.API_CACHETIME.GET_SCORE_USER, maxage);
 	}
 	osuScore(m, b, maxage) {
-		return this.get("get_scores", { m, b, limit: 100 }, this.API_CACHETIME.GET_SCORE, maxage);
+		return this.get("get_scores", { m, b, limit: 100 }, this.CONFIG.API_CACHETIME.GET_SCORE, maxage);
 	}
 	osuBeatmap(id, type, m, maxage) {//type is string: "b"/"s"
 		return new Promise((resolve, reject) => {
