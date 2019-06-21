@@ -286,7 +286,7 @@ module.exports = class LOLAPI {
 		if (typeof(u) == "string") u = u.toLowerCase();
 		return new Promise((resolve, reject) => {
 			this.get("get_user_recent", { u, m, limit: 50, type }, this.CONFIG.API_CACHETIME.GET_USER_RECENT, maxage).then(a => {
-				a.map(score => {
+				resolve(a.map(score => {
 					score.score = parseInt(score.score);
 					score.maxcombo = parseInt(score.maxcombo);
 					score.count50 = parseInt(score.count50);
@@ -299,7 +299,7 @@ module.exports = class LOLAPI {
 					score.enabled_mods = parseInt(score.enabled_mods);
 					score.date = new Date(score.date);
 					return score;
-				}).slice(0, limit);
+				}).slice(0, limit));
 			}).catch(reject);
 		});
 	}
