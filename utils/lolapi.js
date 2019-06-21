@@ -18,7 +18,7 @@ const tags = {
 	tpv: "tpv"
 };
 module.exports = class LOLAPI {
-	constructor(INIT_CONFIG, request_id, internal = false, customGet) {
+	constructor(INIT_CONFIG, request_id, wsapi, internal = false, customGet) {
 		this.CONFIG = INIT_CONFIG;
 		this.request_id = request_id;
 		if (!UTILS.exists(this.CONFIG)) throw new Error("config.json required to access osu api.");
@@ -29,6 +29,7 @@ module.exports = class LOLAPI {
 		this.created = new Date().getTime();
 		this.calls = 0;
 		this.internal = internal;
+		this.wsapi = wsapi;
 		if (this.internal) {
 			this.customGet = customGet;
 		}
@@ -68,6 +69,7 @@ module.exports = class LOLAPI {
 							else endpoint += "&" + i + "=" + encodeURIComponent(options[i]);
 						}
 						catch (e) {
+							UTILS.output("Failed to parse JSON for:\n" + iurl + "\n" + body);
 							reject(e);
 						}
 					}
@@ -219,11 +221,11 @@ module.exports = class LOLAPI {
 	setLink(uid, username) {
 		return this.getIAPI("setlink/" + uid, { link: username });
 	}
-	banUser(uid, reason, date, issuer, issuer_tag, issuer_avatarURL) {
-		return this.getIAPI("ban", { id: uid, user: true, date, reason, issuer, issuer_tag, issuer_avatarURL });
+	banUser(uid, reason, date, issuer, issuer_tag, issuer_avatarURL, notify = true) {
+		return this.getIAPI("ban", { id: uid, user: true, date, reason, issuer, issuer_tag, issuer_avatarURL, notify });
 	}
-	banServer(sid, reason, date, issuer, issuer_tag, issuer_avatarURL) {
-		return this.getIAPI("ban", { id: sid, user: false, date, reason, issuer, issuer_tag, issuer_avatarURL });
+	banServer(sid, reason, date, issuer, issuer_tag, issuer_avatarURL, notify = true) {
+		return this.getIAPI("ban", { id: sid, user: false, date, reason, issuer, issuer_tag, issuer_avatarURL, notify });
 	}
 	warnUser(uid, reason, issuer, issuer_tag, issuer_avatarURL) {
 		return this.getIAPI("warn", { id: uid, user: true, reason, issuer, issuer_tag, issuer_avatarURL, notify: true });

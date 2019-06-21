@@ -29,8 +29,9 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	}//ignore messages from banned servers
 
 	const msg_receive_time = new Date().getTime();
+	let RL_activated = false;
 	let request_profiler = new Profiler("r#" + msg.id)
-	let lolapi = new LOLAPI(CONFIG, msg.id);
+	let lolapi = new LOLAPI(CONFIG, msg.id, wsapi);
 	request_profiler.mark("lolapi instantiated");
 
 	command(["boatsetprefix "], true, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index, parameter) => {
@@ -45,7 +46,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		reply(textgenerator.owners(CONFIG));
 	});
 	//respondable server message or PM
-	command([preferences.get("prefix") + "banuser "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
+	command([preferences.get("prefix") + "banuser ", preferences.get("prefix") + "shadowbanuser "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		//Lbanuser <uid> <duration> <reason>
 		const id = parameter.substring(0, parameter.indexOf(" "));
 		const reason = parameter.substring(parameter.indexOfInstance(" ", 2) + 1);
@@ -57,12 +58,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		if (id == msg.author.id) return reply(":x: You cannot ban yourself.");
 		if (id == client.user.id) return reply(":x: You cannot ban me.");
 		if (isOwner(id, false)) return reply(":x: The id you are trying to ban has elevated permissions.");
-		lolapi.banUser(id, reason, end_date, msg.author.id, msg.author.tag, msg.author.displayAvatarURL).then(result => {
+		lolapi.banUser(id, reason, end_date, msg.author.id, msg.author.tag, msg.author.displayAvatarURL, index === 0).then(result => {
 			sendToChannel(CONFIG.LOG_CHANNEL_ID, ":no_entry: User banned, id " + id + " by " + msg.author.tag + " for : " + reason);
 			reply(":no_entry: User banned, id " + id + " by " + msg.author.tag + " for : " + reason);
 		}).catch(console.error);
 	});
-	command([preferences.get("prefix") + "banserver "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
+	command([preferences.get("prefix") + "banserver ", preferences.get("prefix") + "shadowbanserver "], true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
 		//Lbanserver <sid> <duration> <reason>
 		const id = parameter.substring(0, parameter.indexOf(" "));
 		const reason = parameter.substring(parameter.indexOfInstance(" ", 2) + 1);
@@ -71,7 +72,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		if (isNaN(duration)) return reply(":x: The duration is invalid.");
 		const end_date = duration == 0 ? 0 : new Date().getTime() + duration;
 		if (id.length < 1 || reason.length < 1 || typeof(duration) != "number") return reply(":x: The id, duration, or reason could not be found.");
-		lolapi.banServer(id, reason, end_date, msg.author.id, msg.author.tag, msg.author.displayAvatarURL).then(result => {
+		lolapi.banServer(id, reason, end_date, msg.author.id, msg.author.tag, msg.author.displayAvatarURL, index === 0).then(result => {
 			sendToChannel(CONFIG.LOG_CHANNEL_ID, ":no_entry: Server banned, id " + id + " by " + msg.author.tag + " for " + duration + ": " + reason);
 			reply(":no_entry: Server banned, id " + id + " by " + msg.author.tag + " for " + duration + ": " + reason);
 		}).catch(console.error);
@@ -700,10 +701,14 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		parameters_expected,//boolean
 		elevated_permissions,//requires owner permissions
 		callback,//optional callback only if successful
-		external = true) {//external call means not inside commandGuessUsername & commandGuessUsernameNumber
+		options = {
+			external: true,
+			immediatePRL: true
+		}) {//external call means not inside commandGuessUsername & commandGuessUsernameNumber
+		UTILS.defaultObjectValues({external: true, immediatePRL: true}, options);
 		for (let i = 0; i < trigger_array.length; ++i) {
 			if (parameters_expected && msg.content.trim().toLowerCase().substring(0, trigger_array[i].length) === trigger_array[i].toLowerCase()) {
-				if (external && !processRateLimit()) return false;
+				if (options.external && options.immediatePRL && !processRateLimit()) return false;
 				if (elevated_permissions && !is(elevated_permissions)) return false;
 				else {
 					if (elevated_permissions === CONFIG.CONSTANTS.BOTOWNERS) sendToChannel(CONFIG.LOG_CHANNEL_ID, msg.author.tag + " used " + msg.cleanContent);
@@ -719,7 +724,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				}
 			}
 			else if (!parameters_expected && msg.content.trim().toLowerCase() === trigger_array[i].toLowerCase()) {
-				if (external && !processRateLimit()) return false;
+				if (options.external && options.immediatePRL && !processRateLimit()) return false;
 				if (elevated_permissions && !is(elevated_permissions)) return false;
 				else {
 					if (elevated_permissions === CONFIG.CONSTANTS.BOTOWNERS) sendToChannel(CONFIG.LOG_CHANNEL_ID, msg.author.tag + " used " + msg.cleanContent);
@@ -805,7 +810,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				}).catch(console.error);
 				return true;
 			}
-		}, false);
+		}, {external: false});
 	}
 
 	function commandGuessUsernameNumber(trigger_array,//array of command aliases, prefix needs to be included
@@ -908,7 +913,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				}).catch(console.error);
 				return true;
 			}
-		}, false);
+		}, {external: false});
 	}
 	function is(PLEVEL, candidate = msg.author.id, notify = true) {
 		if (candidate === msg.author.id) {
@@ -937,6 +942,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		return answer;
 	}
 	function reply(reply_text, callback, errorCallback) {
+		if (!RL_activated && !processRateLimit()) return;
 		if (Array.isArray(reply_text)) {//[{r: string, t: 0}, {}]
 			printMessage("reply (" + (new Date().getTime() - msg_receive_time) + "ms): " + reply_text[0].r + "\n");
 			lolapi.terminate(msg, ACCESS_LEVEL, reply_text[0].r);
@@ -965,6 +971,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	}
 
 	function replyToAuthor(reply_text, callback, errorCallback) {
+		if (!RL_activated && !processRateLimit()) return;
 		if (Array.isArray(reply_text)) {//[{r: string, t: 0}, {}]
 			printMessage("reply to author (" + (new Date().getTime() - msg_receive_time) + "ms): " + reply_text[0].r + "\n");
 			lolapi.terminate(msg, ACCESS_LEVEL, reply_text[0].r);
@@ -993,6 +1000,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	}
 
 	function replyEmbed(reply_embed, callback, errorCallback) {
+		if (!RL_activated && !processRateLimit()) return;
 		if (!msg.PM && !msg.channel.permissionsFor(client.user).has(["EMBED_LINKS"])) {//doesn't have permission to embed links in server
 			lolapi.terminate(msg, ACCESS_LEVEL, ":x: I cannot respond to your request without the \"embed links\" permission.");
 			reply(":x: I cannot respond to your request without the \"embed links\" permission.");
@@ -1027,6 +1035,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	}
 
 	function replyEmbedToAuthor(reply_embed, callback, errorCallback) {
+		if (!RL_activated && !processRateLimit()) return;
 		if (Array.isArray(reply_embed)) {
 			printMessage("reply embedded to author (" + (new Date().getTime() - msg_receive_time) + "ms)\n");
 			lolapi.terminate(msg, ACCESS_LEVEL, undefined, reply_embed[0].r);
@@ -1077,6 +1086,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	function processRateLimit() {
 		//return true if valid. return false if limit reached.
 		if (is(CONFIG.CONSTANTS.BOTOWNERS, msg.author.id, false)) return true;//owners bypass rate limits
+		if (RL_activated) return;
+		RL_activated = true;
 		let valid = 0;//bitwise
 		if (!msg.PM) {
 			if (!server_RL.check()) {
