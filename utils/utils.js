@@ -777,4 +777,13 @@ module.exports = class UTILS {
 	now() {
 		return new Date().getTime();
 	}
+	scoreIsUserTop100(score, user_best) {
+		let candidate = user_best.findIndex(v => {
+			return v.date === score.date &&
+				v.score === score.score &&
+				v.beatmap_id === score.beatmap_id &&
+				v.enabled_mods === score.enabled_mods;
+		});
+		return candidate;//returns -1 if score is not top 100 of user's best plays
+	}
 }

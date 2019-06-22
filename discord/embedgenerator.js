@@ -804,11 +804,34 @@ module.exports = class EmbedGenerator {
 		newEmbed.setThumbnail(`https://b.ppy.sh/thumb/${beatmap.beatmapset_id}l.jpg`);
 		newEmbed.setTitle(`${mode == 3 ? "[" + beatmap.diff_size + "K] " : ""}${beatmap.artist} - ${beatmap.title} [${beatmap.version}]`);
 		newEmbed.setURL(`https://osu.ppy.sh/b/${beatmap.beatmap_id}&m=${mode}`);
-		//set embed color
-		//personal best indicator
+		let best_play_index = UTILS.scoreIsUserTop100(recent_scores[play_index], user_best);//0-indexed
+		if (best_play_index !== -1) {//set embed color
+			newEmbed.setColor([255 * ((99 - best_play_index) / 99), 255 * ((99 - best_play_index) / 99), 0]);
+			newEmbed.setDescription(`**__Personal Best #${best_play_index + 1}!__**`);//personal best indicator
+		}
+		else {
+			switch (mode) {
+				case 0:
+					newEmbed.setColor("#ffffff");
+					break;
+				case 1:
+					newEmbed.setColor("#ff0000");
+					break;
+				case 2:
+					newEmbed.setColor("#00ff00");
+					break;
+				case 3:
+					newEmbed.setColor("#0000ff");
+					break;
+				default://do nothing
+			}
+		}
+
 		//score line 1
 		//score line 2
-		//beatmap information
+		//probably best to run oppai and compare to API result.
+		if ()
+		newEmbed.addField(`Beatmap Information${recent_scores[play_index]}`, `Length: \`${UTILS.standardTimestamp(beatmap.total_length)}\` (\`${UTILS.standardTimestamp(beatmap.hit_length)}\`) BPM: \`${beatmap.bpm}\` Objects: \`${"?"}\`\nCS: \`${beatmap.diff_size}\` AR: \`${beatmap.diff_approach}\` `);//beatmap information
 		newEmbed.setFooter(`Mapped by ${beatmap.creator}, ${beatmap.approved > 0 ? [null, "ranked", "approved", "loved"][beatmap.approved] : "last updated"} ${UTILS.ago(UTILS.exists(beatmap.approved_date) ? beatmap.approved_date : beatmap.last_update)} at UTC`);
 		newEmbed.setTimestamp(UTILS.exists(beatmap.approved_date) ? beatmap.approved_date : beatmap.last_update);
 		return newEmbed;
