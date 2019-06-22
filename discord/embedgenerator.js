@@ -800,7 +800,7 @@ module.exports = class EmbedGenerator {
 	recent(CONFIG, mode, play_index = 0, recent_scores, beatmap, leaderboard, user_scores, user_best, user_stats) {
 		const now = UTILS.now();
 		let newEmbed = new Discord.RichEmbed();
-		newEmbed.setAuthor(`${user_stats.username}: ${user_stats.pp_raw}pp (#${UTILS.numberWithCommas(user_stats.pp_rank)} ${user_stats.country}${user_stats.pp_country_rank})`, `https://a.ppy.sh/${user_stats.user_id}?${now.getTime()}`, `https://osu.ppy.sh/u/${user_stats.user_id}`);
+		newEmbed.setAuthor(`${user_stats.username}: ${user_stats.pp_raw}pp (#${UTILS.numberWithCommas(user_stats.pp_rank)} ${user_stats.country}${user_stats.pp_country_rank})`, `https://a.ppy.sh/${user_stats.user_id}?${now}`, `https://osu.ppy.sh/u/${user_stats.user_id}`);
 		newEmbed.setThumbnail(`https://b.ppy.sh/thumb/${beatmap.beatmapset_id}l.jpg`);
 		newEmbed.setTitle(`${mode == 3 ? "[" + beatmap.diff_size + "K] " : ""}${beatmap.artist} - ${beatmap.title} [${beatmap.version}]`);
 		newEmbed.setURL(`https://osu.ppy.sh/b/${beatmap.beatmap_id}&m=${mode}`);
