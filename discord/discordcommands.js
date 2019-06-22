@@ -507,16 +507,20 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 					}
 					if (beatmap.approved > 0) {//leaderboarded score (check beatmap leaderboards)
 						jobs.push(lolapi.osuScore(mode, recent_plays[0].beatmap_id, CONFIG.API_MAXAGE.RECENT.GET_SCORE));
-						jobtype.push(CONFIG.CONSTANTS.SCORE);
+						jobtype.push(CONFIG.CONSTANTS.SCORE);//leaderboard
 						jobs.push(lolapi.osuScoreUser(user, id, mode, recent_plays[0].beatmap_id, CONFIG.API_MAXAGE.RECENT.GET_SCORE_USER));
 						jobtype.push(CONFIG.CONSTANTS.SCORE_USER);
 					}
+					jobs.push(lolapi.osuGetUser(user, mode, id, CONFIG.API_MAXAGE.RECENT.GET_USER));
+					jobtype.push(CONFIG.CONSTANTS.USER);
 					Promise.all(jobs).then(jra => {//job result array
 						request_profiler.end("dynamic");
 						UTILS.debug("\n" + ctable.getTable(request_profiler.endAllCtable()));
 						let user_best = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER_BEST)];
 						let leaderboard = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE)];
 						let user_scores = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE_USER)];
+						let user_stats = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER)];
+						reply_embed(embedgenerator.recent(CONFIG, mode, 0, recent_scores, beatmap, leaderboard, user_scores, user_best, user_stats));
 						reply("test");
 					}).catch(console.error);
 				}).catch(console.error);

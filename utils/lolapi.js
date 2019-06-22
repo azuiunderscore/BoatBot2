@@ -465,6 +465,7 @@ module.exports = class LOLAPI {
 					result[b].approved = parseInt(result[b].approved);
 					result[b].approved_date = new Date(result[b].approved_date);
 					result[b].last_updated = new Date(result[b].last_updated);
+					result[b].submit_date = new Date(result[b].submit_date);
 					result[b].bpm = parseFloat(result[b].bpm);
 					result[b].diff_size = parseFloat(result[b].diff_size);
 					result[b].diff_overall = parseFloat(result[b].diff_overall);

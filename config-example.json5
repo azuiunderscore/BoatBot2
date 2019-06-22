@@ -3,6 +3,7 @@
 		"USER_BEST": 1,
 		"SCORE": 2,
 		"SCORE_USER": 4,
+		"USER": 8,
 		"SCM_FULL": 2,
 		"SCM_REDUCED": 1,
 		"SCM_COMPACT": 0,
@@ -161,7 +162,7 @@
 			"GET_SCORE_USER": 20,
 			"GET_SCORE": 20,
 			"GET_USER": 20,
-			"GET_USER_BEST": 20
+			"GET_USER_BEST": 20,
 		}
 	},
 	"SHARD_COUNT": 3,

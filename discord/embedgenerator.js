@@ -797,4 +797,20 @@ module.exports = class EmbedGenerator {
 			}
 		});
 	}
+	recent(CONFIG, mode, play_index = 0, recent_scores, beatmap, leaderboard, user_scores, user_best, user_stats) {
+		const now = UTILS.now();
+		let newEmbed = new Discord.RichEmbed();
+		newEmbed.setAuthor(`${user_stats.username}: ${user_stats.pp_raw}pp (#${UTILS.numberWithCommas(user_stats.pp_rank)} ${user_stats.country}${user_stats.pp_country_rank})`, `https://a.ppy.sh/${user_stats.user_id}?${now.getTime()}`, `https://osu.ppy.sh/u/${user_stats.user_id}`);
+		newEmbed.setThumbnail(`https://b.ppy.sh/thumb/${beatmap.beatmapset_id}l.jpg`);
+		newEmbed.setTitle(`${mode == 3 ? "[" + beatmap.diff_size + "K] " : ""}${beatmap.artist} - ${beatmap.title} [${beatmap.version}]`);
+		newEmbed.setURL(`https://osu.ppy.sh/b/${beatmap.beatmap_id}&m=${mode}`);
+		//set embed color
+		//personal best indicator
+		//score line 1
+		//score line 2
+		//beatmap information
+		newEmbed.setFooter(`Mapped by ${beatmap.creator}, ${beatmap.approved > 0 ? [null, "ranked", "approved", "loved"][beatmap.approved] : "last updated"} ${UTILS.ago(UTILS.exists(beatmap.approved_date) ? beatmap.approved_date : beatmap.last_update)} at UTC`);
+		newEmbed.setTimestamp(UTILS.exists(beatmap.approved_date) ? beatmap.approved_date : beatmap.last_update);
+		return newEmbed;
+	}
 }
