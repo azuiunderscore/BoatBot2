@@ -830,7 +830,6 @@ module.exports = class EmbedGenerator {
 		//score line 1
 		//score line 2
 		//probably best to run oppai and compare to API result.
-		if ()
 		newEmbed.addField(`Beatmap Information${recent_scores[play_index]}`, `Length: \`${UTILS.standardTimestamp(beatmap.total_length)}\` (\`${UTILS.standardTimestamp(beatmap.hit_length)}\`) BPM: \`${beatmap.bpm}\` Objects: \`${"?"}\`\nCS: \`${beatmap.diff_size}\` AR: \`${beatmap.diff_approach}\` `);//beatmap information
 		newEmbed.setFooter(`Mapped by ${beatmap.creator}, ${beatmap.approved > 0 ? [null, "ranked", "approved", "loved"][beatmap.approved] : "last updated"} ${UTILS.ago(UTILS.exists(beatmap.approved_date) ? beatmap.approved_date : beatmap.last_update)} at UTC`);
 		newEmbed.setTimestamp(UTILS.exists(beatmap.approved_date) ? beatmap.approved_date : beatmap.last_update);
