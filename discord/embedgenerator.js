@@ -858,7 +858,7 @@ module.exports = class EmbedGenerator {
 				newEmbed.setTitle(beatmap_embed.title);
 				if (score.best_play_index !== -1) {//set embed color
 					newEmbed.setColor([255 * ((99 - score.best_play_index) / 99), 255 * ((99 - score.best_play_index) / 99), 0]);
-					newEmbed.setDescription(`**__Personal Best #${best_play_index + 1}!__**`);//personal best indicator
+					newEmbed.setDescription(`**__Personal Best #${score.best_play_index + 1}!__**`);//personal best indicator
 				}
 				else switch (mode) {
 					case 0:
