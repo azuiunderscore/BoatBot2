@@ -713,7 +713,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setColor(255);
 		return newEmbed;
 	}
-	beatmap(CONFIG, beatmap, beatmapset, creator, mod_string = "", mode) {//returns a promise
+	beatmap(CONFIG, beatmap, beatmapset, creator, mod_string = "", mode, footerauthor = false) {//returns a promise
 		return new Promise((resolve, reject) => {
 			UTILS.debug("mod_string is \"" + mod_string + "\"");
 			if (UTILS.exists(mode)) beatmap.mode = mode;
@@ -791,7 +791,7 @@ module.exports = class EmbedGenerator {
 				newEmbed.addField(getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim) + " \\[" + beatmap.version + "\\]" + UTILS.fstr(mods.value > 0, " ") + mods.string, "Length: `" + UTILS.standardTimestamp(beatmap.total_length) + "` (`" + UTILS.standardTimestamp(beatmap.hit_length) + "`) BPM: `" + beatmap.bpm + "` FC: `x" + beatmap.max_combo + "`\nCS: `" + beatmap.diff_size + "` AR: `" + beatmap.diff_approach + "` OD: `" + beatmap.diff_overall + "` HP: `" + beatmap.diff_drain + "` Stars: `" + (isNaN(beatmap.difficultyrating) ? beatmap.diff_aim.round(2) : beatmap.difficultyrating.round(2)) + "`" + ppstring + "\nDownload Beatmap: [" + CONFIG.EMOJIS.download + "](https://osu.ppy.sh/d/" + beatmap.beatmapset_id + ") [" + CONFIG.EMOJIS.downloadNV + "](https://osu.ppy.sh/d/" + beatmap.beatmapset_id + "n) [" + CONFIG.EMOJIS.osu_direct + "](https://iaace.gg/od/" + beatmap.beatmap_id + ") [" + CONFIG.EMOJIS.bloodcat + "](https://bloodcat.com/osu/s/" + beatmap.beatmapset_id + ")");
 				if (diff_count == 500) newEmbed.addField("This beatmap set has at least " + diff_count + " difficulties.", diffstring);
 				else if (diff_count > 1) newEmbed.addField("This beatmap set has " + diff_count + " difficulties.", diffstring);
-				newEmbed.setFooter("Map last updated " + UTILS.ago(beatmap.last_update) + " at/on");
+				newEmbed.setFooter(`Map${footerauthor ? `pped by ${beatmap.creator},` : ""} ${beatmap.approved > 0 ? [null, "ranked", "approved", "loved"][beatmap.approved] : "last updated"} ${UTILS.ago(UTILS.exists(beatmap.approved_date) ? beatmap.approved_date : beatmap.last_update)} at/on`, footerauthor ? `https://a.ppy.sh/${beatmap.creator_id}?${UTILS.now()}` : undefined);
 				newEmbed.setTimestamp(beatmap.last_update);
 				resolve(newEmbed);
 			}
@@ -800,39 +800,86 @@ module.exports = class EmbedGenerator {
 	recent(CONFIG, mode, play_index = 0, recent_scores, beatmap, leaderboard, user_scores, user_best, user_stats) {
 		const now = UTILS.now();
 		let newEmbed = new Discord.RichEmbed();
-		newEmbed.setAuthor(`${user_stats.username}: ${user_stats.pp_raw}pp (#${UTILS.numberWithCommas(user_stats.pp_rank)} ${user_stats.country}${user_stats.pp_country_rank})`, `https://a.ppy.sh/${user_stats.user_id}?${now}`, `https://osu.ppy.sh/u/${user_stats.user_id}`);
-		newEmbed.setThumbnail(`https://b.ppy.sh/thumb/${beatmap.beatmapset_id}l.jpg`);
-		newEmbed.setTitle(`${mode == 3 ? "[" + beatmap.diff_size + "K] " : ""}${beatmap.artist} - ${beatmap.title} [${beatmap.version}]`);
-		newEmbed.setURL(`https://osu.ppy.sh/b/${beatmap.beatmap_id}&m=${mode}`);
 		let best_play_index = UTILS.scoreIsUserTop100(recent_scores[play_index], user_best);//0-indexed
-		if (best_play_index !== -1) {//set embed color
-			newEmbed.setColor([255 * ((99 - best_play_index) / 99), 255 * ((99 - best_play_index) / 99), 0]);
-			newEmbed.setDescription(`**__Personal Best #${best_play_index + 1}!__**`);//personal best indicator
-		}
-		else {
-			switch (mode) {
-				case 0:
-					newEmbed.setColor("#ffffff");
-					break;
-				case 1:
-					newEmbed.setColor("#ff0000");
-					break;
-				case 2:
-					newEmbed.setColor("#00ff00");
-					break;
-				case 3:
-					newEmbed.setColor("#0000ff");
-					break;
-				default://do nothing
-			}
-		}
-
 		//score line 1
 		//score line 2
 		//probably best to run oppai and compare to API result.
-		newEmbed.addField(`Beatmap Information${recent_scores[play_index]}`, `Length: \`${UTILS.standardTimestamp(beatmap.total_length)}\` (\`${UTILS.standardTimestamp(beatmap.hit_length)}\`) BPM: \`${beatmap.bpm}\` Objects: \`${"?"}\`\nCS: \`${beatmap.diff_size}\` AR: \`${beatmap.diff_approach}\` `);//beatmap information
-		newEmbed.setFooter(`Mapped by ${beatmap.creator}, ${beatmap.approved > 0 ? [null, "ranked", "approved", "loved"][beatmap.approved] : "last updated"} ${UTILS.ago(UTILS.exists(beatmap.approved_date) ? beatmap.approved_date : beatmap.last_update)} at UTC`);
-		newEmbed.setTimestamp(UTILS.exists(beatmap.approved_date) ? beatmap.approved_date : beatmap.last_update);
-		return newEmbed;
+		return this.fullScorecardRaw(CONFIG, user_stats, beatmap, recent_scores[play_index]);
+	}
+	fullScorecardRaw(CONFIG, user, beatmap, score) {
+		const user_format = {
+			user_id: "string",
+			username: "string",
+			pp_raw: "number",//float
+			pp_rank: "number",//int
+			pp_country_rank: "number",//int
+			pp_delta: "number"//set to 0 if no change
+		};
+		const beatmap_format = {
+			approved: "number",//int
+			mode: "number",//int
+			beatmap_id: "string",
+			beatmapset_id: "string",
+			object_count: "number",//int
+			maxcombo: "number",//int
+			creator_id: "string",
+			creator: "string",
+			last_update: "object",//date
+			approved_date: "object",//date
+			diff_aim: "number",//float, ctb diff rating
+			diff_speed: "number",//float
+			difficultyrating: "number",//float
+			bpm: "number"//float
+		};
+		const score_format = {
+			score: "number",//int
+			best_play_index: "number",//int; -1 = not best play
+			leaderboard_index: "number",//int; -1 = not on leaderboard
+			pp: "number",//float
+			pp_valid: "boolean",
+			max_pp: "number",//float
+			max_pp_valid: "boolean",
+			maxcombo: "number",//int
+			perfect: "boolean",//perfect combo (FC)
+			countmiss: "number",//int
+			count50: "number",//int
+			count100: "number",//int
+			countkatu: "number",//int, mania200
+			count300: "number",//int
+			countgeki: "number",//int, maniarainbow
+			enabled_mods: "number"//int
+		};
+		return new Promise((resolve, reject) => {
+			this.beatmap(CONFIG, beatmap, [beatmap], { creator: beatmap.creator, creator_id: beatmap.creator_id }, getModObject(score.enabled_mods), beatmap.mode, true).then(beatmap_embed => {
+				beatmap_embed = UTILS.embedRaw(beatmap_embed);
+				let newEmbed = new Discord.RichEmbed();
+				newEmbed.setURL(beatmap_embed.url);
+				newEmbed.setThumbnail(beatmap_embed.thumbnail);
+				newEmbed.setAuthor(`${user.username}: ${user.pp_raw}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${user.pp_country_rank})`, `https://a.ppy.sh/${user.user_id}?${now}`, `https://osu.ppy.sh/u/${user.user_id}`);
+				newEmbed.setTitle(beatmap_embed.title);
+				if (score.best_play_index !== -1) {//set embed color
+					newEmbed.setColor([255 * ((99 - score.best_play_index) / 99), 255 * ((99 - score.best_play_index) / 99), 0]);
+					newEmbed.setDescription(`**__Personal Best #${best_play_index + 1}!__**`);//personal best indicator
+				}
+				else switch (mode) {
+					case 0:
+						newEmbed.setColor("#ffffff");
+						break;
+					case 1:
+						newEmbed.setColor("#ff0000");
+						break;
+					case 2:
+						newEmbed.setColor("#00ff00");
+						break;
+					case 3:
+						newEmbed.setColor("#0000ff");
+						break;
+					default://do nothing
+				}
+				newEmbed.addField(`Beatmap Information`, beatmap_embed.fields[0].value);//add beatmap embed info
+				newEmbed.setFooter(beatmap_embed.footer.name, beatmap_embed.footer.icon);
+				resolve(newEmbed);
+			}).catch(reject);
+		});
 	}
 }
