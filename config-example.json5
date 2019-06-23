@@ -4,6 +4,7 @@
 		"SCORE": 2,
 		"SCORE_USER": 4,
 		"USER": 8,
+		"OSU_FILE": 16,
 		"SCM_FULL": 2,
 		"SCM_REDUCED": 1,
 		"SCM_COMPACT": 0,
@@ -57,6 +58,11 @@
 			"name": "Cyceph",
 			"active": true,
 			"flags": "🇳🇴🇺🇸"
+		},
+		"141203532148768768": {
+			"name": "Josh Baker from Ohio",
+			"active": true,
+			"flags": "🇺🇸"
 		}
 	},
 	"DISCORD_COMMAND_PREFIX": "!",
@@ -162,7 +168,7 @@
 		"STATS": 60,
 		"BEATMAP_AUTO": {
 			"GET_BEATMAP": 86400,
-			"OSU_FILE": 604800,
+			"OSU_FILE": 604800,//1 week
 			"GET_USER": 86400
 		},
 		"RECENT": {
@@ -172,6 +178,7 @@
 			"GET_SCORE": 20,
 			"GET_USER": 20,
 			"GET_USER_BEST": 20,
+			"OSU_FILE": 604800
 		}
 	},
 	"SHARD_COUNT": 3,
