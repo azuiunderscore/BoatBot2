@@ -853,7 +853,7 @@ module.exports = class EmbedGenerator {
 				beatmap_embed = UTILS.embedRaw(beatmap_embed);
 				let newEmbed = new Discord.RichEmbed();
 				newEmbed.setURL(beatmap_embed.url);
-				newEmbed.setThumbnail(beatmap_embed.thumbnail);
+				newEmbed.setThumbnail(beatmap_embed.thumbnail.url);
 				newEmbed.setAuthor(`${user.username}: ${user.pp_raw}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${user.pp_country_rank})`, `https://a.ppy.sh/${user.user_id}?${UTILS.now()}`, `https://osu.ppy.sh/u/${user.user_id}`);
 				newEmbed.setTitle(beatmap_embed.title);
 				if (score.best_play_index !== -1) {//set embed color
