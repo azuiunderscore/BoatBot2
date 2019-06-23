@@ -1,0 +1,40 @@
+[
+    {
+        "score_id": "2136058867",
+        "score": "47771982",
+        "username": "iaace",
+        "maxcombo": "1420",
+        "count50": "0",
+        "count100": "1",
+        "count300": "1016",
+        "countmiss": "0",
+        "countkatu": "1",
+        "countgeki": "237",
+        "perfect": "1",
+        "enabled_mods": "8",
+        "user_id": "4374286",
+        "date": "2016-06-26 22:29:21",
+        "rank": "SH",
+        "pp": "232.816",
+        "replay_available": "1"
+    },
+    {
+        "score_id": "2827109777",
+        "score": "45031370",
+        "username": "iaace",
+        "maxcombo": "1419",
+        "count50": "0",
+        "count100": "4",
+        "count300": "1013",
+        "countmiss": "0",
+        "countkatu": "4",
+        "countgeki": "234",
+        "perfect": "0",
+        "enabled_mods": "0",
+        "user_id": "4374286",
+        "date": "2019-06-11 22:59:45",
+        "rank": "S",
+        "pp": "205.078",
+        "replay_available": "1"
+    }
+]
