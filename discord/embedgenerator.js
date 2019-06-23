@@ -850,7 +850,7 @@ module.exports = class EmbedGenerator {
 			enabled_mods: "number"//int
 		};
 		return new Promise((resolve, reject) => {
-			this.beatmap(CONFIG, beatmap, [beatmap], { creator: beatmap.creator, creator_id: beatmap.creator_id }, getModObject(score.enabled_mods), beatmap.mode, true).then(beatmap_embed => {
+			this.beatmap(CONFIG, beatmap, [beatmap], { creator: beatmap.creator, creator_id: beatmap.creator_id }, getMods(score.enabled_mods).string, beatmap.mode, true).then(beatmap_embed => {
 				beatmap_embed = UTILS.embedRaw(beatmap_embed);
 				let newEmbed = new Discord.RichEmbed();
 				newEmbed.setURL(beatmap_embed.url);
