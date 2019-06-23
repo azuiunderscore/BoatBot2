@@ -798,9 +798,8 @@ module.exports = class EmbedGenerator {
 		});
 	}
 	recent(CONFIG, mode, play_index = 0, recent_scores, beatmap, leaderboard, user_scores, user_best, user_stats) {
-		const now = UTILS.now();
 		let newEmbed = new Discord.RichEmbed();
-		let best_play_index = UTILS.scoreIsUserTop100(recent_scores[play_index], user_best);//0-indexed
+		user_stats.best_play_index = UTILS.scoreIsUserTop100(recent_scores[play_index], user_best);//0-indexed
 		//score line 1
 		//score line 2
 		//probably best to run oppai and compare to API result.
@@ -855,7 +854,7 @@ module.exports = class EmbedGenerator {
 				let newEmbed = new Discord.RichEmbed();
 				newEmbed.setURL(beatmap_embed.url);
 				newEmbed.setThumbnail(beatmap_embed.thumbnail);
-				newEmbed.setAuthor(`${user.username}: ${user.pp_raw}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${user.pp_country_rank})`, `https://a.ppy.sh/${user.user_id}?${now}`, `https://osu.ppy.sh/u/${user.user_id}`);
+				newEmbed.setAuthor(`${user.username}: ${user.pp_raw}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${user.pp_country_rank})`, `https://a.ppy.sh/${user.user_id}?${UTILS.now()}`, `https://osu.ppy.sh/u/${user.user_id}`);
 				newEmbed.setTitle(beatmap_embed.title);
 				if (score.best_play_index !== -1) {//set embed color
 					newEmbed.setColor([255 * ((99 - score.best_play_index) / 99), 255 * ((99 - score.best_play_index) / 99), 0]);
