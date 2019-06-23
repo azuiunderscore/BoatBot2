@@ -799,7 +799,7 @@ module.exports = class EmbedGenerator {
 	}
 	recent(CONFIG, mode, play_index = 0, recent_scores, beatmap, leaderboard, user_scores, user_best, user_stats) {
 		let newEmbed = new Discord.RichEmbed();
-		user_stats.best_play_index = UTILS.scoreIsUserTop100(recent_scores[play_index], user_best);//0-indexed
+		recent_scores[play_index].best_play_index = UTILS.scoreIsUserTop100(recent_scores[play_index], user_best);//0-indexed
 		//score line 1
 		//score line 2
 		//probably best to run oppai and compare to API result.
@@ -876,7 +876,7 @@ module.exports = class EmbedGenerator {
 					default://do nothing
 				}
 				newEmbed.addField(`Beatmap Information`, beatmap_embed.fields[0].value);//add beatmap embed info
-				newEmbed.setFooter(beatmap_embed.footer.name, beatmap_embed.footer.icon);
+				newEmbed.setFooter(beatmap_embed.footer.text, beatmap_embed.footer.icon_url);
 				resolve(newEmbed);
 			}).catch(reject);
 		});
