@@ -786,4 +786,21 @@ module.exports = class UTILS {
 		});
 		return candidate;//returns -1 if score is not top 100 of user's best plays
 	}
+	pickCircle(num) {//max is 1.00
+		if (num < .125) {
+			return "◯";
+		}
+		else if (num < .375) {
+			return "◔";
+		}
+		else if (num < .625) {
+			return "◑"
+		}
+		else if (num < .875) {
+			return "◕";
+		}
+		else {
+			return "⬤";
+		}
+	}
 }

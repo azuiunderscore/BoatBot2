@@ -846,7 +846,8 @@ module.exports = class EmbedGenerator {
 			countkatu: "number",//int, mania200
 			count300: "number",//int
 			countgeki: "number",//int, maniarainbow
-			enabled_mods: "number"//int
+			enabled_mods: "number",//int
+			date: "object"
 		};
 		return new Promise((resolve, reject) => {
 			this.beatmap(CONFIG, beatmap, [beatmap], { creator: beatmap.creator, creator_id: beatmap.creator_id }, getMods(score.enabled_mods).string, beatmap.mode, true).then(beatmap_embed => {
@@ -875,6 +876,7 @@ module.exports = class EmbedGenerator {
 						break;
 					default://do nothing
 				}
+				newEmbed.addField(`Rank+Mods${TAB}Score${TAB}${TAB}Acc.${TAB}`, `${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)}${CONFIG.EMOJIS[score.rank]} ${UTILS.numberWithCommas(score.score)} (${UTILS.calcAcc(beatmap.mode, score)}%) ${UTILS.ago(score.date)}`);
 				newEmbed.addField(`Beatmap Information`, beatmap_embed.fields[0].value);//add beatmap embed info
 				newEmbed.setFooter(beatmap_embed.footer.text, beatmap_embed.footer.icon_url);
 				resolve(newEmbed);
