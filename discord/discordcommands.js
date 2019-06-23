@@ -501,6 +501,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 					request_profiler.begin("dynamic");
 					let jobs = [];
 					let jobtype = [];
+					jobs.push(lolapi.osuBeatmapFile(beatmap.beatmap_id, beatmap.last_updated.getTime(), CONFIG.API_MAXAGE.RECENT.OSU_FILE));//just ensures that a copy of the beatmap file is present in the cache directory
+					jobtype.push(CONFIG.CONSTANTS.OSU_FILE);
 					if (beatmap.approved === 1 || beatmap.approved === 2) {//ranked or approved (possible top pp change)
 						jobs.push(lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.RECENT.GET_USER_BEST));//get user best
 						jobtype.push(CONFIG.CONSTANTS.USER_BEST);
