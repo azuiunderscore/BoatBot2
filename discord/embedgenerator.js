@@ -134,7 +134,14 @@ function getMods(modnum) {
 	if (mods.length === 0) return "";
 	else return "+" + mods.reverse().join("");
 }
-function ppCalculator(pathToOsu, mode, options) {//options.acc, options.combo, options.mods, options.stars, options.OD, options.score, options.objects
+function getProgress(mode, oppai, score) {//returns float between 0-1 or null if unavailable
+	if (mode === 0 || mode === 1) {
+		return (score.countmiss + score.count50 + score.count100 + score.count300) /
+		(oppai.num_circles + oppai.num_spinners + oppai.num_sliders);
+	}
+	else return -1;//possible to implement for ctb or mania, autoconvert status needs to be detected
+}
+function maxPPCalculator(pathToOsu, mode, options) {//options.acc, options.combo, options.mods, options.stars, options.OD, options.score, options.objects
 	return new Promise((resolve, reject) => {
 		if (mode == 0 | mode == 1) {//specific score or general acc FC
 			let args = [pathToOsu, "-m" + mode, "-ojson"];
@@ -152,8 +159,55 @@ function ppCalculator(pathToOsu, mode, options) {//options.acc, options.combo, o
 				catch(e) { reject(e); }
 			});
 		}
+		/*
 		else if (mode == 3) {//mania (mods, stars, OD, score, acc, objects) (specific score only)
 			if (options.mods != 0) resolve(0);
+			let d = options.stars; //SR
+			let OD = options.OD;
+			UTILS.assert(!isNaN(d));
+			if (d < 0) return reject(new Error("invalid SR"));
+			UTILS.assert(!isNaN(OD));
+			if (OD < 0 || OD > 10) return reject(new Error("invalid OD " + options.OD));
+			let h = options.score; //Score
+			UTILS.assert(!isNaN(h));
+			if (h < 0 || h > 1000000) return reject(new Error("invalid score"));
+			let i = options.acc; //Acc
+			UTILS.assert(!isNaN(i));
+			if (i < 0 || i > 100) return reject(new Error("invalid acc"));
+			let e = options.objects; //Objects
+			UTILS.assert(!isNaN(e));
+			if (e < 0) return reject(new Error("invalid objects"));
+			let f = 64 - 3 * OD;
+			let k = Math.pow((150 / f) * Math.pow(i / 100, 16), 1.8) * 2.5 * Math.min(1.15, Math.pow(e / 1500, 0.3));
+			let l = (Math.pow(5 * Math.max(1, d / 0.0825) - 4, 3) / 110000) * (1 + 0.1 * Math.min(1, e / 1500));
+			let m = (h < 500000) ? h / 500000 * 0.1 : ((h < 600000) ? (h - 500000) / 100000 * 0.2 + 0.1 : ((h < 700000) ? (h - 600000) / 100000 * 0.35 + 0.3 : ((h < 800000) ? (h - 700000) / 100000 * 0.2 + 0.65 : ((h < 900000) ? (h - 800000) / 100000 * 0.1 + 0.85 : (h - 900000) / 100000 * 0.05 + 0.95))));
+			resolve(Math.pow(Math.pow(k, 1.1) + Math.pow(l * m, 1.1), 1 / 1.1) * 1.1);
+		}*/
+		else reject(new Error("invalid osu mode: " + mode))
+	});
+}
+function ppCalculator(pathToOsu, mode, options) {
+	//std: options.combo, options.mods, count300, count100, count50, countmiss
+	//mania: options.combo, options.mods, options.stars, options.OD, options.score, options.objects
+	return new Promise((resolve, reject) => {
+		if (mode == 0 | mode == 1) {//specific score or general acc FC
+			let args = [pathToOsu, "-m" + mode, `${options.count300}x300`, `${options.count100}x100`, `${options.count50}x50`, `${options.countmiss}xm`, "-ojson"];
+			if (UTILS.exists(options.mods)) args.push(getMods(options.mods));
+			if (UTILS.exists(options.acc)) args.push(options.acc + "%");
+			if (UTILS.exists(options.combo)) args.push(options.combo + "x");
+			child_process.execFile("../oppai", args, { timeout: 2500 }, (err, stdout, stderr) => {
+				try {
+					let oo = JSON.parse(stdout);//oppai object
+					if (err) return reject(err);
+					if (UTILS.exists(stderr) && stderr != "") return reject(stderr);
+					//check stderr
+					resolve(oo.pp);
+				}
+				catch(e) { reject(e); }
+			});
+		}
+		else if (mode == 3) {//mania (mods, stars, OD, score, acc, objects) (specific score only)
+			if (options.mods != 0) reject(new Error("mania mods not 0"));
 			let d = options.stars; //SR
 			let OD = options.OD;
 			UTILS.assert(!isNaN(d));
@@ -732,7 +786,7 @@ module.exports = class EmbedGenerator {
 			let ppstring = "";
 			if (beatmap.mode == 0 | beatmap.mode == 1) {
 				const accs = [95, 98, 99, 100];
-				let calculations = Promise.all(accs.map(acc => ppCalculator(CONFIG.BEATMAP_CACHE_LOCATION + beatmap.beatmap_id + ".osu", beatmap.mode, { mods: mods.value, acc })));
+				let calculations = Promise.all(accs.map(acc => maxPPCalculator(CONFIG.BEATMAP_CACHE_LOCATION + beatmap.beatmap_id + ".osu", beatmap.mode, { mods: mods.value, acc })));
 				calculations.then(results => {
 					ppstring = "\n" + results.map((oo, i) => accs[i] + "%: " + oo.pp.round(0) + "pp").join(" | ");
 					step2(results[0]);
@@ -748,7 +802,7 @@ module.exports = class EmbedGenerator {
 				//newEmbed.setURL("https://osu.ppy.sh/beatmapsets/" + beatmap.beatmapset_id + "#" + ["osu", "taiko", "fruits", "mania"][beatmap.mode] + "/" + beatmap.beatmap_id);
 				newEmbed.setURL("https://osu.ppy.sh/b/" + beatmap.beatmap_id + "&m=" + beatmap.mode);//old link for compatibility
 				newEmbed.setThumbnail("https://b.ppy.sh/thumb/" + beatmap.beatmapset_id + "l.jpg");
-				let mode_prefix = "";
+				let mode_prefix = beatmap.approved === 3 ? "❤️" : "";
 				if (beatmap.mode != 3) {
 					if (beatmap.mode == 1) mode_prefix = "";
 					else if (beatmap.mode == 2) mode_prefix = ""
@@ -800,10 +854,67 @@ module.exports = class EmbedGenerator {
 	recent(CONFIG, mode, play_index = 0, recent_scores, beatmap, leaderboard, user_scores, user_best, user_stats) {
 		let newEmbed = new Discord.RichEmbed();
 		recent_scores[play_index].best_play_index = UTILS.scoreIsUserTop100(recent_scores[play_index], user_best);//0-indexed
-		//score line 1
-		//score line 2
-		//probably best to run oppai and compare to API result.
-		return this.fullScorecardRaw(CONFIG, user_stats, beatmap, recent_scores[play_index]);
+		recent_scores[play_index].leaderboard_index = UTILS.scoreIsUserTop100(recent_scores[play_index], leaderboard);
+		const user_play_index = UTILS.scoreIsUserTop100(recent_scores[play_index], user_scores);
+		user_scores.sort((a, b) => b.pp - a.pp);//used to determine pp validity
+		if (recent_scores[play_index].rank === "F" || user_play_index === -1)//if play gets rank "F" or play is not top 100 of user
+			recent_scores[play_index].pp_valid = false;
+		else if (user_play_index >= 0) {//one of user's top 100 scores on beatmap
+			recent_scores[play_index].pp = user_scores[user_play_index].pp;
+			recent_scores[play_index].pp_valid = true;
+		}
+		else if (recent_scores[play_index].best_play_index >= 0) {
+			recent_scores[play_index].pp = user_best[recent_scores[play_index].best_play_index].pp;
+			recent_scores[play_index].pp_valid = true;
+		}
+		user_stats.pp_delta = 0;//hardcoded for now, intended to be used with score tracking
+		return new Promise((resolve, reject) => {//calculates max pp
+			if (mode === 1 || mode === 2) {
+				maxPPCalculator(CONFIG.BEATMAP_CACHE_LOCATION + beatmap.beatmap_id + ".osu", mode, { mods: recent_scores[play_index].enabled_mods, acc: 100 }).then(results => {
+					recent_scores[play_index].max_pp = results.pp;
+					recent_scores[play_index].max_pp_valid = true;
+					recent_scores[play_index].object_count = results.num_circles + results.num_sliders + results.num_spinners;
+					step2();
+				}).catch(e => {
+					console.error(e);
+					recent_scores[play_index].max_pp = 0;
+					recent_scores[play_index].max_pp_valid = false;
+					recent_scores[play_index].object_count = 0;
+					step2();
+				});
+			}
+			else {
+				recent_scores[play_index].max_pp = 0;
+				recent_scores[play_index].max_pp_valid = false;
+				recent_scores[play_index].object_count = 0;
+				step2();
+			}
+			//try count #
+			//probably best to run oppai and compare to API result.
+			function step2() {
+				if ((mode === 0 || mode === 1) && (recent_scores[play_index].rank === "F" || !UTILS.exists(recent_scores[play_index].pp) || recent_scores[play_index].pp === 0 || beatmap.approved === 3)) {//calculates specific pp for a recent fail or if the pp isn't one of the user's best scores on a beatmap
+					recent_scores[play_index].pp_valid = false;
+					ppCalculator(CONFIG.BEATMAP_CACHE_LOCATION + beatmap.beatmap_id + ".osu", mode, {
+						mods: recent_scores[play_index].enabled_mods,
+						count300: recent_scores[play_index].count300,
+						count100: recent_scores[play_index].count100,
+						count50: recent_scores[play_index].count50,
+						countmiss: recent_scores[play_index].countmiss,
+						combo: recent_scores[play_index].maxcombo
+					}).then(pp => {
+						recent_scores[play_index].pp = pp;
+						step3();
+					}).catch(e => {
+						recent_scores[play_index].pp = 0;
+						step3();
+					});
+				}
+				else step3();
+				function step3() {
+					this.fullScorecardRaw(CONFIG, user_stats, beatmap, recent_scores[play_index]).then(resolve).catch(reject);
+				}
+			}
+		});
 	}
 	fullScorecardRaw(CONFIG, user, beatmap, score) {
 		const user_format = {
@@ -847,15 +958,31 @@ module.exports = class EmbedGenerator {
 			count300: "number",//int
 			countgeki: "number",//int, maniarainbow
 			enabled_mods: "number",//int
-			date: "object"
+			date: "object",
+			rank: "string",
+			progress: "number"//float, 1 if pass, between 0-1 if rank is "F", -1 if progress unavailable
 		};
+		for (let b in user_format) {
+			UTILS.assert(typeof(user[b]) === user_format[b], `user[${b}] expects ${user_format[b]} but is type ${typeof(user[b])} with value ${user[b]}`);
+		}
+		for (let b in beatmap_format) {
+			UTILS.assert(typeof(beatmap[b]) === beatmap_format[b], `beatmap[${b}] expects ${beatmap_format[b]} but is type ${typeof(beatmap[b])} with value ${beatmap[b]}`);
+		}
+		for (let b in score_format) {
+			UTILS.assert(typeof(score[b]) === score_format[b], `score[${b}] expects ${score_format[b]} but is type ${typeof(score[b])} with value ${score[b]}`);
+		}
 		return new Promise((resolve, reject) => {
 			this.beatmap(CONFIG, beatmap, [beatmap], { creator: beatmap.creator, creator_id: beatmap.creator_id }, getMods(score.enabled_mods).string, beatmap.mode, true).then(beatmap_embed => {
 				beatmap_embed = UTILS.embedRaw(beatmap_embed);
 				let newEmbed = new Discord.RichEmbed();
 				newEmbed.setURL(beatmap_embed.url);
 				newEmbed.setThumbnail(beatmap_embed.thumbnail.url);
-				newEmbed.setAuthor(`${user.username}: ${user.pp_raw}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${user.pp_country_rank})`, `https://a.ppy.sh/${user.user_id}?${UTILS.now()}`, `https://osu.ppy.sh/u/${user.user_id}`);
+				let dpp = "";//delta pp
+				if (UTILS.round(user.pp_delta, 2) !== 0) {
+					if (user.pp_delta >= 0) dpp = ` +${user.pp_delta.round(2)}`;
+					else dpp = ` ${user.pp_delta.round(2)}`;
+				}
+				newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}${dpp}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, `https://a.ppy.sh/${user.user_id}?${UTILS.now()}`, `https://osu.ppy.sh/u/${user.user_id}`);
 				newEmbed.setTitle(beatmap_embed.title);
 				if (score.best_play_index !== -1) {//set embed color
 					newEmbed.setColor([255 * ((99 - score.best_play_index) / 99), 255 * ((99 - score.best_play_index) / 99), 0]);
@@ -876,7 +1003,8 @@ module.exports = class EmbedGenerator {
 						break;
 					default://do nothing
 				}
-				newEmbed.addField(`Rank+Mods${TAB}Score${TAB}${TAB}Acc.${TAB}`, `${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)}${CONFIG.EMOJIS[score.rank]} ${UTILS.numberWithCommas(score.score)} (${UTILS.calcAcc(beatmap.mode, score)}%) ${UTILS.ago(score.date)}`);
+				newEmbed.addField(`Rank+Mods${TAB}Score${TAB}${TAB}Acc.${TAB}`, `${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)}${CONFIG.EMOJIS[score.rank]}${score.rank ==="F" && score.progress !== -1 ? `${UTILS.pickCircle(score.progress)} ` : ""}${score.enabled_mods !== 0 ? getMods(score.enabled_mods) : ""}${score.leaderboard_index !== -1 ? ` **__r#${score.leaderboard_index + 1}__**` : ""} ${UTILS.numberWithCommas(score.score)} (${UTILS.calcAcc(beatmap.mode, score)}%) ${UTILS.ago(score.date)}`);
+				newEmbed.addField(`pp/PP${TAB}${TAB}${TAB}${TAB}${TAB}${TAB}Combo${TAB}${TAB}${TAB}${TAB}Hits`, `**${score.pp_valid ? score.pp : `~~${score.pp}~~`}**${score.max_pp_valid ? `/${score.max_pp}` : `${score.max_pp === 0 ? "" : `${score.max_pp.round(2)}PP`}`} ${score.maxcombo}${UTILS.exists(beatmap.maxcombo) ? `/${beatmap.maxcombo}` : TAB} {${beatmap.mode === 3 ? `${score.countgeki}/${score.count300}/${score.countkatu}/${score.count100}/${score.count50}/${score.countmiss}` : ` ${score.count300} / ${score.count100} / ${score.count50} / ${score.countmiss} `}}`);
 				newEmbed.addField(`Beatmap Information`, beatmap_embed.fields[0].value);//add beatmap embed info
 				newEmbed.setFooter(beatmap_embed.footer.text, beatmap_embed.footer.icon_url);
 				resolve(newEmbed);
