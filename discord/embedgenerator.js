@@ -852,6 +852,7 @@ module.exports = class EmbedGenerator {
 		});
 	}
 	recent(CONFIG, mode, play_index = 0, recent_scores, beatmap, leaderboard, user_scores, user_best, user_stats) {
+		let that = this;
 		let newEmbed = new Discord.RichEmbed();
 		recent_scores[play_index].best_play_index = UTILS.scoreIsUserTop100(recent_scores[play_index], user_best);//0-indexed
 		recent_scores[play_index].leaderboard_index = UTILS.scoreIsUserTop100(recent_scores[play_index], leaderboard);
@@ -911,7 +912,7 @@ module.exports = class EmbedGenerator {
 				}
 				else step3();
 				function step3() {
-					this.fullScorecardRaw(CONFIG, user_stats, beatmap, recent_scores[play_index]).then(resolve).catch(reject);
+					that.fullScorecardRaw(CONFIG, user_stats, beatmap, recent_scores[play_index]).then(resolve).catch(reject);
 				}
 			}
 		});
