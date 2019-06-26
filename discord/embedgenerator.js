@@ -883,7 +883,8 @@ module.exports = class EmbedGenerator {
 					UTILS.debug("100% pp calc results:");
 					UTILS.inspect(results);
 					recent_scores[play_index].max_pp = results.pp;
-					recent_scores[play_index].max_pp_valid = true;
+					if (beatmap.approved <= 0 || beatmap.approved >= 3) recent_scores[play_index].max_pp_valid = false;
+					else recent_scores[play_index].max_pp_valid = true;
 					beatmap.object_count = results.num_circles + results.num_sliders + results.num_spinners;
 					step2();
 				}).catch(e => {
@@ -900,7 +901,7 @@ module.exports = class EmbedGenerator {
 				beatmap.object_count = 0;
 				step2();
 			}
-			if (beatmap.approved <= 0 || beatmap.approved >= 3) recent_scores[play_index].max_pp_valid = false;
+
 			//try count #
 			//probably best to run oppai and compare to API result.
 			function step2() {
