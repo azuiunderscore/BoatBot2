@@ -197,6 +197,7 @@ function ppCalculator(pathToOsu, mode, options) {
 			if (UTILS.exists(options.combo)) args.push(options.combo + "x");
 			child_process.execFile("../oppai", args, { timeout: 2500 }, (err, stdout, stderr) => {
 				try {
+					UTILS.debug(stdout);
 					let oo = JSON.parse(stdout);//oppai object
 					if (err) return reject(err);
 					if (UTILS.exists(stderr) && stderr != "") return reject(stderr);
@@ -860,11 +861,11 @@ module.exports = class EmbedGenerator {
 		user_scores.sort((a, b) => b.pp - a.pp);//used to determine pp validity
 		if (recent_scores[play_index].rank === "F" || user_play_index === -1)//if play gets rank "F" or play is not top 100 of user
 			recent_scores[play_index].pp_valid = false;
-		else if (user_play_index >= 0) {//one of user's top 100 scores on beatmap
+		if (user_play_index >= 0) {//one of user's top 100 scores on beatmap
 			recent_scores[play_index].pp = user_scores[user_play_index].pp;
-			recent_scores[play_index].pp_valid = true;
+			if (user_play_index === 0) recent_scores[play_index].pp_valid = true;
 		}
-		else if (recent_scores[play_index].best_play_index >= 0) {
+		if (recent_scores[play_index].best_play_index >= 0) {
 			recent_scores[play_index].pp = user_best[recent_scores[play_index].best_play_index].pp;
 			recent_scores[play_index].pp_valid = true;
 		}
@@ -894,7 +895,7 @@ module.exports = class EmbedGenerator {
 			//try count #
 			//probably best to run oppai and compare to API result.
 			function step2() {
-				if ((mode === 0 || mode === 1) && (recent_scores[play_index].rank === "F" || !UTILS.exists(recent_scores[play_index].pp) || recent_scores[play_index].pp === 0 || beatmap.approved === 3)) {//calculates specific pp for a recent fail or if the pp isn't one of the user's best scores on a beatmap
+				if ((mode === 0 || mode === 1) && ((recent_scores[play_index].rank === "F" || !UTILS.exists(recent_scores[play_index].pp) || recent_scores[play_index].pp === 0 || beatmap.approved === 3))) {//calculates specific pp for a recent fail or if the pp isn't one of the user's best scores on a beatmap
 					recent_scores[play_index].pp_valid = false;
 					ppCalculator(CONFIG.BEATMAP_CACHE_LOCATION + beatmap.beatmap_id + ".osu", mode, {
 						mods: recent_scores[play_index].enabled_mods,
