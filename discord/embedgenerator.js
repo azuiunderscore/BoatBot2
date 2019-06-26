@@ -873,8 +873,8 @@ module.exports = class EmbedGenerator {
 		if (!UTILS.exists(beatmap.max_combo)) beatmap.max_combo = 0;
 		user_stats.pp_delta = 0;//hardcoded for now, intended to be used with score tracking
 		return new Promise((resolve, reject) => {//calculates max pp
-			UTILS.inspect("mode", mode);
-			if (mode === 1 || mode === 2) {
+			UTILS.inspect("mode", !mode);
+			if (mode === 0 || mode === 1) {
 				maxPPCalculator(CONFIG.BEATMAP_CACHE_LOCATION + beatmap.beatmap_id + ".osu", mode, { mods: recent_scores[play_index].enabled_mods, acc: 100 }).then(results => {
 					UTILS.debug("100% pp calc results:");
 					UTILS.inspect(results);
