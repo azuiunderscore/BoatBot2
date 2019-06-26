@@ -492,16 +492,13 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		lolapi.osuMostRecentMode(user, id, false, CONFIG.API_MAXAGE.RECENT.GET_USER_RECENT).then(mode => {
 			request_profiler.end("mode_detect");
 			request_profiler.begin("user_recent");
-			UTILS.assert(typeof(mode) === "number");
 			lolapi.osuGetUserRecent(user, mode, undefined, id, CONFIG.API_MAXAGE.RECENT.GET_USER_RECENT).then(recent_plays => {
 				request_profiler.end("user_recent");
 				request_profiler.begin("beatmap");
-				UTILS.assert(typeof(mode) === "number");
 				lolapi.osuBeatmap(recent_plays[0].beatmap_id, "b", mode, CONFIG.API_MAXAGE.RECENT.GET_BEATMAP).then(beatmap => {
 					beatmap = beatmap[0];
 					request_profiler.end("beatmap");
 					request_profiler.begin("dynamic");
-					UTILS.assert(typeof(mode) === "number");
 					let jobs = [];
 					let jobtype = [];
 					jobs.push(lolapi.osuBeatmapFile(beatmap.beatmap_id, beatmap.last_update.getTime(), CONFIG.API_MAXAGE.RECENT.OSU_FILE));//just ensures that a copy of the beatmap file is present in the cache directory
@@ -520,7 +517,6 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 					jobtype.push(CONFIG.CONSTANTS.USER);
 					Promise.all(jobs).then(jra => {//job result array
 						request_profiler.end("dynamic");
-						UTILS.assert(typeof(mode) === "number");
 						UTILS.debug("\n" + ctable.getTable(request_profiler.endAllCtable()));
 						let user_best = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER_BEST)];
 						let leaderboard = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE)];
