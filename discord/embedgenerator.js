@@ -914,6 +914,7 @@ module.exports = class EmbedGenerator {
 						if (recent_scores[play_index].rank === "F") recent_scores[play_index].progress = (recent_scores[play_index].count300 + recent_scores[play_index].count100 + recent_scores[play_index].count50 + recent_scores[play_index].countmiss) / beatmap.object_count;
 						step3();
 					}).catch(e => {
+						console.log(e);
 						recent_scores[play_index].pp = 0;
 						step3();
 					});
@@ -1019,9 +1020,10 @@ module.exports = class EmbedGenerator {
 					default://do nothing
 				}
 				newEmbed.addField(`Rank+Mods${TAB}Score${TAB}${TAB}Acc.${TAB}When`, `${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)}${CONFIG.EMOJIS[score.rank]}${score.rank ==="F" && score.progress !== -1 ? `${UTILS.pickCircle(score.progress)}` : ""} ${score.enabled_mods !== 0 ? getMods(score.enabled_mods) : ""}${score.leaderboard_index !== -1 ? ` **__r#${score.leaderboard_index + 1}__**` : ""} ${UTILS.numberWithCommas(score.score)} (${UTILS.calcAcc(beatmap.mode, score)}%) ${UTILS.ago(score.date)}`);
-				newEmbed.addField(`pp/PP${TAB}${TAB}${TAB}${TAB}${TAB}${TAB}Combo${TAB}${TAB}${TAB}${TAB}Hits`, `**${score.pp_valid ? `${score.pp}pp` : `~~${score.pp.round(2)}pp~~`}**${score.max_pp_valid ? `/${score.max_pp.round(2)}PP` : `${score.max_pp === 0 ? "" : `${score.max_pp.round(2)}PP`}`} ${score.maxcombo}x${beatmap.max_combo === 0 ? `/${beatmap.max_combo}` : ""}${TAB}{${beatmap.mode === 3 ? `${score.countgeki}/${score.count300}/${score.countkatu}/${score.count100}/${score.count50}/${score.countmiss}` : ` ${score.count300} / ${score.count100} / ${score.count50} / ${score.countmiss} `}}`);
+				newEmbed.addField(`pp/PP${TAB}${TAB}${TAB}${TAB}${TAB}${TAB}Combo${TAB}${TAB}${TAB}${TAB}Hits`, `**${score.pp_valid ? `${score.pp.round(2)}pp` : `~~${score.pp.round(2)}pp~~`}**${score.max_pp_valid ? `/${score.max_pp.round(2)}PP` : `${score.max_pp === 0 ? "" : `${score.max_pp.round(2)}PP`}`} ${score.maxcombo}x${beatmap.max_combo === 0 ? `/${beatmap.max_combo}` : ""} {${beatmap.mode === 3 ? `${score.countgeki}/${score.count300}/${score.countkatu}/${score.count100}/${score.count50}/${score.countmiss}` : ` ${score.count300} / ${score.count100} / ${score.count50} / ${score.countmiss} `}}`);
 				newEmbed.addField(`Beatmap Information`, beatmap_embed.fields[0].value);//add beatmap embed info
 				newEmbed.setFooter(beatmap_embed.footer.text, beatmap_embed.footer.icon_url);
+				newEmbed.setTimestamp(beatmap_embed.timestamp);
 				resolve(newEmbed);
 			}).catch(reject);
 		});
