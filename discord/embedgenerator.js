@@ -895,7 +895,7 @@ module.exports = class EmbedGenerator {
 			//try count #
 			//probably best to run oppai and compare to API result.
 			function step2() {
-				if ((mode === 0 || mode === 1) && ((recent_scores[play_index].rank === "F" || !UTILS.exists(recent_scores[play_index].pp) || recent_scores[play_index].pp === 0 || beatmap.approved === 3))) {//calculates specific pp for a recent fail or if the pp isn't one of the user's best scores on a beatmap
+				if ((mode === 0 || mode === 1) && (recent_scores[play_index].rank === "F" || !UTILS.exists(recent_scores[play_index].pp) || recent_scores[play_index].pp === 0 || beatmap.approved === 3)) {//calculates specific pp for a recent fail or if the pp isn't one of the user's best scores on a beatmap
 					recent_scores[play_index].pp_valid = false;
 					ppCalculator(CONFIG.BEATMAP_CACHE_LOCATION + beatmap.beatmap_id + ".osu", mode, {
 						mods: recent_scores[play_index].enabled_mods,
@@ -912,7 +912,13 @@ module.exports = class EmbedGenerator {
 						step3();
 					});
 				}
-				else step3();
+				else {
+					UTILS.inspect("mode", mode);
+					UTILS.inspect(".rank", recent_scores[play_index].rank);
+					UTILS.inspect(".pp", recent_scores[play_index].pp);
+					UTILS.inspect(".approved", beatmap.approved);
+					step3();
+				}
 				function step3() {
 					that.fullScorecardRaw(CONFIG, user_stats, beatmap, recent_scores[play_index]).then(resolve).catch(reject);
 				}

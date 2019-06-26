@@ -803,4 +803,19 @@ module.exports = class UTILS {
 			return "⬤";
 		}
 	}
+	inspect(name, object) {
+		let ostr = "";
+		if (object + "" === "[object Object]") {
+			try {
+				this.output(`${name} is type ${typeof(object)} with value ${JSON.stringify(object, null, "\t")}`);
+			}
+			catch(e) {
+				//console.error(e);
+				this.output(`${name} is type ${typeof(object)} as circularly referencing Object`);
+			}
+		}
+		else {
+			this.output(`${name} is type ${typeof(object)} with value ${object}`);
+		}
+	}
 }
