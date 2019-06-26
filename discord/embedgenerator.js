@@ -859,6 +859,7 @@ module.exports = class EmbedGenerator {
 		recent_scores[play_index].leaderboard_index = UTILS.scoreIsUserTop100(recent_scores[play_index], leaderboard);
 		const user_play_index = UTILS.scoreIsUserTop100(recent_scores[play_index], user_scores);
 		user_scores.sort((a, b) => b.pp - a.pp);//used to determine pp validity
+		recent_scores[play_index].progress = -1;
 		if (recent_scores[play_index].rank === "F" || user_play_index === -1)//if play gets rank "F" or play is not top 100 of user
 			recent_scores[play_index].pp_valid = false;
 		if (user_play_index >= 0) {//one of user's top 100 scores on beatmap
@@ -906,6 +907,7 @@ module.exports = class EmbedGenerator {
 						combo: recent_scores[play_index].maxcombo
 					}).then(pp => {
 						recent_scores[play_index].pp = pp;
+						if (recent_scores[play_index].rank === "F") recent_scores.progress = (recent_scores[play_index].count300 + recent_scores[play_index].count100 + recent_scores[play_index].count50 + recent_scores[play_index].countmiss) / beatmap.object_count;
 						step3();
 					}).catch(e => {
 						recent_scores[play_index].pp = 0;
