@@ -378,7 +378,7 @@ module.exports = class LOLAPI {
 				}
 				else {
 					if (latest_index != -1) {
-						resolve(parseIndex(latest_index));
+						resolve(parseInt(latest_index));
 					}
 					else {
 						reject();
