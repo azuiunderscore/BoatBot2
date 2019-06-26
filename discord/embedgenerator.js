@@ -191,7 +191,7 @@ function ppCalculator(pathToOsu, mode, options) {
 	//mania: options.combo, options.mods, options.stars, options.OD, options.score, options.objects
 	return new Promise((resolve, reject) => {
 		if (mode == 0 | mode == 1) {//specific score or general acc FC
-			let args = [pathToOsu, "-m" + mode, `${options.count300}x300`, `${options.count100}x100`, `${options.count50}x50`, `${options.countmiss}xm`, "-ojson"];
+			let args = [pathToOsu, "-m" + mode, `${options.count100}x100`, `${options.count50}x50`, `${options.countmiss}xm`, "-ojson"];
 			if (UTILS.exists(options.mods)) args.push(getMods(options.mods));
 			if (UTILS.exists(options.acc)) args.push(options.acc + "%");
 			if (UTILS.exists(options.combo)) args.push(options.combo + "x");
@@ -906,11 +906,11 @@ module.exports = class EmbedGenerator {
 					recent_scores[play_index].pp_valid = false;
 					ppCalculator(CONFIG.BEATMAP_CACHE_LOCATION + beatmap.beatmap_id + ".osu", mode, {
 						mods: recent_scores[play_index].enabled_mods,
-						count300: recent_scores[play_index].count300,
 						count100: recent_scores[play_index].count100,
 						count50: recent_scores[play_index].count50,
 						countmiss: recent_scores[play_index].countmiss,
-						combo: recent_scores[play_index].maxcombo
+						combo: recent_scores[play_index].maxcombo,
+						acc: UTILS.calcAcc(mode, recent_scores[play_index])
 					}).then(pp => {
 						recent_scores[play_index].pp = pp;
 						if (recent_scores[play_index].rank === "F") recent_scores[play_index].progress = (recent_scores[play_index].count300 + recent_scores[play_index].count100 + recent_scores[play_index].count50 + recent_scores[play_index].countmiss) / beatmap.object_count;
