@@ -997,7 +997,7 @@ module.exports = class EmbedGenerator {
 					else dpp = ` ${user.pp_delta.round(2)}`;
 				}
 				newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}${dpp}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, `https://a.ppy.sh/${user.user_id}?${UTILS.now()}`, `https://osu.ppy.sh/u/${user.user_id}`);
-				newEmbed.setTitle(beatmap_embed.title);
+				newEmbed.setTitle(`${beatmap_embed.title} [${beatmap_embed.version}]`);
 				if (score.best_play_index !== -1) {//set embed color
 					newEmbed.setColor([255 * ((99 - score.best_play_index) / 99), 255 * ((99 - score.best_play_index) / 99), 0]);
 					newEmbed.setDescription(`**__Personal Best #${score.best_play_index + 1}!__**`);//personal best indicator
