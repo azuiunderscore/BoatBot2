@@ -262,7 +262,6 @@ module.exports = class LOLAPI {
 	osuGetUserTyped(u, m = 0, id, maxage) {
 		let that = this;
 		return new Promise((resolve, reject) => { that.osuGetUser(u, m, id, maxage).then(result => {
-			result = result[0];
 			result.join_date = new Date(result.join_date);
 			result.count300 = parseInt(result.count300);
 			result.count100 = parseInt(result.count100);
