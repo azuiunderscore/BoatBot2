@@ -874,20 +874,20 @@ module.exports = class EmbedGenerator {
 				maxPPCalculator(CONFIG.BEATMAP_CACHE_LOCATION + beatmap.beatmap_id + ".osu", mode, { mods: recent_scores[play_index].enabled_mods, acc: 100 }).then(results => {
 					recent_scores[play_index].max_pp = results.pp;
 					recent_scores[play_index].max_pp_valid = true;
-					recent_scores[play_index].object_count = results.num_circles + results.num_sliders + results.num_spinners;
+					beatmap.object_count = results.num_circles + results.num_sliders + results.num_spinners;
 					step2();
 				}).catch(e => {
 					console.error(e);
 					recent_scores[play_index].max_pp = 0;
 					recent_scores[play_index].max_pp_valid = false;
-					recent_scores[play_index].object_count = 0;
+					beatmap.object_count = 0;
 					step2();
 				});
 			}
 			else {
 				recent_scores[play_index].max_pp = 0;
 				recent_scores[play_index].max_pp_valid = false;
-				recent_scores[play_index].object_count = 0;
+				beatmap.object_count = 0;
 				step2();
 			}
 			//try count #
