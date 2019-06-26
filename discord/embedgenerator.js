@@ -195,6 +195,7 @@ function ppCalculator(pathToOsu, mode, options) {
 			if (UTILS.exists(options.mods)) args.push(getMods(options.mods));
 			if (UTILS.exists(options.acc)) args.push(options.acc + "%");
 			if (UTILS.exists(options.combo)) args.push(options.combo + "x");
+			UTILS.debug("args: " + args.join(" "));
 			child_process.execFile("../oppai", args, { timeout: 2500 }, (err, stdout, stderr) => {
 				try {
 					UTILS.debug("PP Calculator, specific score output:");
