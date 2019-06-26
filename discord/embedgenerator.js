@@ -868,6 +868,7 @@ module.exports = class EmbedGenerator {
 			recent_scores[play_index].pp = user_best[recent_scores[play_index].best_play_index].pp;
 			recent_scores[play_index].pp_valid = true;
 		}
+		if (!UTILS.exists(beatmap.max_combo)) beatmap.max_combo = 0;
 		user_stats.pp_delta = 0;//hardcoded for now, intended to be used with score tracking
 		return new Promise((resolve, reject) => {//calculates max pp
 			if (mode === 1 || mode === 2) {
@@ -932,7 +933,7 @@ module.exports = class EmbedGenerator {
 			beatmap_id: "string",
 			beatmapset_id: "string",
 			object_count: "number",//int
-			maxcombo: "number",//int
+			max_combo: "number",//int
 			creator_id: "string",
 			creator: "string",
 			last_update: "object",//date
@@ -1005,7 +1006,7 @@ module.exports = class EmbedGenerator {
 					default://do nothing
 				}
 				newEmbed.addField(`Rank+Mods${TAB}Score${TAB}${TAB}Acc.${TAB}`, `${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)}${CONFIG.EMOJIS[score.rank]}${score.rank ==="F" && score.progress !== -1 ? `${UTILS.pickCircle(score.progress)} ` : ""}${score.enabled_mods !== 0 ? getMods(score.enabled_mods) : ""}${score.leaderboard_index !== -1 ? ` **__r#${score.leaderboard_index + 1}__**` : ""} ${UTILS.numberWithCommas(score.score)} (${UTILS.calcAcc(beatmap.mode, score)}%) ${UTILS.ago(score.date)}`);
-				newEmbed.addField(`pp/PP${TAB}${TAB}${TAB}${TAB}${TAB}${TAB}Combo${TAB}${TAB}${TAB}${TAB}Hits`, `**${score.pp_valid ? score.pp : `~~${score.pp}~~`}**${score.max_pp_valid ? `/${score.max_pp}` : `${score.max_pp === 0 ? "" : `${score.max_pp.round(2)}PP`}`} ${score.maxcombo}${UTILS.exists(beatmap.maxcombo) ? `/${beatmap.maxcombo}` : TAB} {${beatmap.mode === 3 ? `${score.countgeki}/${score.count300}/${score.countkatu}/${score.count100}/${score.count50}/${score.countmiss}` : ` ${score.count300} / ${score.count100} / ${score.count50} / ${score.countmiss} `}}`);
+				newEmbed.addField(`pp/PP${TAB}${TAB}${TAB}${TAB}${TAB}${TAB}Combo${TAB}${TAB}${TAB}${TAB}Hits`, `**${score.pp_valid ? score.pp : `~~${score.pp}~~`}**${score.max_pp_valid ? `/${score.max_pp}` : `${score.max_pp === 0 ? "" : `${score.max_pp.round(2)}PP`}`} ${score.maxcombo}${beatmap.max_combo === 0 ? `/${beatmap.max_combo}` : TAB} {${beatmap.mode === 3 ? `${score.countgeki}/${score.count300}/${score.countkatu}/${score.count100}/${score.count50}/${score.countmiss}` : ` ${score.count300} / ${score.count100} / ${score.count50} / ${score.countmiss} `}}`);
 				newEmbed.addField(`Beatmap Information`, beatmap_embed.fields[0].value);//add beatmap embed info
 				newEmbed.setFooter(beatmap_embed.footer.text, beatmap_embed.footer.icon_url);
 				resolve(newEmbed);
