@@ -900,6 +900,7 @@ module.exports = class EmbedGenerator {
 				beatmap.object_count = 0;
 				step2();
 			}
+			if (beatmap.approved <= 0 || beatmap.approved >= 2) recent_scores[play_index].max_pp_valid = false;
 			//try count #
 			//probably best to run oppai and compare to API result.
 			function step2() {
