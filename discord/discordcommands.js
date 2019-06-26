@@ -513,7 +513,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 						jobs.push(lolapi.osuScoreUser(user, id, mode, recent_plays[0].beatmap_id, CONFIG.API_MAXAGE.RECENT.GET_SCORE_USER));
 						jobtype.push(CONFIG.CONSTANTS.SCORE_USER);
 					}
-					jobs.push(lolapi.osuGetUser(user, mode, id, CONFIG.API_MAXAGE.RECENT.GET_USER));
+					jobs.push(lolapi.osuGetUserTyped(user, mode, id, CONFIG.API_MAXAGE.RECENT.GET_USER));
 					jobtype.push(CONFIG.CONSTANTS.USER);
 					Promise.all(jobs).then(jra => {//job result array
 						request_profiler.end("dynamic");

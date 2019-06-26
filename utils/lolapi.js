@@ -259,6 +259,31 @@ module.exports = class LOLAPI {
 		if (typeof(u) == "string") u = u.toLowerCase();
 		return new Promise((resolve, reject) => { that.get("get_user", { u, m, type }, that.CONFIG.API_CACHETIME.GET_USER, maxage).then(result => resolve(result[0])).catch(reject); });
 	}
+	osuGetUserTyped(u, m = 0, id, maxage) {
+		let that = this;
+		return new Promise((resolve, reject) => { that.osuGetUser(u, m, id, maxage).then(result => {
+			result = result[0];
+			result.join_date = new Date(result.join_date);
+			result.count300 = parseInt(result.count300);
+			result.count100 = parseInt(result.count100);
+			result.count50 = parseInt(result.count50);
+			result.playcount = parseInt(result.playcount);
+			result.ranked_score = parseInt(result.ranked_score);
+			result.total_score = parseInt(result.total_score);
+			result.pp_rank = parseInt(result.pp_rank);
+			result.level = parseFloat(result.level);
+			result.pp_raw = parseFloat(result.pp_raw);
+			result.accuracy = parseFloat(result.accuracy);
+			result.count_rank_ss = parseInt(result.count_rank_ss);
+			result.count_rank_ssh = parseInt(result.count_rank_ssh);
+			result.count_rank_s = parseInt(result.count_rank_s);
+			result.count_rank_sh = parseInt(result.count_rank_sh);
+			result.count_rank_a = parseInt(result.count_rank_a);
+			result.total_seconds_played = parseInt(result.total_seconds_played);
+			result.pp_country_rank = parseInt(result.pp_country_rank);
+			resolve(result);
+		}).catch(reject); });
+	}
 	osuGetUserBest(u, m = 0, limit = 100, id, maxage) {
 		const type = id ? "id" : "string";
 		if (typeof(u) == "string") u = u.toLowerCase();
