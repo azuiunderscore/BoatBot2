@@ -806,7 +806,7 @@ module.exports = class UTILS {
 	}
 	inspect(name, object) {
 		let ostr = "";
-		if (tyepof(object) === "object") {
+		if (typeof(object) === "object") {
 			try {
 				this.output(`${name} is type ${typeof(object)} with value ${JSON.stringify(object, null, "\t")}`);
 			}
