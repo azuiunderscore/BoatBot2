@@ -803,7 +803,7 @@ module.exports = class EmbedGenerator {
 				//newEmbed.setURL("https://osu.ppy.sh/beatmapsets/" + beatmap.beatmapset_id + "#" + ["osu", "taiko", "fruits", "mania"][beatmap.mode] + "/" + beatmap.beatmap_id);
 				newEmbed.setURL("https://osu.ppy.sh/b/" + beatmap.beatmap_id + "&m=" + beatmap.mode);//old link for compatibility
 				newEmbed.setThumbnail("https://b.ppy.sh/thumb/" + beatmap.beatmapset_id + "l.jpg");
-				let mode_prefix = beatmap.approved === 3 ? "❤️" : "";
+				let mode_prefix = beatmap.approved === 4 ? "❤️" : "";
 				if (beatmap.mode != 3) {
 					if (beatmap.mode == 1) mode_prefix = "";
 					else if (beatmap.mode == 2) mode_prefix = ""
@@ -847,7 +847,7 @@ module.exports = class EmbedGenerator {
 				if (diff_count == 500) newEmbed.addField("This beatmap set has at least " + diff_count + " difficulties.", diffstring);
 				else if (diff_count > 1) newEmbed.addField("This beatmap set has " + diff_count + " difficulties.", diffstring);
 				UTILS.inspect("beatmap.approved", beatmap.approved);
-				newEmbed.setFooter(`Map${footerauthor ? `pped by ${beatmap.creator},` : ""} ${beatmap.approved > 0 ? [null, "ranked", "approved", "loved"][beatmap.approved] : "last updated"} ${UTILS.ago(UTILS.exists(beatmap.approved_date) ? beatmap.approved_date : beatmap.last_update)} at/on`, footerauthor ? `https://a.ppy.sh/${beatmap.creator_id}?${UTILS.now()}` : undefined);
+				newEmbed.setFooter(`Map${footerauthor ? `pped by ${beatmap.creator},` : ""} ${beatmap.approved > 0 ? [null, "ranked", "approved", "qualified", "loved"][beatmap.approved] : "last updated"} ${UTILS.ago(UTILS.exists(beatmap.approved_date) ? beatmap.approved_date : beatmap.last_update)} at/on`, footerauthor ? `https://a.ppy.sh/${beatmap.creator_id}?${UTILS.now()}` : undefined);
 				newEmbed.setTimestamp(beatmap.last_update);
 				resolve(newEmbed);
 			}
@@ -900,7 +900,7 @@ module.exports = class EmbedGenerator {
 			//try count #
 			//probably best to run oppai and compare to API result.
 			function step2() {
-				if ((mode === 0 || mode === 1) && (recent_scores[play_index].rank === "F" || !UTILS.exists(recent_scores[play_index].pp) || recent_scores[play_index].pp === 0 || beatmap.approved === 3)) {//calculates specific pp for a recent fail or if the pp isn't one of the user's best scores on a beatmap
+				if ((mode === 0 || mode === 1) && (recent_scores[play_index].rank === "F" || !UTILS.exists(recent_scores[play_index].pp) || recent_scores[play_index].pp === 0 || beatmap.approved === 4 || beatmap.approved === 3)) {//calculates specific pp for a recent fail or if the pp isn't one of the user's best scores on a beatmap
 					recent_scores[play_index].pp_valid = false;
 					ppCalculator(CONFIG.BEATMAP_CACHE_LOCATION + beatmap.beatmap_id + ".osu", mode, {
 						mods: recent_scores[play_index].enabled_mods,
