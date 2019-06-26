@@ -197,6 +197,7 @@ function ppCalculator(pathToOsu, mode, options) {
 			if (UTILS.exists(options.combo)) args.push(options.combo + "x");
 			child_process.execFile("../oppai", args, { timeout: 2500 }, (err, stdout, stderr) => {
 				try {
+					UTILS.debug("PP Calculator, specific score output:");
 					UTILS.debug(stdout);
 					let oo = JSON.parse(stdout);//oppai object
 					if (err) return reject(err);
