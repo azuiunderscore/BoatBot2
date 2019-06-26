@@ -351,7 +351,7 @@ module.exports = class LOLAPI {
 						if (latest > new Date().getTime() - 90000) {
 							UTILS.debug("latest play is valid");
 							if (latest_index != -1) {
-								resolve(latest_index);
+								resolve(parseInt(latest_index));
 							}
 							else {
 								reject();
