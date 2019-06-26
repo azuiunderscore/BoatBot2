@@ -912,7 +912,7 @@ module.exports = class EmbedGenerator {
 						countmiss: recent_scores[play_index].countmiss,
 						combo: recent_scores[play_index].maxcombo,
 						acc: UTILS.calcAcc(mode, recent_scores[play_index]),
-						end: beatmap.object_count
+						end: recent_scores[play_index].count300 + recent_scores[play_index].count100 + recent_scores[play_index].count50 + recent_scores[play_index].countmiss
 					}).then(pp => {
 						recent_scores[play_index].pp = pp;
 						if (recent_scores[play_index].rank === "F") recent_scores[play_index].progress = (recent_scores[play_index].count300 + recent_scores[play_index].count100 + recent_scores[play_index].count50 + recent_scores[play_index].countmiss) / beatmap.object_count;
