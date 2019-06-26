@@ -475,7 +475,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			}
 			if (UTILS.exists(id)) {
 				lolapi.osuBeatmap(id, "b", null, CONFIG.API_MAXAGE.BEATMAP_AUTO.GET_BEATMAP).then(beatmapset => {
-					lolapi.osuBeatmapFile(beatmapset[0].beatmap_id, beatmapset[0].last_updated.getTime(), CONFIG.API_MAXAGE.BEATMAP_AUTO.OSU_FILE).then(osu_file => {
+					lolapi.osuBeatmapFile(beatmapset[0].beatmap_id, beatmapset[0].last_update.getTime(), CONFIG.API_MAXAGE.BEATMAP_AUTO.OSU_FILE).then(osu_file => {
 						textgenerator.oppai(CONFIG.BEATMAP_CACHE_LOCATION + beatmapset[0].beatmap_id + ".osu", parameter).then(a => reply("```" + a + "```")).catch(a => reply("```" + a + "```"));
 					}).catch(console.error);
 				}).catch(console.error);
