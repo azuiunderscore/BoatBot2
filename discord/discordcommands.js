@@ -522,7 +522,9 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 						let leaderboard = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE)];
 						let user_scores = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE_USER)];
 						let user_stats = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER)];
-						embedgenerator.recent(CONFIG, mode, 0, recent_plays, beatmap, leaderboard, user_scores, user_best, user_stats).then(replyEmbed).catch(console.error);
+						embedgenerator.recent(CONFIG, mode, 0, recent_plays, beatmap, leaderboard, user_scores, user_best, user_stats).then(embeds => {
+							replyEmbed([{r: embeds.full, t: 0}, {r: embeds.compact, t: 30000}]);
+						}).catch(console.error);
 					}).catch(console.error);
 				}).catch(console.error);
 			}).catch(console.error);

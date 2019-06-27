@@ -859,7 +859,6 @@ module.exports = class EmbedGenerator {
 	}
 	recent(CONFIG, mode, play_index = 0, recent_scores, beatmap, leaderboard, user_scores, user_best, user_stats) {
 		let that = this;
-		let newEmbed = new Discord.RichEmbed();
 		recent_scores[play_index].best_play_index = UTILS.scoreIsUserTop100(recent_scores[play_index], user_best);//0-indexed
 		recent_scores[play_index].leaderboard_index = UTILS.scoreIsUserTop100(recent_scores[play_index], leaderboard);
 		const user_play_index = UTILS.scoreIsUserTop100(recent_scores[play_index], user_scores);
@@ -1004,17 +1003,25 @@ module.exports = class EmbedGenerator {
 				}
 				newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}${dpp}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, `https://a.ppy.sh/${user.user_id}?${UTILS.now()}`, `https://osu.ppy.sh/u/${user.user_id}`);
 				newEmbed.setTitle(`${beatmap_embed.title} [${beatmap.version}]`);
+				newEmbed.setTimestamp(beatmap_embed.timestamp);
 				if (score.best_play_index !== -1) {//if is best play, set embed color and description
 					newEmbed.setColor([255 * ((99 - score.best_play_index) / 99), 255 * ((99 - score.best_play_index) / 99), 0]);
 					newEmbed.setDescription(`**__Personal Best #${score.best_play_index + 1}!__**`);//personal best indicator
 				}
 				else newEmbed.setColor(["#ffffff", "#ff0000", "#00ff00", "#0000ff"][beatmap.mode]);//otherwise, set color based on mode
-				newEmbed.addField(`Rank+Mods${TAB}Score${TAB}${TAB}Acc.${TAB}When`, `${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)}${CONFIG.EMOJIS[score.rank]}${score.rank ==="F" && score.progress !== -1 ? ` ${(score.progress * 100).round()}%` : ""} ${score.enabled_mods !== 0 ? getMods(score.enabled_mods) : ""}${score.leaderboard_index !== -1 ? ` **__r#${score.leaderboard_index + 1}__**` : ""} ${UTILS.numberWithCommas(score.score)} (${UTILS.calcAcc(beatmap.mode, score)}%) ${UTILS.ago(score.date)}`);
-				newEmbed.addField(`pp/PP${TAB}${TAB}${TAB}${TAB}${TAB}${TAB}Combo${TAB}${TAB}${TAB}${TAB}Hits`, `**${score.pp_valid ? `${score.pp.round(2)}pp` : `~~${score.pp.round(2)}pp~~`}**${score.max_pp_valid ? `/${score.max_pp.round(2)}PP` : `${score.max_pp === 0 ? TAB : `~~/${score.max_pp.round(2)}PP~~`}`} ${score.maxcombo}x${beatmap.max_combo !== 0 ? `/${beatmap.max_combo}X` : ""}${beatmap.mode === 3 ? " " : TAB}{${beatmap.mode === 3 ? ` ${score.countgeki}/${score.count300}/${score.countkatu}/${score.count100}/${score.count50}/${score.countmiss}` : ` ${score.count300} / ${score.count100} / ${score.count50} / ${score.countmiss} `}}`);
-				newEmbed.addField(`Beatmap Information`, beatmap_embed.fields[0].value);//add beatmap embed info
+				const pcl_str = `**${score.pp_valid ? `${score.pp.round(2)}pp` : `~~${score.pp.round(2)}pp~~`}**${score.max_pp_valid ? `/${score.max_pp.round(2)}PP` : `${score.max_pp === 0 ? TAB : `~~/${score.max_pp.round(2)}PP~~`}`} ${score.maxcombo}x${beatmap.max_combo !== 0 ? `/${beatmap.max_combo}X` : ""}${beatmap.mode === 3 ? " " : TAB}{${beatmap.mode === 3 ? ` ${score.countgeki}/${score.count300}/${score.countkatu}/${score.count100}/${score.count50}/${score.countmiss}` : ` ${score.count300} / ${score.count100} / ${score.count50} / ${score.countmiss} `}}`;//pp combo line string
+
+				//compact scorecard
+				let compact = new Discord.RichEmbed(UTILS.embedRaw(newEmbed));
+				compact.addField(`${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)}${CONFIG.EMOJIS[score.rank]}${score.rank ==="F" && score.progress !== -1 ? ` ${(score.progress * 100).round()}%` : ""} ${score.enabled_mods !== 0 ? getMods(score.enabled_mods) : ""}${score.leaderboard_index !== -1 ? ` **__r#${score.leaderboard_index + 1}__**` : TAB} ${UTILS.numberWithCommas(score.score)}${TAB}(${UTILS.calcAcc(beatmap.mode, score)}%)${TAB}${UTILS.ago(score.date)}`, pcl_str);
+
+				//full scorecard
 				newEmbed.setFooter(beatmap_embed.footer.text, beatmap_embed.footer.icon_url);
-				newEmbed.setTimestamp(beatmap_embed.timestamp);
-				resolve(newEmbed);
+				newEmbed.addField(`Rank+Mods${TAB}Score${TAB}${TAB}Acc.${TAB}When`, `${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)}${CONFIG.EMOJIS[score.rank]}${score.rank ==="F" && score.progress !== -1 ? ` ${(score.progress * 100).round()}%` : ""} ${score.enabled_mods !== 0 ? getMods(score.enabled_mods) : ""}${score.leaderboard_index !== -1 ? ` **__r#${score.leaderboard_index + 1}__**` : ""} ${UTILS.numberWithCommas(score.score)} (${UTILS.calcAcc(beatmap.mode, score)}%) ${UTILS.ago(score.date)}`);
+				newEmbed.addField(`pp/PP${TAB}${TAB}${TAB}${TAB}${TAB}${TAB}Combo${TAB}${TAB}${TAB}${TAB}Hits`, pcl_str);
+				newEmbed.addField(`Beatmap Information`, beatmap_embed.fields[0].value);//add beatmap embed info
+
+				resolve({ full: newEmbed, compact });
 			}).catch(reject);
 		});
 	}
