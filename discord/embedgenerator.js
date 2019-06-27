@@ -793,7 +793,7 @@ module.exports = class EmbedGenerator {
 				let calculations = Promise.all(accs.map(acc => maxPPCalculator(CONFIG.BEATMAP_CACHE_LOCATION + beatmap.beatmap_id + ".osu", beatmap.mode, { mods: mods.value, acc })));
 				calculations.then(results => {
 					ppstring = "\n" + results.map((oo, i) => accs[i] + "%: " + oo.pp.round(0) + "pp").join(" | ");
-					if (isNaN(beatmap.max_combo)) beatmap.max_combo = results[0].max_combo;
+					if (isNaN(beatmap.max_combo) || beatmap.max_combo === 0) beatmap.max_combo = results[0].max_combo;
 					step2(results[0]);
 				}).catch(e => {
 					console.error(e);
@@ -889,7 +889,7 @@ module.exports = class EmbedGenerator {
 					if (beatmap.approved <= 0 || beatmap.approved >= 3) recent_scores[play_index].max_pp_valid = false;
 					else recent_scores[play_index].max_pp_valid = true;
 					beatmap.object_count = results.num_circles + results.num_sliders + results.num_spinners;
-					if (isNaN(beatmap.max_combo)) beatmap.max_combo = results.max_combo;
+					if (beatmap.max_combo === 0) beatmap.max_combo = results.max_combo;
 					step2();
 				}).catch(e => {
 					console.error(e);
