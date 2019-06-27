@@ -1013,7 +1013,7 @@ module.exports = class EmbedGenerator {
 
 				//compact scorecard
 				let compact = new Discord.RichEmbed(UTILS.embedRaw(newEmbed));
-				compact.addField(`${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)}${CONFIG.EMOJIS[score.rank]}${score.rank ==="F" && score.progress !== -1 ? ` ${(score.progress * 100).round()}%` : ""} ${score.enabled_mods !== 0 ? getMods(score.enabled_mods) : ""}${score.leaderboard_index !== -1 ? ` **__r#${score.leaderboard_index + 1}__**` : TAB} ${UTILS.numberWithCommas(score.score)}${TAB}(${UTILS.calcAcc(beatmap.mode, score)}%)${TAB}${UTILS.ago(score.date)}`, pcl_str);
+				compact.addField(`${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)}${CONFIG.EMOJIS[score.rank]}${score.rank ==="F" && score.progress !== -1 ? `${UTILS.pickCircle(score.progress)}` : ""} ${score.enabled_mods !== 0 ? getMods(score.enabled_mods) : ""}${score.leaderboard_index !== -1 ? ` **__r#${score.leaderboard_index + 1}__**` : TAB} ${UTILS.numberWithCommas(score.score)}${TAB}(${UTILS.calcAcc(beatmap.mode, score)}%)${TAB}${UTILS.ago(score.date)}`, pcl_str);
 
 				//full scorecard
 				newEmbed.setFooter(beatmap_embed.footer.text, beatmap_embed.footer.icon_url);
