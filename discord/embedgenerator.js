@@ -793,6 +793,7 @@ module.exports = class EmbedGenerator {
 				let calculations = Promise.all(accs.map(acc => maxPPCalculator(CONFIG.BEATMAP_CACHE_LOCATION + beatmap.beatmap_id + ".osu", beatmap.mode, { mods: mods.value, acc })));
 				calculations.then(results => {
 					ppstring = "\n" + results.map((oo, i) => accs[i] + "%: " + oo.pp.round(0) + "pp").join(" | ");
+					if (isNaN(beatmap.max_combo)) beatmap.max_combo = results[0].max_combo;
 					step2(results[0]);
 				}).catch(e => {
 					console.error(e);
@@ -876,7 +877,7 @@ module.exports = class EmbedGenerator {
 			recent_scores[play_index].pp = user_best[recent_scores[play_index].best_play_index].pp;
 			recent_scores[play_index].pp_valid = true;
 		}
-		if (!UTILS.exists(beatmap.max_combo)) beatmap.max_combo = 0;
+		if (!UTILS.exists(beatmap.max_combo) || isNaN(beatmap.max_combo)) beatmap.max_combo = 0;
 		user_stats.pp_delta = 0;//hardcoded for now, intended to be used with score tracking
 		return new Promise((resolve, reject) => {//calculates max pp
 			UTILS.inspect("mode", !mode);
@@ -888,6 +889,7 @@ module.exports = class EmbedGenerator {
 					if (beatmap.approved <= 0 || beatmap.approved >= 3) recent_scores[play_index].max_pp_valid = false;
 					else recent_scores[play_index].max_pp_valid = true;
 					beatmap.object_count = results.num_circles + results.num_sliders + results.num_spinners;
+					if (isNaN(beatmap.max_combo)) beatmap.max_combo = results.max_combo;
 					step2();
 				}).catch(e => {
 					console.error(e);
@@ -986,15 +988,9 @@ module.exports = class EmbedGenerator {
 			rank: "string",
 			progress: "number"//float, 1 if pass, between 0-1 if rank is "F", -1 if progress unavailable
 		};
-		for (let b in user_format) {
-			UTILS.assert(typeof(user[b]) === user_format[b], `user[${b}] expects ${user_format[b]} but is type ${typeof(user[b])} with value ${user[b]}`);
-		}
-		for (let b in beatmap_format) {
-			UTILS.assert(typeof(beatmap[b]) === beatmap_format[b], `beatmap[${b}] expects ${beatmap_format[b]} but is type ${typeof(beatmap[b])} with value ${beatmap[b]}`);
-		}
-		for (let b in score_format) {
-			UTILS.assert(typeof(score[b]) === score_format[b], `score[${b}] expects ${score_format[b]} but is type ${typeof(score[b])} with value ${score[b]}`);
-		}
+		for (let b in user_format) UTILS.assert(typeof(user[b]) === user_format[b], `user[${b}] expects ${user_format[b]} but is type ${typeof(user[b])} with value ${user[b]}`);
+		for (let b in beatmap_format) UTILS.assert(typeof(beatmap[b]) === beatmap_format[b], `beatmap[${b}] expects ${beatmap_format[b]} but is type ${typeof(beatmap[b])} with value ${beatmap[b]}`);
+		for (let b in score_format) UTILS.assert(typeof(score[b]) === score_format[b], `score[${b}] expects ${score_format[b]} but is type ${typeof(score[b])} with value ${score[b]}`);
 		return new Promise((resolve, reject) => {
 			this.beatmap(CONFIG, beatmap, [beatmap], { creator: beatmap.creator, creator_id: beatmap.creator_id }, getMods(score.enabled_mods), beatmap.mode, true).then(beatmap_embed => {
 				beatmap_embed = UTILS.embedRaw(beatmap_embed);
@@ -1008,25 +1004,11 @@ module.exports = class EmbedGenerator {
 				}
 				newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}${dpp}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, `https://a.ppy.sh/${user.user_id}?${UTILS.now()}`, `https://osu.ppy.sh/u/${user.user_id}`);
 				newEmbed.setTitle(`${beatmap_embed.title} [${beatmap.version}]`);
-				if (score.best_play_index !== -1) {//set embed color
+				if (score.best_play_index !== -1) {//if is best play, set embed color and description
 					newEmbed.setColor([255 * ((99 - score.best_play_index) / 99), 255 * ((99 - score.best_play_index) / 99), 0]);
 					newEmbed.setDescription(`**__Personal Best #${score.best_play_index + 1}!__**`);//personal best indicator
 				}
-				else switch (beatmap.mode) {
-					case 0:
-						newEmbed.setColor("#ffffff");
-						break;
-					case 1:
-						newEmbed.setColor("#ff0000");
-						break;
-					case 2:
-						newEmbed.setColor("#00ff00");
-						break;
-					case 3:
-						newEmbed.setColor("#0000ff");
-						break;
-					default://do nothing
-				}
+				else newEmbed.setColor(["#ffffff", "#ff0000", "#00ff00", "#0000ff"][beatmap.mode]);//otherwise, set color based on mode
 				newEmbed.addField(`Rank+Mods${TAB}Score${TAB}${TAB}Acc.${TAB}When`, `${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)}${CONFIG.EMOJIS[score.rank]}${score.rank ==="F" && score.progress !== -1 ? ` ${(score.progress * 100).round()}%` : ""} ${score.enabled_mods !== 0 ? getMods(score.enabled_mods) : ""}${score.leaderboard_index !== -1 ? ` **__r#${score.leaderboard_index + 1}__**` : ""} ${UTILS.numberWithCommas(score.score)} (${UTILS.calcAcc(beatmap.mode, score)}%) ${UTILS.ago(score.date)}`);
 				newEmbed.addField(`pp/PP${TAB}${TAB}${TAB}${TAB}${TAB}${TAB}Combo${TAB}${TAB}${TAB}${TAB}Hits`, `**${score.pp_valid ? `${score.pp.round(2)}pp` : `~~${score.pp.round(2)}pp~~`}**${score.max_pp_valid ? `/${score.max_pp.round(2)}PP` : `${score.max_pp === 0 ? TAB : `~~/${score.max_pp.round(2)}PP~~`}`} ${score.maxcombo}x${beatmap.max_combo !== 0 ? `/${beatmap.max_combo}X` : ""}${beatmap.mode === 3 ? " " : TAB}{${beatmap.mode === 3 ? ` ${score.countgeki}/${score.count300}/${score.countkatu}/${score.count100}/${score.count50}/${score.countmiss}` : ` ${score.count300} / ${score.count100} / ${score.count50} / ${score.countmiss} `}}`);
 				newEmbed.addField(`Beatmap Information`, beatmap_embed.fields[0].value);//add beatmap embed info
