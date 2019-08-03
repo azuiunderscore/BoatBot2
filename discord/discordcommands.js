@@ -524,14 +524,14 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 						let user_stats = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER)];
 						embedgenerator.recent(CONFIG, mode, 0, recent_plays, beatmap, leaderboard, user_scores, user_best, user_stats).then(embeds => {
 							let s;//try count string
-							if (preferences.get("replaycount")) s = `Try #${UTILS.tryCount(recent_plays, recent_plays[0])}`;
+							if (preferences.get("replaycount")) s = `Try #${UTILS.tryCount(recent_plays, 0)}`;
 							const p_scm = preferences.get("scorecardmode");
-							if (p_scm === SCM_REDUCED) {
+							if (p_scm === CONFIG.CONSTANTS.SCM_REDUCED) {
 								replyEmbed([{ r: embeds.full, t: 0, s },
 								{ r: embeds.compact, t: 60000, s }]);
 							}
-							else if (p_scm === preferences.get("scorecardmode") == SCM_FULL) replyEmbed([{ r: embeds.full, t: 0, s }]);
-							else if (p_scm === preferences.get("") == SCM_COMPACT) replyEmbed([{ r: embeds.compact, t: 0, s }]);
+							else if (p_scm === CONFIG.CONSTANTS.SCM_FULL) replyEmbed([{ r: embeds.full, t: 0, s }]);
+							else if (p_scm === CONFIG.CONSTANTS.SCM_COMPACT) replyEmbed([{ r: embeds.compact, t: 0, s }]);
 							else {
 								replyEmbed([{ r: embeds.full, t: 0, s },
 									{ r: embeds.compact, t: 60000, s }]);
