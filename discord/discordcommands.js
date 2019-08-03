@@ -523,7 +523,20 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 						let user_scores = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE_USER)];
 						let user_stats = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER)];
 						embedgenerator.recent(CONFIG, mode, 0, recent_plays, beatmap, leaderboard, user_scores, user_best, user_stats).then(embeds => {
-							replyEmbed([{r: embeds.full, t: 0}, {r: embeds.compact, t: 30000}]);
+							let s;//try count string
+							if (preferences.get("replaycount")) s = `Try #${UTILS.tryCount(recent_plays, recent_plays[0])}`;
+							const p_scm = preferences.get("scorecardmode");
+							if (p_scm === SCM_REDUCED) {
+								replyEmbed([{ r: embeds.full, t: 0, s },
+								{ r: embeds.compact, t: 60000, s }]);
+							}
+							else if (p_scm === preferences.get("scorecardmode") == SCM_FULL) replyEmbed([{ r: embeds.full, t: 0, s }]);
+							else if (p_scm === preferences.get("") == SCM_COMPACT) replyEmbed([{ r: embeds.compact, t: 0, s }]);
+							else {
+								replyEmbed([{ r: embeds.full, t: 0, s },
+									{ r: embeds.compact, t: 60000, s }]);
+								throw new Error("SCM not recognized: " + p_scm);
+							}
 						}).catch(console.error);
 					}).catch(console.error);
 				}).catch(console.error);
@@ -1015,14 +1028,14 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			reply(":x: I cannot respond to your request without the \"embed links\" permission.");
 		}
 		else {//has permission to embed links, or is a DM/PM
-			if (Array.isArray(reply_embed)) {//[{r: embed_object, t: 0}, {}]
+			if (Array.isArray(reply_embed)) {//[{r: embed_object, t: 0, s: "string"}, {}]
 				printMessage("reply embedded (" + (new Date().getTime() - msg_receive_time) + "ms)\n");
 				lolapi.terminate(msg, ACCESS_LEVEL, undefined, reply_embed[0].r);
-				msg.channel.send("", { embed: reply_embed[0].r }).then((nMsg) => {
+				msg.channel.send(UTILS.exists(reply_embed[0].s) ? reply_embed[0].s : "", { embed: reply_embed[0].r }).then((nMsg) => {
 					if (UTILS.exists(callback)) callback(nMsg);
 					for (let i = 1; i < reply_embed.length; ++i) {
 						setTimeout(() => {
-							nMsg.edit("", { embed: reply_embed[i].r }).catch(e => UTILS.debug(e));
+							nMsg.edit(UTILS.exists(reply_embed[i].s) ? reply_embed[i].s : "", { embed: reply_embed[i].r }).catch(e => UTILS.debug(e));
 						}, reply_embed[i].t);
 					}
 				}).catch((e) => {

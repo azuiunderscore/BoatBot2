@@ -819,4 +819,15 @@ module.exports = class UTILS {
 			this.output(`${name} is type ${typeof(object)} with value ${object}`);
 		}
 	}
+	tryCount(recents, score) {
+		let trycount = 1;
+		const beatmapid = score.beatmap_id;
+		const mods = score.enabled_mods;
+		for (let i = previous; i < recents.length; ++i) {//start 1 off
+			if (recents[i].beatmap_id == beatmapid && recents[i].enabled_mods == mods) {
+				++trycount;
+			}
+		}
+		return trycount;
+	}
 }
