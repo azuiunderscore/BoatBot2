@@ -644,20 +644,26 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				restart();
 			}
 		});*/
+		command([preferences.get("prefix") + "retrycounter on", preferences.get("prefix") + "retrycount on", preferences.get("prefix") + "trycounter on", preferences.get("prefix") + "trycount on", preferences.get("prefix") + "playcounter on", preferences.get("prefix") + "playcount on", preferences.get("prefix") + "retrycounter off", preferences.get("prefix") + "retrycount off", preferences.get("prefix") + "trycounter off", preferences.get("prefix") + "trycount off", preferences.get("prefix") + "playcounter off", preferences.get("prefix") + "playcount off"], false, CONFIG.CONSTANTS.MODERATORS, (original, index) => {
+			const new_setting = index >= 6;
+			preferences.set("replaycount", new_setting).then(() => {
+				reply(":white_check_mark" + (new_setting ? "BoatBot will require prefixes on all osu commands." : "BoatBot will not require prefixes on all LoL commands."));
+			}).catch(reply);
+		});
 		command([preferences.get("prefix") + "setting force-prefix on", preferences.get("prefix") + "setting force-prefix off"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
-			const new_setting = index === 0 ? true : false;
+			const new_setting = index === 0;//unoptimized
 			preferences.set("force_prefix", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will require prefixes on all osu commands." : "BoatBot will not require prefixes on all LoL commands."))).catch(reply);
 		});
 		command([preferences.get("prefix") + "setting release-notifications on", preferences.get("prefix") + "setting release-notifications off"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
-			const new_setting = index === 0 ? true : false;
+			const new_setting = index === 0;//unoptimized
 			preferences.set("release_notifications", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will show new release notifications." : "BoatBot will not show new release notifications."))).catch(reply);
 		});
 		command([preferences.get("prefix") + "setting abi on", preferences.get("prefix") + "setting abi off"], false, CONFIG.CONSTANTS.MODERATORS, (original, index) => {
-			const new_setting = index === 0 ? true : false;
+			const new_setting = index === 0;//unoptimized
 			preferences.set("abi", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will show beatmap information when a beatmap link is posted." : "BoatBot will not show beatmap information when a beatmap link is posted."))).catch(reply);
 		});
 		command([preferences.get("prefix") + "setting global-feedback on", preferences.get("prefix") + "setting global-feedback off"], false, CONFIG.CONSTANTS.MODERATORS, (original, index) => {
-			const new_setting = index === 0 ? true : false;
+			const new_setting = index === 0;
 			preferences.set("feedback_enabled", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will allow the use of global feedback commands in this server." : "BoatBot will not allow the use of global feedback commands in this server."))).catch(reply);
 		});
 
