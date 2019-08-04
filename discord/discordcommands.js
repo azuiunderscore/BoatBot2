@@ -644,6 +644,24 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				restart();
 			}
 		});*/
+		command([preferences.get("prefix") + "scm compact", preferences.get("prefix") + "scm reduced", preferences.get("prefix") + "scm full"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
+			const new_setting = index;
+			preferences.set("scorecardmode", new_setting).then(() => {
+				switch (new_setting) {
+					case CONFIG.CONSTANTS.SCM_COMPACT:
+						reply(":white_check_mark: Scorecards will show abridged information.");
+						break;
+					case CONFIG.CONSTANTS.SCM_REDUCED:
+						reply(":white_check_mark: Scorecards will show detailed information for 1 minute, then collapse.");
+						break;
+					case CONFIG.CONSTANTS.SCM_FULL:
+						reply(":white_check_mark: Scorecards will show detailed information.");
+						break;
+					default:
+						reply(":x: An error has occurred while setting the scorecard mode.");
+				}
+			}).catch(reply);
+		});
 		command([preferences.get("prefix") + "retrycounter on", preferences.get("prefix") + "retrycount on", preferences.get("prefix") + "trycounter on", preferences.get("prefix") + "trycount on", preferences.get("prefix") + "playcounter on", preferences.get("prefix") + "playcount on", preferences.get("prefix") + "retrycounter off", preferences.get("prefix") + "retrycount off", preferences.get("prefix") + "trycounter off", preferences.get("prefix") + "trycount off", preferences.get("prefix") + "playcounter off", preferences.get("prefix") + "playcount off"], false, CONFIG.CONSTANTS.MODERATORS, (original, index) => {
 			const new_setting = index >= 6;
 			preferences.set("replaycount", new_setting).then(() => {
