@@ -651,15 +651,15 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			}).catch(reply);
 		});
 		command([preferences.get("prefix") + "setting force-prefix on", preferences.get("prefix") + "setting force-prefix off"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
-			const new_setting = index === 0;//unoptimized
+			const new_setting = index === 0;
 			preferences.set("force_prefix", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will require prefixes on all osu commands." : "BoatBot will not require prefixes on all LoL commands."))).catch(reply);
 		});
 		command([preferences.get("prefix") + "setting release-notifications on", preferences.get("prefix") + "setting release-notifications off"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
-			const new_setting = index === 0;//unoptimized
+			const new_setting = index === 0;
 			preferences.set("release_notifications", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will show new release notifications." : "BoatBot will not show new release notifications."))).catch(reply);
 		});
 		command([preferences.get("prefix") + "setting abi on", preferences.get("prefix") + "setting abi off"], false, CONFIG.CONSTANTS.MODERATORS, (original, index) => {
-			const new_setting = index === 0;//unoptimized
+			const new_setting = index === 0;
 			preferences.set("abi", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will show beatmap information when a beatmap link is posted." : "BoatBot will not show beatmap information when a beatmap link is posted."))).catch(reply);
 		});
 		command([preferences.get("prefix") + "setting global-feedback on", preferences.get("prefix") + "setting global-feedback off"], false, CONFIG.CONSTANTS.MODERATORS, (original, index) => {
