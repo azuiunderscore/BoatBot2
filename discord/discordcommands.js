@@ -663,11 +663,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			}).catch(reply);
 		});
 		command([preferences.get("prefix") + "retrycounter on", preferences.get("prefix") + "retrycount on", preferences.get("prefix") + "trycounter on", preferences.get("prefix") + "trycount on", preferences.get("prefix") + "playcounter on", preferences.get("prefix") + "playcount on", preferences.get("prefix") + "retrycounter off", preferences.get("prefix") + "retrycount off", preferences.get("prefix") + "trycounter off", preferences.get("prefix") + "trycount off", preferences.get("prefix") + "playcounter off", preferences.get("prefix") + "playcount off"], false, CONFIG.CONSTANTS.MODERATORS, (original, index) => {
-			const new_setting = index >= 6;
+			const new_setting = index < 6;
 			preferences.set("replaycount", new_setting).then(() => {
-				reply(":white_check_mark" + (new_setting ? "BoatBot will require prefixes on all osu commands." : "BoatBot will not require prefixes on all LoL commands."));
+				reply(":white_check_mark: " + (new_setting ? "The try counter has been turned on." : "The try counter has been turned off."));
 			}).catch(reply);
 		});
+		/*
 		command([preferences.get("prefix") + "setting force-prefix on", preferences.get("prefix") + "setting force-prefix off"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
 			const new_setting = index === 0;
 			preferences.set("force_prefix", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will require prefixes on all osu commands." : "BoatBot will not require prefixes on all osu commands."))).catch(reply);
