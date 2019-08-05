@@ -444,7 +444,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		});
 	});
 	command(usePrefix(["about", "credits", "acknowledgements", "contributors", "contributions"]), false, false, (original, index) => reply(CONFIG.ACKNOWLEDGEMENTS));
-	commandGuessUsername([preferences.get("prefix") + "osusignature", preferences.get("prefix") + "osusign", preferences.get("prefix") + "osusig"], false, (index, id, user, parameter) => {
+	commandGuessUsername(usePrefix(["osusignature", "osusign", "osusig"]), false, (index, id, user, parameter) => {
 		lolapi.osuMostRecentMode(user, id, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER_RECENT).then(mrm => {
 			lolapi.osuGetUser(user, mrm, id, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
 				replyEmbed(embedgenerator.signature(CONFIG, mrm, user_stats));
@@ -654,7 +654,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				newLink(url);
 			});
 		}
-		command([preferences.get("prefix") + "beatmapinfo", preferences.get("prefix") + "binfo"], true, false, (original, index, parameter) => {
+		command(usePrefix(["beatmapinfo", "binfo"]), true, false, (original, index, parameter) => {
 			msg.channel.fetchMessages({ limit: 50 }).then(msgs => {
 				msgs = msgs.array();
 				for (let i = 0; i < msgs.length; ++i) {
