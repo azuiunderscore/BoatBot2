@@ -546,6 +546,69 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			reply(":x: This user has no recent plays.");
 		});
 	});
+	/*
+	commandGuessUsernameNumber([preferences.get("prefix") + "recentstandard", preferences.get("prefix") + "recentstd", preferences.get("prefix") + "rstandard", preferences.get("prefix") + "rstd", preferences.get("prefix") + "rs", preferences.get("prefix") + "recenttaiko", preferences.get("prefix") + "rtaiko", preferences.get("prefix") + "rt", preferences.get("prefix") + "recentctb", preferences.get("prefix") + "rctb", preferences.get("prefix") + "rc", preferences.get("prefix") + "recentmania", preferences.get("prefix") + "rmania", preferences.get("prefix") + "rm"], false, (index, id, user, number, guess_method)=> {//this doesn't support play #s
+		request_profiler.begin("mode_detect");
+		let mode;
+		if (index < 6) mode = 0;
+		else if (index < 9) mode = 1;
+		else if (index < 12) mode = 2;
+		else mode = 3;
+		if (number > 50 || number < 1) return reply(":x: Number out of range 1-50.");
+		--number;
+		request_profiler.end("mode_detect");
+		request_profiler.begin("user_recent");
+		lolapi.osuGetUserRecent(user, mode, undefined, id, CONFIG.API_MAXAGE.RECENT.GET_USER_RECENT).then(recent_plays => {
+			request_profiler.end("user_recent");
+			request_profiler.begin("beatmap");
+			lolapi.osuBeatmap(recent_plays[number].beatmap_id, "b", mode, CONFIG.API_MAXAGE.RECENT.GET_BEATMAP).then(beatmap => {
+				beatmap = beatmap[number];
+				request_profiler.end("beatmap");
+				request_profiler.begin("dynamic");
+				let jobs = [];
+				let jobtype = [];
+				jobs.push(lolapi.osuBeatmapFile(beatmap.beatmap_id, beatmap.last_update.getTime(), CONFIG.API_MAXAGE.RECENT.OSU_FILE));//just ensures that a copy of the beatmap file is present in the cache directory
+				jobtype.push(CONFIG.CONSTANTS.OSU_FILE);
+				if (beatmap.approved === 1 || beatmap.approved === 2) {//ranked or approved (possible top pp change)
+					jobs.push(lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.RECENT.GET_USER_BEST));//get user best
+					jobtype.push(CONFIG.CONSTANTS.USER_BEST);
+				}
+				if (beatmap.approved > 0) {//leaderboarded score (check beatmap leaderboards)
+					jobs.push(lolapi.osuScore(mode, recent_plays[number].beatmap_id, CONFIG.API_MAXAGE.RECENT.GET_SCORE));
+					jobtype.push(CONFIG.CONSTANTS.SCORE);//leaderboard
+					jobs.push(lolapi.osuScoreUser(user, id, mode, recent_plays[number].beatmap_id, CONFIG.API_MAXAGE.RECENT.GET_SCORE_USER));
+					jobtype.push(CONFIG.CONSTANTS.SCORE_USER);
+				}
+				jobs.push(lolapi.osuGetUserTyped(user, mode, id, CONFIG.API_MAXAGE.RECENT.GET_USER));
+				jobtype.push(CONFIG.CONSTANTS.USER);
+				Promise.all(jobs).then(jra => {//job result array
+					request_profiler.end("dynamic");
+					UTILS.debug("\n" + ctable.getTable(request_profiler.endAllCtable()));
+					let user_best = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER_BEST)];
+					let leaderboard = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE)];
+					let user_scores = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE_USER)];
+					let user_stats = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER)];
+					embedgenerator.recent(CONFIG, mode, number, recent_plays, beatmap, leaderboard, user_scores, user_best, user_stats).then(embeds => {
+						let s;//try count string
+						if (preferences.get("replaycount")) s = `Try #${UTILS.tryCount(recent_plays, number)}`;
+						const p_scm = preferences.get("scorecardmode");
+						if (p_scm === CONFIG.CONSTANTS.SCM_REDUCED) {
+							replyEmbed([{ r: embeds.full, t: 0, s },
+							{ r: embeds.compact, t: 60000, s }]);
+						}
+						else if (p_scm === CONFIG.CONSTANTS.SCM_FULL) replyEmbed([{ r: embeds.full, t: 0, s }]);
+						else if (p_scm === CONFIG.CONSTANTS.SCM_COMPACT) replyEmbed([{ r: embeds.compact, t: 0, s }]);
+						else {
+							replyEmbed([{ r: embeds.full, t: 0, s },
+								{ r: embeds.compact, t: 60000, s }]);
+							throw new Error("SCM not recognized: " + p_scm);
+						}
+					}).catch(console.error);
+				}).catch(console.error);
+			}).catch(console.error);
+		}).catch(console.error);
+	});
+	*/
 	if (true) {//scope limiter for beatmap links
 		let id, type, mode, mod_string, beatmap;
 		if (preferences.get("abi")) {
