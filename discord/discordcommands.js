@@ -661,7 +661,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				for (let i = 0; i < msgs.length; ++i) {
 					if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url)) {
 						if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") !== -1) return newLink(msgs[i].embeds[0].url + parameter);
-						else if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21));
+						else if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21) + parameter);
 					}
 				}
 				reply(":x: Could not find a recent scorecard or beatmap.");
