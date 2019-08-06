@@ -3,13 +3,13 @@ osu! statistics for discord
 alpha testing, forked from supportbot @ iaace-NA/SupportBot
 (c) 2018; source available, all rights reserved
 
-<a href="https://discord.gg/MTqDXvB" target="_blank" rel="noopener"><img src="https://discordapp.com/api/guilds/384552678161645568/embed.png" alt="current users" /></a>
+<a href="https://discord.gg/57Z8Npg" target="_blank" rel="noopener"><img src="https://discordapp.com/api/guilds/270537301749137418/embed.png" alt="current users" /></a>
 ## General Features
 - Per server preferences
   - custom prefixes
   - enable/disable release notifications
   - enable/disable forced prefixes
-  - enable/disable automatic op.gg responses
+  - enable/disable automatic beatmap responses
 - 2500-5000 server (guild) capacity with minimal initial configuration involved
 - Processes
   - 3 shards implemented as separate processes (blocking)
