@@ -838,7 +838,7 @@ module.exports = class EmbedGenerator {
 						beatmap.diff_overall = oo.od.round(2);
 						beatmap.diff_approach = oo.ar.round(2);
 						beatmap.diff_drain = oo.hp.round(2);
-						beatmap.difficultyrating = oo.stars;
+						beatmap.mod_dr = oo.stars;//mod difficulty rating
 					}
 					else {
 						beatmap.diff_size = beatmap.diff_size.round(2);
@@ -847,7 +847,8 @@ module.exports = class EmbedGenerator {
 						beatmap.diff_drain = beatmap.diff_drain.round(2);
 					}
 				}
-				newEmbed.addField(getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim) + " \\[" + beatmap.version + "\\]" + UTILS.fstr(mods.value > 0, " ") + mods.string, "Length: `" + UTILS.standardTimestamp(beatmap.total_length) + "` (`" + UTILS.standardTimestamp(beatmap.hit_length) + "`) BPM: `" + beatmap.bpm + "` FC: `" + beatmap.max_combo + "x`\nCS: `" + beatmap.diff_size + "` AR: `" + beatmap.diff_approach + "` OD: `" + beatmap.diff_overall + "` HP: `" + beatmap.diff_drain + "` Stars: `" + (isNaN(beatmap.difficultyrating) ? beatmap.diff_aim.round(2) : beatmap.difficultyrating.round(2)) + "`" + ppstring + "\nDownload Beatmap: [" + CONFIG.EMOJIS.download + "](https://osu.ppy.sh/d/" + beatmap.beatmapset_id + ") [" + CONFIG.EMOJIS.downloadNV + "](https://osu.ppy.sh/d/" + beatmap.beatmapset_id + "n) [" + CONFIG.EMOJIS.osu_direct + "](https://iaace.gg/od/" + beatmap.beatmap_id + ") [" + CONFIG.EMOJIS.bloodcat + "](https://bloodcat.com/osu/s/" + beatmap.beatmapset_id + ")");
+				const stars = UTILS.exists(beatmap.mod_dr) ? beatmap.mod_dr.round(2) : (isNaN(beatmap.difficultyrating) ? beatmap.diff_aim.round(2) : beatmap.difficultyrating.round(2));
+				newEmbed.addField("\\[" + getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim) + " " + beatmap.version + "\\]" + UTILS.fstr(mods.value > 0, " ") + (UTILS.exists(beatmap.mod_dr) ? getStars(CONFIG, beatmap.mode, beatmap.mod_dr) : "") + mods.string, "Length: `" + UTILS.standardTimestamp(beatmap.total_length) + "` (`" + UTILS.standardTimestamp(beatmap.hit_length) + "`) BPM: `" + beatmap.bpm + "` FC: `" + beatmap.max_combo + "x`\nCS: `" + beatmap.diff_size + "` AR: `" + beatmap.diff_approach + "` OD: `" + beatmap.diff_overall + "` HP: `" + beatmap.diff_drain + "` Stars: `" + stars + "`" + ppstring + "\nDownload Beatmap: [" + CONFIG.EMOJIS.download + "](https://osu.ppy.sh/d/" + beatmap.beatmapset_id + ") [" + CONFIG.EMOJIS.downloadNV + "](https://osu.ppy.sh/d/" + beatmap.beatmapset_id + "n) [" + CONFIG.EMOJIS.osu_direct + "](https://iaace.gg/od/" + beatmap.beatmap_id + ") [" + CONFIG.EMOJIS.bloodcat + "](https://bloodcat.com/osu/s/" + beatmap.beatmapset_id + ")");
 				if (diff_count == 500) newEmbed.addField("This beatmap set has at least " + diff_count + " difficulties.", diffstring);
 				else if (diff_count > 1) newEmbed.addField("This beatmap set has " + diff_count + " difficulties.", diffstring);
 				UTILS.inspect("beatmap.approved", beatmap.approved);
@@ -883,7 +884,6 @@ module.exports = class EmbedGenerator {
 			if (mode === 0 || mode === 1) {
 				maxPPCalculator(CONFIG.BEATMAP_CACHE_LOCATION + beatmap.beatmap_id + ".osu", mode, { mods: recent_scores[play_index].enabled_mods, acc: 100 }).then(results => {
 					UTILS.debug("100% pp calc results:");
-					UTILS.inspect(results);
 					recent_scores[play_index].max_pp = results.pp;
 					if (beatmap.approved <= 0 || beatmap.approved >= 3) recent_scores[play_index].max_pp_valid = false;
 					else recent_scores[play_index].max_pp_valid = true;
@@ -1002,23 +1002,23 @@ module.exports = class EmbedGenerator {
 					else dpp = ` ${user.pp_delta.round(2)}`;
 				}
 				newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}${dpp}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, `https://a.ppy.sh/${user.user_id}?${UTILS.now()}`, `https://osu.ppy.sh/u/${user.user_id}`);
-				newEmbed.setTitle(`${beatmap_embed.title} [${beatmap.version}]`);
+				newEmbed.setTitle(`${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)} ${beatmap_embed.title} [${beatmap.version}]`);
 
 				if (score.best_play_index !== -1) {//if is best play, set embed color and description
 					newEmbed.setColor([255 * ((99 - score.best_play_index) / 99), 255 * ((99 - score.best_play_index) / 99), 0]);
 					newEmbed.setDescription(`**__Personal Best #${score.best_play_index + 1}!__**`);//personal best indicator
 				}
 				else newEmbed.setColor(["#ffffff", "#ff0000", "#00ff00", "#0000ff"][beatmap.mode]);//otherwise, set color based on mode
-				const pcl_str = `**${score.pp_valid ? `${score.pp.round(2)}pp` : `~~${score.pp.round(2)}pp~~`}**${score.max_pp_valid ? `/${score.max_pp.round(2)}PP` : `${score.max_pp === 0 ? TAB : `~~/${score.max_pp.round(2)}PP~~`}`} ${score.maxcombo}x${beatmap.max_combo !== 0 ? `/${beatmap.max_combo}X` : ""}${beatmap.mode === 3 ? " " : TAB}{${beatmap.mode === 3 ? ` ${score.countgeki}/${score.count300}/${score.countkatu}/${score.count100}/${score.count50}/${score.countmiss} ` : ` ${score.count300} / ${score.count100} / ${score.count50} / ${score.countmiss} `}}`;//pp combo line string
+				const pcl_str = `**${score.pp_valid ? `${score.pp.round(2)}pp` : `~~${score.pp.round(2)}pp~~`}**${score.max_pp_valid ? `/${score.max_pp.round(2)}PP` : `${score.max_pp === 0 ? TAB : `~~/${score.max_pp.round(2)}PP~~`}`} **${score.maxcombo}x**${beatmap.max_combo !== 0 ? `/${beatmap.max_combo}X` : ""}${beatmap.mode === 3 ? " " : TAB}{${beatmap.mode === 3 ? ` ${score.countgeki}/${score.count300}/${score.countkatu}/${score.count100}/${score.count50}/${score.countmiss} ` : ` ${score.count300} / ${score.count100} / ${score.count50} / ${score.countmiss} `}}`;//pp combo line string
 
 				//compact scorecard
 				let compact = new Discord.RichEmbed(UTILS.embedRaw(newEmbed));
-				compact.addField(`${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)}${CONFIG.EMOJIS[score.rank]}${score.rank ==="F" && score.progress !== -1 ? `${UTILS.pickCircle(score.progress)}` : ""} ${score.enabled_mods !== 0 ? getMods(score.enabled_mods) : ""}${score.leaderboard_index !== -1 ? ` **__r#${score.leaderboard_index + 1}__**` : TAB} ${UTILS.numberWithCommas(score.score)}${TAB}(${UTILS.calcAcc(beatmap.mode, score)}%)${TAB}${UTILS.ago(score.date)}`, pcl_str);
+				compact.addField(`${UTILS.exists(beatmap.mod_dr) ? getStars(CONFIG, beatmap.mode, beatmap.mod_dr) : ""}${CONFIG.EMOJIS[score.rank]}${score.rank ==="F" && score.progress !== -1 ? `${UTILS.pickCircle(score.progress)}` : ""} ${score.enabled_mods !== 0 ? getMods(score.enabled_mods) : ""}${score.leaderboard_index !== -1 ? ` **__r#${score.leaderboard_index + 1}__**` : TAB} ${UTILS.numberWithCommas(score.score)}${TAB}(${UTILS.calcAcc(beatmap.mode, score)}%)${TAB}${UTILS.ago(score.date)}`, pcl_str);
 
 				//full scorecard
 				newEmbed.setFooter(beatmap_embed.footer.text, beatmap_embed.footer.icon_url);
 				newEmbed.setTimestamp(beatmap_embed.timestamp);
-				newEmbed.addField(`Rank+Mods${TAB}Score${TAB}${TAB}Acc.${TAB}When`, `${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)}${CONFIG.EMOJIS[score.rank]}${score.rank ==="F" && score.progress !== -1 ? ` ${(score.progress * 100).round()}%` : ""} ${score.enabled_mods !== 0 ? getMods(score.enabled_mods) : ""}${score.leaderboard_index !== -1 ? ` **__r#${score.leaderboard_index + 1}__**` : ""} ${UTILS.numberWithCommas(score.score)} (${UTILS.calcAcc(beatmap.mode, score)}%) ${UTILS.ago(score.date)}`);
+				newEmbed.addField(`Rank+Mods${TAB}Score${TAB}${TAB}Acc.${TAB}When`, `${UTILS.exists(beatmap.mod_dr) ? getStars(CONFIG, beatmap.mode, beatmap.mod_dr) : ""}${CONFIG.EMOJIS[score.rank]}${score.rank ==="F" && score.progress !== -1 ? ` ${(score.progress * 100).round()}%` : ""} ${score.enabled_mods !== 0 ? getMods(score.enabled_mods) : ""}${score.leaderboard_index !== -1 ? ` **__r#${score.leaderboard_index + 1}__**` : ""} ${UTILS.numberWithCommas(score.score)} (${UTILS.calcAcc(beatmap.mode, score)}%) ${UTILS.ago(score.date)}`);
 				newEmbed.addField(`pp/PP${TAB}${TAB}${TAB}${TAB}${TAB}${TAB}Combo${TAB}${TAB}${TAB}${TAB}Hits`, pcl_str);
 				newEmbed.addField(`Beatmap Information`, beatmap_embed.fields[0].value);//add beatmap embed info
 
