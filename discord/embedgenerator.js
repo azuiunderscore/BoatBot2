@@ -1026,4 +1026,84 @@ module.exports = class EmbedGenerator {
 			}).catch(reject);
 		});
 	}
+	matchRequest(match_object, user_object, beatmap_object) {
+		let newEmbed = new Discord.RichEmbed();
+		let game = match_object.games[match_object.games.length - 1];
+		newEmbed.setAuthor(match_object.match.name, "", "https://osu.ppy.sh/mp/" + match_object.match.match_id);
+		newEmbed.setTitle(UTILS.round(beatmap_object[0].difficultyrating, 2) + "★ " + beatmap_object[0].artist + " - " + beatmap_object[0].title + "[" + beatmap_object[0].version + "] by " + beatmap_object[0].creator);
+		newEmbed.setURL("https://osu.ppy.sh/b/" + game.beatmap_id);
+		newEmbed.setThumbnail("https://b.ppy.sh/thumb/" + beatmap_object[0].beatmapset_id + "l.jpg");
+		newEmbed.setTimestamp(new Date(game.end_time));
+		newEmbed.setFooter(UTILS.ago(new Date(game.end_time)));
+		if (game.team_type == "0" || game.team_type == "1") {//head to head
+			let players = game.scores.sort(function (a, b) {
+				return parseInt(b.score) - parseInt(a.score);
+			});
+			newEmbed.setDescription(user_object[players[0].user_id].username + " wins");//add time ago
+			newEmbed.addField("Players", players.map(function (value, index, array) {
+				if (value.pass == "1") {
+					return "`" + UTILS.numberWithCommas(value.score) + "` by [" + user_object[value.user_id].username + "](https://osu.ppy.sh/u/" + value.user_id + ") " + UTILS.numberWithCommas(UTILS.round(user_object[value.user_id].pp_raw, 0)) + "pp (#" + UTILS.numberWithCommas(user_object[value.user_id].pp_rank) + ") :flag_" + user_object[value.user_id].country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_object[value.user_id].pp_country_rank);
+				}
+				else {
+					return "F" + "`" + UTILS.numberWithCommas(value.score) + "` by [" + user_object[value.user_id].username + "](https://osu.ppy.sh/u/" + value.user_id + ") " + UTILS.numberWithCommas(UTILS.round(user_object[value.user_id].pp_raw, 0)) + "pp (#" + UTILS.numberWithCommas(user_object[value.user_id].pp_rank) + ") :flag_" + user_object[value.user_id].country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_object[value.user_id].pp_country_rank);
+				}
+			}).join("\n"));
+			return newEmbed;
+		}
+		else if (game.team_type == "2" || game.team_type == "3") {//team vs
+			let red_score = 0;
+			let blue_score = 0;
+			let red_team = [];
+			let blue_team = [];
+			for (let i in game.scores) {
+				if (game.scores[i].pass == "1") {//player passed
+					if (game.scores[i].team == "1") {//blue
+						blue_score += parseInt(game.scores[i].score);
+						blue_team.push(game.scores[i]);
+					}
+					else if (game.scores[i].team == "2") {//red
+						red_score += parseInt(game.scores[i].score);
+						red_team.push(game.scores[i]);
+					}
+					else {//unsupported
+						throw new Error("player on invalid team " + game.scores[i].team);
+					}
+				}
+				else {//player failed
+				}
+			}
+			if (red_score > blue_score) {
+				newEmbed.setColor([255, 0, 0]);
+				newEmbed.setDescription("Red wins");//add time ago
+			}
+			else if (blue_score > red_score) {
+				newEmbed.setColor([0, 0, 255]);
+				newEmbed.setDescription("Blue wins");//add time ago
+			}
+			else {//tie
+				newEmbed.setColor([255, 255, 255]);
+				newEmbed.setDescription("Tie");//add time ago
+			}
+			newEmbed.addField(UTILS.numberWithCommas(red_score) + " Red", red_team.map(function (value, index, array) {
+				if (value.pass == "1") {
+					return "`" + UTILS.numberWithCommas(value.score) + "` by [" + user_object[value.user_id].username + "](https://osu.ppy.sh/u/" + value.user_id + ") " + UTILS.numberWithCommas(UTILS.round(user_object[value.user_id].pp_raw, 0)) + "pp (#" + UTILS.numberWithCommas(user_object[value.user_id].pp_rank) + ") :flag_" + user_object[value.user_id].country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_object[value.user_id].pp_country_rank);
+				}
+				else {
+					return "F" + "`" + UTILS.numberWithCommas(value.score) + "` by [" + user_object[value.user_id].username + "](https://osu.ppy.sh/u/" + value.user_id + ") " + UTILS.numberWithCommas(UTILS.round(user_object[value.user_id].pp_raw, 0)) + "pp (#" + UTILS.numberWithCommas(user_object[value.user_id].pp_rank) + ") :flag_" + user_object[value.user_id].country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_object[value.user_id].pp_country_rank);
+				}
+			}).join("\n"));
+			newEmbed.addField(UTILS.numberWithCommas(blue_score) + " Blue", blue_team.map(function (value, index, array) {
+				if (value.pass == "1") {
+					return "`" + UTILS.numberWithCommas(value.score) + "` by [" + user_object[value.user_id].username + "](https://osu.ppy.sh/u/" + value.user_id + ") " + UTILS.numberWithCommas(UTILS.round(user_object[value.user_id].pp_raw, 0)) + "pp (#" + UTILS.numberWithCommas(user_object[value.user_id].pp_rank) + ") :flag_" + user_object[value.user_id].country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_object[value.user_id].pp_country_rank);
+				}
+				else {
+					return "F" + "`" + UTILS.numberWithCommas(value.score) + "` by [" + user_object[value.user_id].username + "](https://osu.ppy.sh/u/" + value.user_id + ") " + UTILS.numberWithCommas(UTILS.round(user_object[value.user_id].pp_raw, 0)) + "pp (#" + UTILS.numberWithCommas(user_object[value.user_id].pp_rank) + ") :flag_" + user_object[value.user_id].country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_object[value.user_id].pp_country_rank);
+				}
+			}).join("\n"));
+			return newEmbed;
+		}
+		else {
+			throw new Error("game mode unsupported");
+		}
+	}
 }

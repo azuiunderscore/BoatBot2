@@ -548,6 +548,9 @@ module.exports = class LOLAPI {
 			}).catch(reject);
 		});
 	}
+	osuMatch(mp, maxage) {
+		return this.get("get_match", { mp }, this.CONFIG.API_CACHETIME.OSU_MATCH, maxage);
+	}
 	getPreferences(sid) {
 		return this.getIAPI("getpreferences", { id: sid });
 	}

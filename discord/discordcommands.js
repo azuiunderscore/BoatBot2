@@ -572,7 +572,33 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			reply(":x: This user has no recent plays.");
 		});
 	});
-
+	command(["http://osu.ppy.sh/mp/", "https://osu.ppy.sh/mp/", "https://osu.ppy.sh/community/matches/", "http://osu.ppy.sh/community/matches/"], true, false, (original, index, parameter) => {
+		const mpID = parameter;
+		request_profiler.begin("get_match_info");
+		lolapi.osuMatch(mpID, CONFIG.API_MAXAGE.MP.OSU_MATCH).then(robj => {
+			request_profiler.end("get_match_info");
+			request_profiler.begin("get_beatmap_info");
+			lolapi.osuBeatmap(robj.games[robj.games.length - 1].beatmap_id, "b", robj.games[robj.games.length - 1].play_mode, CONFIG.API_MAXAGE.MP.GET_BEATMAP).then(beatmap_object => {
+				request_profiler.end("get_beatmap_info");
+				request_profiler.begin("get_user_info");
+				let promise_array = [];
+				for (let i in robj.games[robj.games.length - 1].scores) {
+					promise_array.push(lolapi.osuGetUser(robj.games[robj.games.length - 1].scores[i].user_id,robj.games[robj.games.length - 1].play_mode, true, CONFIG.API_MAXAGE.MP.GET_USER));
+				}
+				Promise.all(promise_array).then(answer_array => {
+					request_profiler.end("get_user_info");
+					let answer_object = {};
+					for (let i in answer_array) {
+						answer_object[answer_array[i].user_id] = answer_array[i];
+					}
+					request_profiler.begin("generate_embed");
+					const ans = embedgenerator.matchRequest(robj, answer_object, beatmap_object);
+					request_profiler.end("generate_embed");
+					replyEmbed(ans);
+				}).catch(console.error);
+			}).catch(console.error);
+		}).catch(console.error);
+	});
 	/*
 	commandGuessUsernameNumber(usePrefix(["recentstandard", "recentstd", "rstandard", "rstd", "rs", "recenttaiko", "rtaiko", "rt", "recentctb", "rctb", "rc", "recentmania", "rmania", "rm"]), false, (index, id, user, number, guess_method)=> {//this doesn't support play #s
 		request_profiler.begin("mode_detect");
