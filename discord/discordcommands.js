@@ -513,7 +513,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		});
 	});
 
-	commandGuessUsername(usePrefix(["r", "recent"]), false, (index, id, user, parameter) => {//this doesn't support play #s
+	commandGuessUsername(usePrefix(["recent", "r"]), false, (index, id, user, parameter) => {//this doesn't support play #s
 	request_profiler.begin("mode_detect");
 		lolapi.osuMostRecentMode(user, id, false, CONFIG.API_MAXAGE.RECENT.GET_USER_RECENT).then(mode => {
 			request_profiler.end("mode_detect");
