@@ -57,7 +57,7 @@ alpha testing, forked from supportbot @ iaace-NA/SupportBot
 - api: internal api files
 - data: TLS certs and other local data
 - discord: discord bot files
-- example-api-docs: example responses from the riot API
+- example-api-docs: example responses from the osu API
 - install: bash installation files for 1 time use only, Ubuntu OS
 - releasenotes: release notes for BoatBot
 - start: startup configs for pm2
