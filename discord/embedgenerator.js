@@ -879,7 +879,7 @@ module.exports = class EmbedGenerator {
 		if (!UTILS.exists(beatmap.max_combo) || isNaN(beatmap.max_combo)) beatmap.max_combo = 0;
 		user_stats.pp_delta = 0;//hardcoded for now, intended to be used with score tracking
 		return new Promise((resolve, reject) => {//calculates max pp
-			UTILS.inspect("mode", !mode);
+			UTILS.inspect("mode", mode);
 			if (mode === 0 || mode === 1) {
 				maxPPCalculator(CONFIG.BEATMAP_CACHE_LOCATION + beatmap.beatmap_id + ".osu", mode, { mods: recent_scores[play_index].enabled_mods, acc: 100 }).then(results => {
 					UTILS.debug("100% pp calc results:");
@@ -1009,7 +1009,7 @@ module.exports = class EmbedGenerator {
 					newEmbed.setDescription(`**__Personal Best #${score.best_play_index + 1}!__**`);//personal best indicator
 				}
 				else newEmbed.setColor(["#ffffff", "#ff0000", "#00ff00", "#0000ff"][beatmap.mode]);//otherwise, set color based on mode
-				const pcl_str = `**${score.pp_valid ? `${score.pp.round(2)}pp` : `~~${score.pp.round(2)}pp~~`}**${score.max_pp_valid ? `/${score.max_pp.round(2)}PP` : `${score.max_pp === 0 ? TAB : `~~/${score.max_pp.round(2)}PP~~`}`} ${score.maxcombo}x${beatmap.max_combo !== 0 ? `/${beatmap.max_combo}X` : ""}${beatmap.mode === 3 ? " " : TAB}{${beatmap.mode === 3 ? ` ${score.countgeki}/${score.count300}/${score.countkatu}/${score.count100}/${score.count50}/${score.countmiss}` : ` ${score.count300} / ${score.count100} / ${score.count50} / ${score.countmiss} `}}`;//pp combo line string
+				const pcl_str = `**${score.pp_valid ? `${score.pp.round(2)}pp` : `~~${score.pp.round(2)}pp~~`}**${score.max_pp_valid ? `/${score.max_pp.round(2)}PP` : `${score.max_pp === 0 ? TAB : `~~/${score.max_pp.round(2)}PP~~`}`} ${score.maxcombo}x${beatmap.max_combo !== 0 ? `/${beatmap.max_combo}X` : ""}${beatmap.mode === 3 ? " " : TAB}{${beatmap.mode === 3 ? ` ${score.countgeki}/${score.count300}/${score.countkatu}/${score.count100}/${score.count50}/${score.countmiss} ` : ` ${score.count300} / ${score.count100} / ${score.count50} / ${score.countmiss} `}}`;//pp combo line string
 
 				//compact scorecard
 				let compact = new Discord.RichEmbed(UTILS.embedRaw(newEmbed));

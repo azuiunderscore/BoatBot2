@@ -778,9 +778,9 @@ module.exports = class UTILS {
 		return new Date().getTime();
 	}
 	scoreIsUserTop100(score, user_best) {
-		if (!this.exists(user_best)) return -1
+		if (!this.exists(user_best)) return -1;
 		let candidate = user_best.findIndex(v => {
-			return v.date === score.date &&
+			return v.date.getTime() === score.date.getTime() &&
 				v.score === score.score &&
 				v.beatmap_id === score.beatmap_id &&
 				v.enabled_mods === score.enabled_mods;

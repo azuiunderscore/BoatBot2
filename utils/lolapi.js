@@ -297,6 +297,7 @@ module.exports = class LOLAPI {
 					score.countmiss = parseInt(score.countmiss);
 					score.countkatu = parseInt(score.countkatu);
 					score.countgeki = parseInt(score.countgeki);
+					score.pp = parseFloat(score.pp);
 					score.perfect = score.perfect === "1" ? true : false;
 					score.enabled_mods = parseInt(score.enabled_mods);
 					score.date = new Date(score.date);
@@ -470,10 +471,46 @@ module.exports = class LOLAPI {
 	osuScoreUser(u, id, m, b, maxage) {
 		const type = id ? "id" : "string";
 		if (typeof(u) == "string") u = u.toLowerCase();
-		return this.get("get_scores", { u, type, m, b }, this.CONFIG.API_CACHETIME.GET_SCORE_USER, maxage);
+		return new Promise((resolve, reject) => {
+			this.get("get_scores", { u, type, m, b }, this.CONFIG.API_CACHETIME.GET_SCORE_USER, maxage).then(a => {
+				resolve(a.map(score => {
+					score.score = parseInt(score.score);
+					score.maxcombo = parseInt(score.maxcombo);
+					score.count50 = parseInt(score.count50);
+					score.count100 = parseInt(score.count100);
+					score.count300 = parseInt(score.count300);
+					score.countmiss = parseInt(score.countmiss);
+					score.countkatu = parseInt(score.countkatu);
+					score.countgeki = parseInt(score.countgeki);
+					score.perfect = score.perfect === "1" ? true : false;
+					score.enabled_mods = parseInt(score.enabled_mods);
+					score.pp = parseFloat(score.pp);
+					score.date = new Date(score.date);
+					return score;
+				}));
+			}).catch(reject);
+		});
 	}
 	osuScore(m, b, maxage) {
-		return this.get("get_scores", { m, b, limit: 100 }, this.CONFIG.API_CACHETIME.GET_SCORE, maxage);
+		return new Promise((resolve, reject) => {
+			this.get("get_scores", { m, b, limit: 100 }, this.CONFIG.API_CACHETIME.GET_SCORE, maxage).then(a => {
+				resolve(a.map(score => {
+					score.score = parseInt(score.score);
+					score.maxcombo = parseInt(score.maxcombo);
+					score.count50 = parseInt(score.count50);
+					score.count100 = parseInt(score.count100);
+					score.count300 = parseInt(score.count300);
+					score.countmiss = parseInt(score.countmiss);
+					score.countkatu = parseInt(score.countkatu);
+					score.countgeki = parseInt(score.countgeki);
+					score.perfect = score.perfect === "1" ? true : false;
+					score.enabled_mods = parseInt(score.enabled_mods);
+					score.pp = parseFloat(score.pp);
+					score.date = new Date(score.date);
+					return score;
+				}));
+			}).catch(reject);
+		});
 	}
 	osuBeatmap(id, type, m, maxage) {//type is string: "b"/"s"
 		return new Promise((resolve, reject) => {

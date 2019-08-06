@@ -513,7 +513,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		});
 	});
 
-	commandGuessUsername(usePrefix(["recent"]), false, (index, id, user, parameter) => {//this doesn't support play #s
+	commandGuessUsername(usePrefix(["r", "recent"]), false, (index, id, user, parameter) => {//this doesn't support play #s
 	request_profiler.begin("mode_detect");
 		lolapi.osuMostRecentMode(user, id, false, CONFIG.API_MAXAGE.RECENT.GET_USER_RECENT).then(mode => {
 			request_profiler.end("mode_detect");
@@ -523,12 +523,14 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				request_profiler.begin("beatmap");
 				lolapi.osuBeatmap(recent_plays[0].beatmap_id, "b", mode, CONFIG.API_MAXAGE.RECENT.GET_BEATMAP).then(beatmap => {
 					beatmap = beatmap[0];
+					beatmap.mode = mode;//force assigning mode (autoconvert)
 					request_profiler.end("beatmap");
 					request_profiler.begin("dynamic");
 					let jobs = [];
 					let jobtype = [];
 					jobs.push(lolapi.osuBeatmapFile(beatmap.beatmap_id, beatmap.last_update.getTime(), CONFIG.API_MAXAGE.RECENT.OSU_FILE));//just ensures that a copy of the beatmap file is present in the cache directory
 					jobtype.push(CONFIG.CONSTANTS.OSU_FILE);
+					UTILS.inspect("beatmap.approved", beatmap.approved);
 					if (beatmap.approved === 1 || beatmap.approved === 2) {//ranked or approved (possible top pp change)
 						jobs.push(lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.RECENT.GET_USER_BEST));//get user best
 						jobtype.push(CONFIG.CONSTANTS.USER_BEST);
@@ -599,14 +601,15 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			}).catch(console.error);
 		}).catch(console.error);
 	});
-	/*
-	commandGuessUsernameNumber(usePrefix(["recentstandard", "recentstd", "rstandard", "rstd", "rs", "recenttaiko", "rtaiko", "rt", "recentctb", "rctb", "rc", "recentmania", "rmania", "rm"]), false, (index, id, user, number, guess_method)=> {//this doesn't support play #s
+/*
+	commandGuessUsernameNumber(usePrefix(["recentstandard", "recentstd", "rstandard", "rstd", "rs", "recenttaiko", "rtaiko", "rt", "recentctb", "rctb", "rc", "recentmania", "rmania", "rm"]), false, (index, id, user, number, guess_method)=> {
 		request_profiler.begin("mode_detect");
 		let mode;
 		if (index < 6) mode = 0;
 		else if (index < 9) mode = 1;
 		else if (index < 12) mode = 2;
 		else mode = 3;
+		UTILS.output("mode is " + mode);
 		if (number > 50 || number < 1) return reply(":x: Number out of range 1-50.");
 		--number;
 		request_profiler.end("mode_detect");
@@ -615,7 +618,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			request_profiler.end("user_recent");
 			request_profiler.begin("beatmap");
 			lolapi.osuBeatmap(recent_plays[number].beatmap_id, "b", mode, CONFIG.API_MAXAGE.RECENT.GET_BEATMAP).then(beatmap => {
-				beatmap = beatmap[number];
+				beatmap = beatmap[0];
+				beatmap.mode = mode;//force assigning mode (autoconvert)
 				request_profiler.end("beatmap");
 				request_profiler.begin("dynamic");
 				let jobs = [];
@@ -661,7 +665,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			}).catch(console.error);
 		}).catch(console.error);
 	});
-	*/
+*/
 	if (true) {//scope limiter for beatmap links
 		let id, type, mode, mod_string, beatmap;
 		if (preferences.get("abi")) {
