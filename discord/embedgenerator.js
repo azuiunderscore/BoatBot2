@@ -1111,7 +1111,6 @@ module.exports = class EmbedGenerator {
 		let newEmbed = new Discord.RichEmbed();
 		newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, null, `https://osu.ppy.sh/u/${user.user_id}`);
 		newEmbed.setThumbnail(`https://a.ppy.sh/${user.user_id}?${UTILS.now()}`);
-		newEmbed.setTitle(`What if ${user.username} got ${operation === INSERT ? `a new ${new_pp}pp score` : `${new_pp}pp on ${beatmap.artist} - ${beatmap.title} [${beatmap.version}] by ${beatmap.creator}`}?`);
 		newEmbed.setFooter(["standard", "taiko", "catch the beat", "mania"][mode] + " mode");
 		const INSERT = 1;
 		const REPLACE = 2;
@@ -1123,6 +1122,7 @@ module.exports = class EmbedGenerator {
 				operation = INSERT;//change operation to insert
 			}
 		}
+		newEmbed.setTitle(`What if ${user.username} got ${operation === INSERT ? `a new ${new_pp}pp score` : `${new_pp}pp on ${beatmap.artist} - ${beatmap.title} [${beatmap.version}] by ${beatmap.creator}`}?`);
 
 		const current_top_pp = top.map(s => s.pp);
 
