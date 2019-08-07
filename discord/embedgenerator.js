@@ -1109,6 +1109,10 @@ module.exports = class EmbedGenerator {
 	}
 	whatif(CONFIG, user, mode, top, new_score, new_pp, beatmap) {//new_score (is this a new score?) new_pp (what is the new pp value?)
 		let newEmbed = new Discord.RichEmbed();
+		newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, null, `https://osu.ppy.sh/u/${user.user_id}`);
+		newEmbed.setThumbnail(`https://a.ppy.sh/${user.user_id}?${UTILS.now()}`);
+		newEmbed.setTitle(`What if ${user.username} got ${operation === INSERT ? `a new ${new_pp}pp score` : `${new_pp}pp on ${beatmap.artist} - ${beatmap.title} [${beatmap.version}] by ${beatmap.creator}`}?`);
+		newEmbed.setFooter(["standard", "taiko", "catch the beat", "mania"][mode] + " mode");
 		const INSERT = 1;
 		const REPLACE = 2;
 		let operation = new_score ? INSERT : REPLACE;
@@ -1116,11 +1120,10 @@ module.exports = class EmbedGenerator {
 		if (operation === REPLACE) {
 			replace_index = top.findIndex(s => s.beatmap_id === beatmap.beatmap_id);
 			if (replace_index === -1) {//if trying to replace score and we can't find the score in the top 100,
-				operation = INSERT;//change oepration to insert
+				operation = INSERT;//change operation to insert
 			}
 		}
-		newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, `https://a.ppy.sh/${user.user_id}?${UTILS.now()}`, `https://osu.ppy.sh/u/${user.user_id}`);
-		newEmbed.setTitle(`What if ${user.username} got ${operation === INSERT ? `a new ${new_pp}pp score` : `${new_pp}pp on ${beatmap.artist} - ${beatmap.title} [${beatmap.version}] by ${beatmap.creator}`}?`);
+
 		const current_top_pp = top.map(s => s.pp);
 
 		function setColor(dpp) {
