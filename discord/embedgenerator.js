@@ -1111,7 +1111,7 @@ module.exports = class EmbedGenerator {
 		let newEmbed = new Discord.RichEmbed();
 		newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, null, `https://osu.ppy.sh/u/${user.user_id}`);
 		newEmbed.setThumbnail(`https://a.ppy.sh/${user.user_id}?${UTILS.now()}`);
-		newEmbed.setFooter(["standard", "taiko", "catch the beat", "mania"][mode] + " mode");
+		newEmbed.setFooter(["standard mode", "taiko", "catch the beat", "mania"][mode]);
 		const INSERT = 1;
 		const REPLACE = 2;
 		let operation = new_score ? INSERT : REPLACE;
