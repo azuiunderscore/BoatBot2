@@ -712,7 +712,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 							UTILS.debug("url is: " + url);
 							if (url.indexOfInstance("/", 5) != -1 && !isNaN(parseInt(url[url.indexOfInstance("/", 5) + 1]))) {//if the link is beatmap specific
 								UTILS.debug("new url: s/b");
-								lolapi.osuBeatmap(UTILS.arbitraryLengthInt(url.substring(url.indexOfInstance("/", 5) + 1)), "b", mode, CONFIG.API_MAXAGE.WHAT_IF.GET_BEATMAP).then(new_beatmap => {//retrieve the entire set
+								lolapi.osuBeatmap(UTILS.arbitraryLengthInt(url.substring(url.indexOfInstance("/", 5) + 1)), "b", index, CONFIG.API_MAXAGE.WHAT_IF.GET_BEATMAP).then(new_beatmap => {//retrieve the entire set
 									beatmap = new_beatmap[0];
 									step2();
 								}).catch(console.error);
@@ -723,12 +723,15 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 							id = UTILS.arbitraryLengthInt(parameter);
 							type = "b";
 							//mode = parameter.indexOf("&m=") != -1 ? parseInt(parameter[parameter.indexOf("&m=") + 3]) : null;
-							lolapi.osuBeatmap(id, type, mode, CONFIG.API_MAXAGE.WHAT_IF.GET_BEATMAP).then(new_beatmap => {
+							lolapi.osuBeatmap(id, type, index, CONFIG.API_MAXAGE.WHAT_IF.GET_BEATMAP).then(new_beatmap => {
 								beatmap = new_beatmap[0];
 								id = new_beatmap[0].beatmapset_id;
 								type = "s";
 								step2();
 							}).catch(console.error);
+						}
+						function step2() {
+							replyEmbed(embedgenerator.whatif(CONFIG, user, index, top, new_score, new_pp, beatmap));
 						}
 					}
 				}).catch(console.error);

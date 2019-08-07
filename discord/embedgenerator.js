@@ -4,6 +4,7 @@ const UTILS = new (require("../utils/utils.js"))();
 const JSON5 = require("json5");
 const mathjs = require("mathjs");
 const crypto = require("crypto");
+const regression = require("regression");
 const child_process = require("child_process");
 const HORIZONTAL_SEPARATOR = "------------------------------";
 const VERIFIED_ICON = "✅";
@@ -1113,7 +1114,7 @@ module.exports = class EmbedGenerator {
 		let operation = new_score ? INSERT : REPLACE;
 		let replace_index;
 		if (operation === REPLACE) {
-			replace_index = top.find(s => s.beatmap_id === beatmap.beatmap_id);
+			replace_index = top.findIndex(s => s.beatmap_id === beatmap.beatmap_id);
 			if (replace_index === -1) {//if trying to replace score and we can't find the score in the top 100,
 				operation = INSERT;//change oepration to insert
 			}
@@ -1122,6 +1123,11 @@ module.exports = class EmbedGenerator {
 		newEmbed.setTitle(`What if ${user.username} got ${operation === INSERT ? `a new ${new_pp}pp score` : `${new_pp}pp on ${beatmap.artist} - ${beatmap.title} [${beatmap.version}] by ${beatmap.creator}`}?`);
 		const current_top_pp = top.map(s => s.pp);
 
+		function setColor(dpp) {
+			if (dpp > 0) newEmbed.setColor([0, 255, 0]);
+			else if (dpp < 0) newEmbed.setColor([255, 0, 0]);
+		}
+
 		let current_weighted_pp = 0;
 		for (let i = 0; i < current_top_pp.length; ++i) current_weighted_pp += current_top_pp[i] * Math.pow(0.95, i);
 		let current_bonus_pp = user.pp_raw - current_weighted_pp;
@@ -1129,14 +1135,29 @@ module.exports = class EmbedGenerator {
 			let new_top_pp = [];
 			for (let i = 0; i < current_top_pp.length; ++i) new_top_pp.push(current_top_pp[i]);
 			new_top_pp[replace_index] = new_pp;
-			const new_index = new_top_pp.indexOf(new_pp);
-			let new_weighted_pp = 0;
-			for (let i = 0; i < new_top_pp.length; ++i) new_weighted_pp += new_top_pp[i] * Math.pow(0.95, i);
+
 			new_top_pp.sort((a, b) => b - a);
-			const dpp = new_weighted_pp - current_weighted_pp;
-			newEmbed.setDescription(`If ${user.username}'s existing top play on ${beatmap.artist} - ${beatmap.title} [${beatmap.version}] were replaced by a ${new_pp}pp play, their #${replace_index + 1} best play worth ${current_top_pp[replace_index]}pp would become their #${new_index} best play worth ${new_pp}pp. Their pp would change by ${new_weighted_pp - current_weighted_pp > 0 ? "+" : ""}${dpp.round(3)} to ${UTILS.numberWithCommas((current_bonus_pp + new_weighted_pp).round(3))}pp.`);
-			if (dpp > 0) newEmbed.setColor([0, 255, 0]);
-			else if (dpp < 0) newEmbed.setColor([255, 0, 0]);
+			const new_index = new_top_pp.indexOf(new_pp);
+			if (new_index === new_top_pp.length - 1) {//attempt interpolation; linear regression, last 10% scores
+				let last10pct = current_top_pp.map((v, i) => [i, v]).slice(Math.floor(current_top_pp.length * 0.9), current_top_pp.length);
+				//UTILS.inspect("last10pct", last10pct);
+				let result = regression.linear(last10pct);
+				let prediction = result.predict(current_top_pp.length - 1);//predict #100 play
+				if (prediction[1] > current_top_pp[current_top_pp.length - 1]) prediction[1] = current_top_pp[current_top_pp.length - 1];//if the prediction is higher than the last play, just set it to the last play
+				new_top_pp[new_index] = prediction[1];//set #100
+				let new_weighted_pp = 0;
+				for (let i = 0; i < new_top_pp.length; ++i) new_weighted_pp += new_top_pp[i] * Math.pow(0.95, i);
+				const dpp = new_weighted_pp - current_weighted_pp;
+				newEmbed.setDescription(`If ${user.username}'s existing top play on ${beatmap.artist} - ${beatmap.title} [${beatmap.version}] were replaced by a ${new_pp}pp play, their #${replace_index + 1} best play worth ${current_top_pp[replace_index]}pp would likely fall below their #100 best play.\nBased on a linear regression performed on the 10% lowest pp values of the user's top 100 plays, we think that their new #100 play would be worth ${prediction[1]}pp.\nTheir pp would change by **${new_weighted_pp - current_weighted_pp > 0 ? "+" : ""}${dpp.round(3)}** to **${UTILS.numberWithCommas((current_bonus_pp + new_weighted_pp).round(3))}pp**.`);
+				setColor(dpp);
+			}
+			else {
+				let new_weighted_pp = 0;
+				for (let i = 0; i < new_top_pp.length; ++i) new_weighted_pp += new_top_pp[i] * Math.pow(0.95, i);
+				const dpp = new_weighted_pp - current_weighted_pp;
+				newEmbed.setDescription(`If ${user.username}'s existing top play on ${beatmap.artist} - ${beatmap.title} [${beatmap.version}] were replaced by a ${new_pp}pp play, their #${replace_index + 1} best play worth ${current_top_pp[replace_index]}pp would become their #${new_index + 1} best play worth ${new_pp}pp.\nTheir pp would change by **${new_weighted_pp - current_weighted_pp > 0 ? "+" : ""}${dpp.round(3)}** to **${UTILS.numberWithCommas((current_bonus_pp + new_weighted_pp).round(3))}pp**.`);
+				setColor(dpp);
+			}
 		}
 		else {//insert
 			let insert_index = -1;
@@ -1148,7 +1169,7 @@ module.exports = class EmbedGenerator {
 				}
 			}
 			if (insert_index === -1) {
-				newEmbed.setDescription(`A ${new_pp}pp play wouldn't even be in ${user.username}'s top 100 plays. There would not be any significant pp change.`);
+				newEmbed.setDescription(`A ${new_pp}pp play wouldn't even be in ${user.username}'s top 100 plays.\nThere would not be any significant pp change.`);
 			}
 			else {
 				let new_top_pp = [];
@@ -1160,9 +1181,8 @@ module.exports = class EmbedGenerator {
 				let new_weighted_pp = 0;
 				for (let i = 0; i < new_top_pp.length; ++i) new_weighted_pp += new_top_pp[i] * Math.pow(0.95, i);
 				const dpp = new_weighted_pp - current_weighted_pp;
-				newEmbed.setDescription(`A ${new_pp}pp play would be ${user.username}'s #${insert_index + 1} best play.\nTheir pp would increase by ${dpp.round(3)} to ${UTILS.numberWithCommas((new_weighted_pp + current_bonus_pp).round(3))}pp.`);
-				if (dpp > 0) newEmbed.setColor([0, 255, 0]);
-				else if (dpp < 0) newEmbed.setColor([255, 0, 0]);
+				newEmbed.setDescription(`A ${new_pp}pp play would be ${user.username}'s #${insert_index + 1} best play.\nTheir pp would change by **+${dpp.round(3)}** to **${UTILS.numberWithCommas((new_weighted_pp + current_bonus_pp).round(3))}pp**.`);
+				setColor(dpp);
 			}
 		}
 		return newEmbed;
