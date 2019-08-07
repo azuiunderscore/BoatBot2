@@ -185,6 +185,11 @@
 			"OSU_MATCH": 45,
 			"GET_BEATMAP": 86400,
 			"GET_USER": 300//5 mins
+		},
+		"WHAT_IF": {
+			"GET_USER": 120,
+			"GET_USER_BEST": 120,
+			"GET_BEATMAP": 86400
 		}
 	},
 	"SHARD_COUNT": 3,

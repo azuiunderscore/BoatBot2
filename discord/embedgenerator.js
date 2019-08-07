@@ -571,7 +571,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.addField("pp sources (%)", pfmp);
 		*/
 		user_stats.countmiss = misses;
-		newEmbed.addField("Interpolated Information", "Unweighted Hit Accuracy: `" + UTILS.calcAcc(0, user_stats) + "%`\nAverage play worth: `" + apw + "` ± " + aim_acc.ppstddev + "pp\nCumulative unweighted pp, top 100: `" + aim_acc.ppTotal + "` pp\nPP range: " + aim_acc.maxPP + " - " + aim_acc.minPP + " = `" + UTILS.round(aim_acc.ppRange, 3) + "`\nScoring Efficiency: `" + UTILS.round(efficiency, 2) + "%`\tObjects per play: `" + UTILS.round(cpp, 2) + "`\nAppx.Misses: `" + UTILS.numberWithCommas(UTILS.round(misses, 0)) + "`\tMiss rate: `" + UTILS.round(missRate, 3) + "%` or 1 miss every `" + UTILS.round(100 / missRate, 0) + "` hits\nRatio of 0 miss plays in the top 100: `" + UTILS.round(aim_acc.sRatio, 1) + "%` >0 miss plays: `" + UTILS.round(100 - aim_acc.sRatio, 1) + "%`\nAverage Career Hits per second: `" + UTILS.round(totalHits / (playHours * 3600), 2) + "`");
+		newEmbed.addField("Interpolated Information", "Unweighted Hit Accuracy: `" + UTILS.calcAcc(0, user_stats) + "%`\nAverage play worth: `" + apw + "` ± " + aim_acc.ppstddev + "pp\nCumulative unweighted pp, top 100: `" + aim_acc.ppTotal + "` pp\nPP range: " + aim_acc.maxPP + " - " + aim_acc.minPP + " = `" + UTILS.round(aim_acc.ppRange, 3) + "`\nScoring Efficiency: `" + UTILS.round(efficiency, 2) + "%`\tObjects per play: `" + UTILS.round(cpp, 2) + "`\nAppx.Misses: `" + UTILS.numberWithCommas(UTILS.round(misses, 0)) + "`\tMiss rate: `" + UTILS.round(missRate, 3) + "%` or 1 miss every `" + UTILS.round(100 / missRate, 0) + "` hits\nRatio of 0 miss plays in the top 100: `" + UTILS.round(aim_acc.sRatio, 1) + "%` >0 miss plays: `" + UTILS.round(100 - aim_acc.sRatio, 1) + "%`\nAverage Career Hits per second: `" + UTILS.round(totalHits / (playHours * 3600), 2) + "`\nAverage play length: `" + UTILS.standardTimestamp(user_stats.total_seconds_played / user_stats.playcount) + "`");
 		//newEmbed.addField("For mod information", "add `-m` to the command. `!sp-m`, `!spt-m`, `!spc-m`, `!spm-m`");
 		newEmbed.addField("More about " + user_stats.username, "[osu!track](https://ameobea.me/osutrack/user/" + encodeURIComponent(user_stats.username) + ")\t[osu!stats](http://osustats.ppy.sh/u/" + encodeURIComponent(user_stats.username) + ")\t[osu!skills](http://osuskills.com/user/" + encodeURIComponent(user_stats.username) + ")\t[osu!chan](https://syrin.me/osuchan/u/" + user_stats.user_id + "/?m=" + mode + ")\t[pp+](https://syrin.me/pp+/u/" + user_stats.user_id + "/)");
 		newEmbed.setTimestamp(new Date());
@@ -757,10 +757,10 @@ module.exports = class EmbedGenerator {
 		newEmbed.setTimestamp();
 		const now = new Date().getTime();
 		for (let b in CONFIG.BANS.USERS) {
-			if (CONFIG.BANS.USERS[b] == 0 || CONFIG.BANS.USERS[b] > now) ++userbans;
+			if (CONFIG.BANS.USERS[b] == 0 || CONFIG.BANS.USERS[b] > now)++userbans;
 		}
 		for (let b in CONFIG.BANS.SERVERS) {
-			if (CONFIG.BANS.SERVERS[b] == 0 || CONFIG.BANS.SERVERS[b] > now) ++serverbans;
+			if (CONFIG.BANS.SERVERS[b] == 0 || CONFIG.BANS.SERVERS[b] > now)++serverbans;
 		}
 		newEmbed.setAuthor("Shard $" + process.env.SHARD_ID);
 		newEmbed.setTitle("Diagnostic Information");
@@ -987,9 +987,9 @@ module.exports = class EmbedGenerator {
 			rank: "string",
 			progress: "number"//float, 1 if pass, between 0-1 if rank is "F", -1 if progress unavailable
 		};
-		for (let b in user_format) UTILS.assert(typeof(user[b]) === user_format[b], `user[${b}] expects ${user_format[b]} but is type ${typeof(user[b])} with value ${user[b]}`);
-		for (let b in beatmap_format) UTILS.assert(typeof(beatmap[b]) === beatmap_format[b], `beatmap[${b}] expects ${beatmap_format[b]} but is type ${typeof(beatmap[b])} with value ${beatmap[b]}`);
-		for (let b in score_format) UTILS.assert(typeof(score[b]) === score_format[b], `score[${b}] expects ${score_format[b]} but is type ${typeof(score[b])} with value ${score[b]}`);
+		for (let b in user_format) UTILS.assert(typeof (user[b]) === user_format[b], `user[${b}] expects ${user_format[b]} but is type ${typeof (user[b])} with value ${user[b]}`);
+		for (let b in beatmap_format) UTILS.assert(typeof (beatmap[b]) === beatmap_format[b], `beatmap[${b}] expects ${beatmap_format[b]} but is type ${typeof (beatmap[b])} with value ${beatmap[b]}`);
+		for (let b in score_format) UTILS.assert(typeof (score[b]) === score_format[b], `score[${b}] expects ${score_format[b]} but is type ${typeof (score[b])} with value ${score[b]}`);
 		return new Promise((resolve, reject) => {
 			this.beatmap(CONFIG, beatmap, [beatmap], { creator: beatmap.creator, creator_id: beatmap.creator_id }, getMods(score.enabled_mods), beatmap.mode, true).then(beatmap_embed => {
 				beatmap_embed = UTILS.embedRaw(beatmap_embed);
@@ -1013,12 +1013,12 @@ module.exports = class EmbedGenerator {
 
 				//compact scorecard
 				let compact = new Discord.RichEmbed(UTILS.embedRaw(newEmbed));
-				compact.addField(`${UTILS.exists(beatmap.mod_dr) ? getStars(CONFIG, beatmap.mode, beatmap.mod_dr) : ""}${CONFIG.EMOJIS[score.rank]}${score.rank ==="F" && score.progress !== -1 ? `${UTILS.pickCircle(score.progress)}` : ""} ${score.enabled_mods !== 0 ? getMods(score.enabled_mods) : ""}${score.leaderboard_index !== -1 ? ` **__r#${score.leaderboard_index + 1}__**` : TAB} ${UTILS.numberWithCommas(score.score)}${TAB}(${UTILS.calcAcc(beatmap.mode, score)}%)${TAB}${UTILS.ago(score.date)}`, pcl_str);
+				compact.addField(`${UTILS.exists(beatmap.mod_dr) ? getStars(CONFIG, beatmap.mode, beatmap.mod_dr) : ""}${CONFIG.EMOJIS[score.rank]}${score.rank === "F" && score.progress !== -1 ? `${UTILS.pickCircle(score.progress)}` : ""} ${score.enabled_mods !== 0 ? getMods(score.enabled_mods) : ""}${score.leaderboard_index !== -1 ? ` **__r#${score.leaderboard_index + 1}__**` : TAB} ${UTILS.numberWithCommas(score.score)}${TAB}(${UTILS.calcAcc(beatmap.mode, score)}%)${TAB}${UTILS.ago(score.date)}`, pcl_str);
 
 				//full scorecard
 				newEmbed.setFooter(beatmap_embed.footer.text, beatmap_embed.footer.icon_url);
 				newEmbed.setTimestamp(beatmap_embed.timestamp);
-				newEmbed.addField(`Rank+Mods${TAB}Score${TAB}${TAB}Acc.${TAB}When`, `${UTILS.exists(beatmap.mod_dr) ? getStars(CONFIG, beatmap.mode, beatmap.mod_dr) : ""}${CONFIG.EMOJIS[score.rank]}${score.rank ==="F" && score.progress !== -1 ? ` ${(score.progress * 100).round()}%` : ""} ${score.enabled_mods !== 0 ? getMods(score.enabled_mods) : ""}${score.leaderboard_index !== -1 ? ` **__r#${score.leaderboard_index + 1}__**` : ""} ${UTILS.numberWithCommas(score.score)} (${UTILS.calcAcc(beatmap.mode, score)}%) ${UTILS.ago(score.date)}`);
+				newEmbed.addField(`Rank+Mods${TAB}Score${TAB}${TAB}Acc.${TAB}When`, `${UTILS.exists(beatmap.mod_dr) ? getStars(CONFIG, beatmap.mode, beatmap.mod_dr) : ""}${CONFIG.EMOJIS[score.rank]}${score.rank === "F" && score.progress !== -1 ? ` ${(score.progress * 100).round()}%` : ""} ${score.enabled_mods !== 0 ? getMods(score.enabled_mods) : ""}${score.leaderboard_index !== -1 ? ` **__r#${score.leaderboard_index + 1}__**` : ""} ${UTILS.numberWithCommas(score.score)} (${UTILS.calcAcc(beatmap.mode, score)}%) ${UTILS.ago(score.date)}`);
 				newEmbed.addField(`pp/PP${TAB}${TAB}${TAB}${TAB}${TAB}${TAB}Combo${TAB}${TAB}${TAB}${TAB}Hits`, pcl_str);
 				newEmbed.addField(`Beatmap Information`, beatmap_embed.fields[0].value);//add beatmap embed info
 
@@ -1105,5 +1105,66 @@ module.exports = class EmbedGenerator {
 		else {
 			throw new Error("game mode unsupported");
 		}
+	}
+	whatif(CONFIG, user, mode, top, new_score, new_pp, beatmap) {//new_score (is this a new score?) new_pp (what is the new pp value?)
+		let newEmbed = new Discord.RichEmbed();
+		const INSERT = 1;
+		const REPLACE = 2;
+		let operation = new_score ? INSERT : REPLACE;
+		let replace_index;
+		if (operation === REPLACE) {
+			replace_index = top.find(s => s.beatmap_id === beatmap.beatmap_id);
+			if (replace_index === -1) {//if trying to replace score and we can't find the score in the top 100,
+				operation = INSERT;//change oepration to insert
+			}
+		}
+		newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, `https://a.ppy.sh/${user.user_id}?${UTILS.now()}`, `https://osu.ppy.sh/u/${user.user_id}`);
+		newEmbed.setTitle(`What if ${user.username} got ${operation === INSERT ? `a new ${new_pp}pp score` : `${new_pp}pp on ${beatmap.artist} - ${beatmap.title} [${beatmap.version}] by ${beatmap.creator}`}?`);
+		const current_top_pp = top.map(s => s.pp);
+
+		let current_weighted_pp = 0;
+		for (let i = 0; i < current_top_pp.length; ++i) current_weighted_pp += current_top_pp[i] * Math.pow(0.95, i);
+		let current_bonus_pp = user.pp_raw - current_weighted_pp;
+		if (operation === REPLACE) {
+			let new_top_pp = [];
+			for (let i = 0; i < current_top_pp.length; ++i) new_top_pp.push(current_top_pp[i]);
+			new_top_pp[replace_index] = new_pp;
+			const new_index = new_top_pp.indexOf(new_pp);
+			let new_weighted_pp = 0;
+			for (let i = 0; i < new_top_pp.length; ++i) new_weighted_pp += new_top_pp[i] * Math.pow(0.95, i);
+			new_top_pp.sort((a, b) => b - a);
+			const dpp = new_weighted_pp - current_weighted_pp;
+			newEmbed.setDescription(`If ${user.username}'s existing top play on ${beatmap.artist} - ${beatmap.title} [${beatmap.version}] were replaced by a ${new_pp}pp play, their #${replace_index + 1} best play worth ${current_top_pp[replace_index]}pp would become their #${new_index} best play worth ${new_pp}pp. Their pp would change by ${new_weighted_pp - current_weighted_pp > 0 ? "+" : ""}${dpp.round(3)} to ${UTILS.numberWithCommas((current_bonus_pp + new_weighted_pp).round(3))}pp.`);
+			if (dpp > 0) newEmbed.setColor([0, 255, 0]);
+			else if (dpp < 0) newEmbed.setColor([255, 0, 0]);
+		}
+		else {//insert
+			let insert_index = -1;
+			if (current_top_pp.length < 100) insert_index = current_top_pp.length;//if user doesn't have 100 scores, prepare to add it to the end
+			for (let i = 0; i < current_top_pp.length; ++i) {
+				if (new_pp >= current_top_pp[i]) {
+					insert_index = i;
+					break;
+				}
+			}
+			if (insert_index === -1) {
+				newEmbed.setDescription(`A ${new_pp}pp play wouldn't even be in ${user.username}'s top 100 plays. There would not be any significant pp change.`);
+			}
+			else {
+				let new_top_pp = [];
+				for (let i = 0; i < current_top_pp.length; ++i) {
+					if (i === insert_index) new_top_pp.push(new_pp);
+					new_top_pp.push(current_top_pp[i]);
+				}
+				new_top_pp = new_top_pp.slice(0, 100);
+				let new_weighted_pp = 0;
+				for (let i = 0; i < new_top_pp.length; ++i) new_weighted_pp += new_top_pp[i] * Math.pow(0.95, i);
+				const dpp = new_weighted_pp - current_weighted_pp;
+				newEmbed.setDescription(`A ${new_pp}pp play would be ${user.username}'s #${insert_index + 1} best play.\nTheir pp would increase by ${dpp.round(3)} to ${UTILS.numberWithCommas((new_weighted_pp + current_bonus_pp).round(3))}pp.`);
+				if (dpp > 0) newEmbed.setColor([0, 255, 0]);
+				else if (dpp < 0) newEmbed.setColor([255, 0, 0]);
+			}
+		}
+		return newEmbed;
 	}
 }
