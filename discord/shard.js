@@ -116,7 +116,7 @@ setInterval(() => {//long term maintenance loop
 }, 60000 * 15);
 function setStatus() {
 	client.user.setStatus("online").catch(console.error);
-	client.user.setActivity("osu!").catch(console.error);
+	client.user.setActivity("Looking for staff!").catch(console.error);
 	/*
 	if (STATUS.CHAMPION_EMOJIS) {
 		client.user.setStatus("online").catch(console.error);
