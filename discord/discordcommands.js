@@ -601,7 +601,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			}).catch(console.error);
 		}).catch(console.error);
 	});
-/*
+
 	commandGuessUsernameNumber(usePrefix(["recentstandard", "recentstd", "rstandard", "rstd", "rs", "recenttaiko", "rtaiko", "rt", "recentctb", "rctb", "rc", "recentmania", "rmania", "rm"]), false, (index, id, user, number, guess_method)=> {
 		request_profiler.begin("mode_detect");
 		let mode;
@@ -611,7 +611,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		else mode = 3;
 		UTILS.output("mode is " + mode);
 		if (number > 50 || number < 1) return reply(":x: Number out of range 1-50.");
-		--number;
+		--number;//0-index
 		request_profiler.end("mode_detect");
 		request_profiler.begin("user_recent");
 		lolapi.osuGetUserRecent(user, mode, undefined, id, CONFIG.API_MAXAGE.RECENT.GET_USER_RECENT).then(recent_plays => {
@@ -665,7 +665,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			}).catch(console.error);
 		}).catch(console.error);
 	});
-*/
+
 
 	//!whatif [target user] <+new pp value, overriding pp value>
 
@@ -740,6 +740,105 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			});
 		}).catch(console.error);
 	});
+	/*
+	commandGuessUsername(usePrefix(["scorecompare", "scompare", "compare", "scorevs", "c"]), false, (index, id, user, parameter) => {
+		lolapi.getLink(msg.author.id).then(result => {
+			const link_name = result.username;
+			let target, new_pp;
+			if (parameter.indexOf(" ") === -1) {
+				target = link_name;
+				new_pp = parseFloat(parameter);
+			}
+			else {
+				target = parameter.substring(0, parameter.lastIndexOf(" "));
+				new_pp = parseFloat(parameter.substring(parameter.lastIndexOf(" ") + 1));
+			}
+			const new_score = parameter.indexOf("+") !== -1;
+			if (new_pp < 0) return reply(":x: The pp value of the new score must be a positive number.");
+			lolapi.osuGetUserTyped(target, index, false, CONFIG.API_MAXAGE.COMPARE.GET_USER).then(user => {
+				lolapi.osuGetUserBest(user.user_id, index, 100, true, CONFIG.API_MAXAGE.COMPARE.GET_USER_BEST).then(top => {
+					if (new_score) {
+						replyEmbed(embedgenerator.whatif(CONFIG, user, index, top, new_score, new_pp, null));
+					}
+					else {
+						let id, type, beatmap;
+						msg.channel.fetchMessages({ limit: 50 }).then(msgs => {
+							msgs = msgs.array();
+							for (let i = 0; i < msgs.length; ++i) {
+								if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url)) {
+									if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") !== -1) return newLink(msgs[i].embeds[0].url);
+									else if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21));
+								}
+							}
+							reply(":x: Could not find a recent scorecard or beatmap.");
+						}).catch(e => {
+							console.error(e);
+							reply(":x: I need the \"read message history\" permission to process this request.");
+						});
+						function newLink(url) {// handles https://osu.ppy.sh/beatmapsets/ type links (include URL and mod string)
+							let parameter = url.substring(url.indexOfInstance("/", 4) + 1);
+							if (url.indexOf(" ") != -1) url = url.substring(0, url.indexOf(" "));//more comes after the url
+							id = UTILS.arbitraryLengthInt(parameter);
+							type = "s";
+							//mode = null;
+							UTILS.debug("url is: " + url);
+							if (url.indexOfInstance("/", 5) != -1 && !isNaN(parseInt(url[url.indexOfInstance("/", 5) + 1]))) {//if the link is beatmap specific
+								UTILS.debug("new url: s/b");
+								lolapi.osuBeatmap(UTILS.arbitraryLengthInt(url.substring(url.indexOfInstance("/", 5) + 1)), "b", index, CONFIG.API_MAXAGE.COMPARE.GET_BEATMAP).then(new_beatmap => {//retrieve the entire set
+									beatmap = new_beatmap[0];
+									step2();
+								}).catch(console.error);
+							}
+							else step2();
+						}
+						function oldLink(parameter) {
+							id = UTILS.arbitraryLengthInt(parameter);
+							type = "b";
+							//mode = parameter.indexOf("&m=") != -1 ? parseInt(parameter[parameter.indexOf("&m=") + 3]) : null;
+							lolapi.osuBeatmap(id, type, index, CONFIG.API_MAXAGE.COMPARE.GET_BEATMAP).then(new_beatmap => {
+								beatmap = new_beatmap[0];
+								id = new_beatmap[0].beatmapset_id;
+								type = "s";
+								step2();
+							}).catch(console.error);
+						}
+						function step2() {
+							let jobs = [];
+							let jobtype = [];
+							jobs.push(lolapi.osuBeatmapFile(beatmap.beatmap_id, beatmap.last_update.getTime(), CONFIG.API_MAXAGE.COMPARE.OSU_FILE));//just ensures that a copy of the beatmap file is present in the cache directory
+							jobtype.push(CONFIG.CONSTANTS.OSU_FILE);
+							UTILS.inspect("beatmap.approved", beatmap.approved);
+							if (beatmap.approved === 1 || beatmap.approved === 2) {//ranked or approved (possible top pp change)
+								jobs.push(lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.COMPARE.GET_USER_BEST));//get user best
+								jobtype.push(CONFIG.CONSTANTS.USER_BEST);
+							}
+							if (beatmap.approved > 0) {//leaderboarded score (check beatmap leaderboards)
+								jobs.push(lolapi.osuScore(mode, recent_plays[0].beatmap_id, CONFIG.API_MAXAGE.COMPARE.GET_SCORE));
+								jobtype.push(CONFIG.CONSTANTS.SCORE);//leaderboard
+								jobs.push(lolapi.osuScoreUser(user, id, mode, recent_plays[0].beatmap_id, CONFIG.API_MAXAGE.COMPARE.GET_SCORE_USER));
+								jobtype.push(CONFIG.CONSTANTS.SCORE_USER);
+							}
+							jobs.push(lolapi.osuGetUserTyped(user, mode, id, CONFIG.API_MAXAGE.COMPARE.GET_USER));
+							jobtype.push(CONFIG.CONSTANTS.USER);
+							Promise.all(jobs).then(jra => {//job result array
+								request_profiler.end("dynamic");
+								UTILS.debug("\n" + ctable.getTable(request_profiler.endAllCtable()));
+								let user_best = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER_BEST)];
+								let leaderboard = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE)];
+								let user_scores = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE_USER)];
+								let user_stats = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER)];
+								embedgenerator.recent(CONFIG, mode, 0, recent_plays, beatmap, leaderboard, user_scores, user_best, user_stats).then(embeds => {
+									replyEmbed(embeds.compact);//send compact scorecard no matter what
+								}).catch(console.error);
+							}).catch(console.error);
+						}
+					}
+				}).catch(console.error);
+			}).catch(e => {
+				reply(":x: The user `" + target + "` doesn't seem to exist.");
+			});
+		}).catch(console.error);
+	});*/
 	if (true) {//scope limiter for beatmap links
 		let id, type, mode, mod_string, beatmap;
 		if (preferences.get("abi")) {
