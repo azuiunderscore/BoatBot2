@@ -63,6 +63,11 @@
 			"name": "Josh Baker from Ohio",
 			"active": true,
 			"flags": "<:6star:365191487769804820> 🇺🇸"
+		},
+		"432424556834324482": {
+			"name": "ShigeToria",
+			"active": true,
+			"flags": "<:5star:365190043821932544> 🇰🇷🇺🇸🇯🇵"
 		}
 	},
 	"DISCORD_COMMAND_PREFIX": "!",
