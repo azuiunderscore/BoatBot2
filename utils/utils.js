@@ -779,7 +779,16 @@ module.exports = class UTILS {
 	}
 	scoreIsUserTop100(score, user_best) {
 		if (!this.exists(user_best)) return -1;
+		let that = this;
 		let candidate = user_best.findIndex(v => {
+			that.assert(that.exists(v.date));
+			that.assert(that.exists(score.date));
+			that.assert(that.exists(v.beatmap_id));
+			that.assert(that.exists(score.beatmap_id));
+			that.assert(that.exists(v.score));
+			that.assert(that.exists(score.score));
+			that.assert(that.exists(v.enabled_mods));
+			that.assert(that.exists(score.enabled_mods));
 			return v.date.getTime() === score.date.getTime() &&
 				v.score === score.score &&
 				v.beatmap_id === score.beatmap_id &&
