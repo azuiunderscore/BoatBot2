@@ -1069,15 +1069,15 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 
 	function commandGuessUsername(trigger_array,//array of command aliases, prefix needs to be included
 		elevated_permissions,//requires owner permissions
-		/*
-		options,//{ trigger: "str", accepts_opts: 0, 1, 2 }// 0= no, 1= optional, 2= mandatory
+		callback,
+
+		options//{ trigger: "str", accepts_opts: 0, 1, 2 }// 0= no, 1= optional, 2= mandatory
 		//example !compare { trigger: "+", accepts_opts: 1 }
 		//example !whatif { trigger: "", accepts_opts: 2 }
-		*/
-		callback) {//optional callback only if successful
-		//returns (index, boolean: user_id = true / username = false, user_id or username, parameter, )
+		) {//optional callback only if successful
+		//returns (index, boolean: user_id = true / username = false, user_id or username, parameter, ending parameter)
 		//this command does not validate the existance of a username on the server
-		/*returns (region, username, parameter, username guess method)
+		/*
 		username guess method 0: username provided
 		username guess method 1: shortcut provided
 		username guess method 2: link
@@ -1086,22 +1086,42 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		username guess method 5: recently used command
 		* = watch for parameters added on to the end
 		*/
-		UTILS.defaultObjectValues();
+		UTILS.defaultObjectValues({ trigger: "", accept_opts: 0 }, options);
 		command(trigger_array, true, elevated_permissions, (original, index, parameter) => {
 			if (parameter.length !== 0) {//username explicitly provided
 				if (parameter.length < 70 && parameter[0] === " ") {//longest query should be less than 70 characters (required trailing space after command trigger)
 					if (!processRateLimit()) return false;
 					parameter = parameter.trim();
-					if (msg.mentions.users.size == 1) {
+					if (msg.mentions.users.size == 1) {//explicit mention
 						lolapi.getLink(msg.mentions.users.first().id).then(result => {
 							let username = msg.mentions.users.first().username;//suppose the link doesn't exist in the database
 							if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
-							callback(index, false, username, parameter);
+							let ending_parameter = parameter;
+							if (options.accept_opts === CONFIG.CGU_OPTS.MANDATORY) {
+								ending_parameter = ending_parameter.substring(ending_parameter.indexOf(" ") + 1);//mentions can't have spaces
+							}
+							else if (options.accept_opts === CONFIG.CGU_OPTS.OPTIONAL) {
+								ending_parameter = ending_parameter.substring(ending_parameter.lastIndexOf(trigger) + trigger.length);
+							}
+							else {
+								ending_parameter = "";
+							}
+							callback(index, false, username, parameter, ending_parameter);
 						}).catch(console.error);
 					}
 					else if (parameter[0] === "$") {//shortcut
 						lolapi.getShortcut(msg.author.id, parameter.toLowerCase().substring(1)).then(result => {
-							callback(index, false, result[parameter.toLowerCase().substring(1)], parameter);
+							let ending_parameter = parameter;
+							if (options.accept_opts === CONFIG.CGU_OPTS.MANDATORY) {
+								ending_parameter = ending_parameter.substring(ending_parameter.indexOf(" ") + 1);//shortcuts can't have spaces
+							}
+							else if (options.accept_opts === CONFIG.CGU_OPTS.OPTIONAL) {
+								ending_parameter = ending_parameter.substring(ending_parameter.lastIndexOf(trigger) + trigger.length);
+							}
+							else {
+								ending_parameter = "";
+							}
+							callback(index, false, result[parameter.toLowerCase().substring(1)], parameter, ending_parameter);
 						}).catch(e => {
 							if (e) reply(":x: An error has occurred. The shortcut may not exist.");
 						});
@@ -1121,8 +1141,18 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 									break;
 								}
 							}
-							if (!UTILS.exists(user_id)) reply(":x: Could not find a recent username queried.");
-							else callback(index, true, user_id, parameter);
+							if (!UTILS.exists(user_id)) return reply(":x: Could not find a recent username queried.");
+							let ending_parameter = parameter;
+							if (options.accept_opts === CONFIG.CGU_OPTS.MANDATORY) {
+								ending_parameter = ending_parameter.substring(ending_parameter.indexOf(" ") + 1);//shortcuts can't have spaces
+							}
+							else if (options.accept_opts === CONFIG.CGU_OPTS.OPTIONAL) {
+								ending_parameter = ending_parameter.substring(ending_parameter.lastIndexOf(trigger) + trigger.length);
+							}
+							else {
+								ending_parameter = "";
+							}
+							callback(index, true, user_id, parameter);
 						}).catch(e => {
 							console.error(e);
 							reply(":x: Could not find a recent username queried.");
