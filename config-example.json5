@@ -14,7 +14,12 @@
 		"ADMINISTRATORS": 3,
 		"SERVEROWNERS": 4,
 		"BOTOWNERS": 5,
-		"PERMISSION_LEVEL_REVERSE": ["N", "B", "M", "A", "S", "G"]//normal, bot commander, moderator, administrator, server owner, god
+		"PERMISSION_LEVEL_REVERSE": ["N", "B", "M", "A", "S", "G"],//normal, bot commander, moderator, administrator, server owner, god
+		"CGU_OPTS": {
+			"NO": 0,
+			"OPTIONAL": 1,
+			"MANDATORY": 2
+		}
 	},
 	"DISCORD_API_KEY": "",
 	"OSU_API_KEY": "",
