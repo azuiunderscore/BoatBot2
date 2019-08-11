@@ -666,80 +666,67 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		}).catch(console.error);
 	});
 
-
 	//!whatif [target user] <+new pp value, overriding pp value>
-
-	command(usePrefix(["whatif ", "whatiftaiko ", "whatifctb ", "whatifmania "]), true, false, (original, index, parameter) => {
-		lolapi.getLink(msg.author.id).then(result => {
-			const link_name = result.username;
-			let target, new_pp;
-			if (parameter.indexOf(" ") === -1) {
-				target = link_name;
-				new_pp = parseFloat(parameter);
-			}
-			else {
-				target = parameter.substring(0, parameter.lastIndexOf(" "));
-				new_pp = parseFloat(parameter.substring(parameter.lastIndexOf(" ") + 1));
-			}
-			const new_score = parameter.indexOf("+") !== -1;
-			if (new_pp < 0) return reply(":x: The pp value of the new score must be a positive number.");
-			lolapi.osuGetUser(target, index, false, CONFIG.API_MAXAGE.WHAT_IF.GET_USER).then(user => {
-				lolapi.osuGetUserBest(user.user_id, index, 100, true, CONFIG.API_MAXAGE.WHAT_IF.GET_USER_BEST).then(top => {
-					if (new_score) {
-						replyEmbed(embedgenerator.whatif(CONFIG, user, index, top, new_score, new_pp, null));
-					}
-					else {
-						let id, type, beatmap;
-						msg.channel.fetchMessages({ limit: 50 }).then(msgs => {
-							msgs = msgs.array();
-							for (let i = 0; i < msgs.length; ++i) {
-								if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url)) {
-									if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") !== -1) return newLink(msgs[i].embeds[0].url);
-									else if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21));
-								}
+	commandGuessUsername(usePrefix(["whatif ", "whatiftaiko ", "whatifctb ", "whatifmania "]), false, (index, id, username, parameter, ending_parameter) => {
+		const new_pp = parseFloat(ending_parameter);
+		const new_score = parameter.indexOf("+") !== -1;
+		if (new_pp < 0) return reply(":x: The pp value of the new score must be a positive number.");
+		lolapi.osuGetUser(username, index, id, CONFIG.API_MAXAGE.WHAT_IF.GET_USER).then(user => {
+			lolapi.osuGetUserBest(user.user_id, index, 100, true, CONFIG.API_MAXAGE.WHAT_IF.GET_USER_BEST).then(top => {
+				if (new_score) {
+					replyEmbed(embedgenerator.whatif(CONFIG, user, index, top, new_score, new_pp, null));
+				}
+				else {
+					let id, type, beatmap;
+					msg.channel.fetchMessages({ limit: 50 }).then(msgs => {
+						msgs = msgs.array();
+						for (let i = 0; i < msgs.length; ++i) {
+							if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url)) {
+								if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") !== -1) return newLink(msgs[i].embeds[0].url);
+								else if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21));
 							}
-							reply(":x: Could not find a recent scorecard or beatmap.");
-						}).catch(e => {
-							console.error(e);
-							reply(":x: I need the \"read message history\" permission to process this request.");
-						});
-						function newLink(url) {// handles https://osu.ppy.sh/beatmapsets/ type links (include URL and mod string)
-							let parameter = url.substring(url.indexOfInstance("/", 4) + 1);
-							if (url.indexOf(" ") != -1) url = url.substring(0, url.indexOf(" "));//more comes after the url
-							id = UTILS.arbitraryLengthInt(parameter);
-							type = "s";
-							//mode = null;
-							UTILS.debug("url is: " + url);
-							if (url.indexOfInstance("/", 5) != -1 && !isNaN(parseInt(url[url.indexOfInstance("/", 5) + 1]))) {//if the link is beatmap specific
-								UTILS.debug("new url: s/b");
-								lolapi.osuBeatmap(UTILS.arbitraryLengthInt(url.substring(url.indexOfInstance("/", 5) + 1)), "b", index, CONFIG.API_MAXAGE.WHAT_IF.GET_BEATMAP).then(new_beatmap => {//retrieve the entire set
-									beatmap = new_beatmap[0];
-									step2();
-								}).catch(console.error);
-							}
-							else step2();
 						}
-						function oldLink(parameter) {
-							id = UTILS.arbitraryLengthInt(parameter);
-							type = "b";
-							//mode = parameter.indexOf("&m=") != -1 ? parseInt(parameter[parameter.indexOf("&m=") + 3]) : null;
-							lolapi.osuBeatmap(id, type, index, CONFIG.API_MAXAGE.WHAT_IF.GET_BEATMAP).then(new_beatmap => {
+						reply(":x: Could not find a recent scorecard or beatmap.");
+					}).catch(e => {
+						console.error(e);
+						reply(":x: I need the \"read message history\" permission to process this request.");
+					});
+					function newLink(url) {// handles https://osu.ppy.sh/beatmapsets/ type links (include URL and mod string)
+						let parameter = url.substring(url.indexOfInstance("/", 4) + 1);
+						if (url.indexOf(" ") != -1) url = url.substring(0, url.indexOf(" "));//more comes after the url
+						id = UTILS.arbitraryLengthInt(parameter);
+						type = "s";
+						//mode = null;
+						UTILS.debug("url is: " + url);
+						if (url.indexOfInstance("/", 5) != -1 && !isNaN(parseInt(url[url.indexOfInstance("/", 5) + 1]))) {//if the link is beatmap specific
+							UTILS.debug("new url: s/b");
+							lolapi.osuBeatmap(UTILS.arbitraryLengthInt(url.substring(url.indexOfInstance("/", 5) + 1)), "b", index, CONFIG.API_MAXAGE.WHAT_IF.GET_BEATMAP).then(new_beatmap => {//retrieve the entire set
 								beatmap = new_beatmap[0];
-								id = new_beatmap[0].beatmapset_id;
-								type = "s";
 								step2();
 							}).catch(console.error);
 						}
-						function step2() {
-							replyEmbed(embedgenerator.whatif(CONFIG, user, index, top, new_score, new_pp, beatmap));
-						}
+						else step2();
 					}
-				}).catch(console.error);
-			}).catch(e => {
-				reply(":x: The user `" + target + "` doesn't seem to exist.");
-			});
-		}).catch(console.error);
-	});
+					function oldLink(parameter) {
+						id = UTILS.arbitraryLengthInt(parameter);
+						type = "b";
+						//mode = parameter.indexOf("&m=") != -1 ? parseInt(parameter[parameter.indexOf("&m=") + 3]) : null;
+						lolapi.osuBeatmap(id, type, index, CONFIG.API_MAXAGE.WHAT_IF.GET_BEATMAP).then(new_beatmap => {
+							beatmap = new_beatmap[0];
+							id = new_beatmap[0].beatmapset_id;
+							type = "s";
+							step2();
+						}).catch(console.error);
+					}
+					function step2() {
+						replyEmbed(embedgenerator.whatif(CONFIG, user, index, top, new_score, new_pp, beatmap));
+					}
+				}
+			}).catch(console.error);
+		}).catch(e => {
+			reply(":x: The user `" + target + "` doesn't seem to exist.");
+		});
+	}, { trigger: "", accepts_opts: CONFIG.CONSTANTS.CGU_OPTS.MANDATORY });
 /*
 	commandGuessUsername(usePrefix(["scorecompare", "scompare", "compare", "scorevs", "c"]), false, (index, id, user, parameter) => {
 		lolapi.osuGetUserTyped(user, index, id, CONFIG.API_MAXAGE.COMPARE.GET_USER).then(user_stats => {
