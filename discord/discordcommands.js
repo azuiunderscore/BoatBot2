@@ -1188,6 +1188,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				}
 				else return false;
 			}
+			else {//username not provided & no parameters exist
 				if (!processRateLimit()) return false;
 				lolapi.getLink(msg.author.id).then(result => {
 					let username = msg.author.username;//suppose the link doesn't exist in the database
