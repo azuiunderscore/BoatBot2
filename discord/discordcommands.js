@@ -779,7 +779,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				if (beatmap.approved > 0) {//has to be a leaderboarded map for this to work
 					lolapi.osuScoreUser(user_stats.user_id, true, mode, beatmap_id, CONFIG.API_MAXAGE.COMPARE.GET_SCORE_USER).then(user_scores => {
 						//filter by correct mods
-						if (ending_parameter !== "") {
+						if (ending_parameter !== "") {//the user specified mods
 							let temp = [];
 							for (let b in user_scores) {
 								if (user_scores[b].enabled_mods === UTILS.getModNumber(ending_parameter)) {
