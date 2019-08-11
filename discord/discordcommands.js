@@ -727,8 +727,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			reply(":x: The user `" + target + "` doesn't seem to exist.");
 		});
 	}, { trigger: "", accepts_opts: CONFIG.CONSTANTS.CGU_OPTS.MANDATORY });
-/*
-	commandGuessUsername(usePrefix(["scorecompare", "scompare", "compare", "scorevs", "c"]), false, (index, id, user, parameter) => {
+
+	commandGuessUsername(usePrefix(["scorecompare", "scompare", "compare", "scorevs", "c"]), false, (index, id, user, parameter, ending_parameter) => {
 		lolapi.osuGetUserTyped(user, index, id, CONFIG.API_MAXAGE.COMPARE.GET_USER).then(user_stats => {
 			let beatmap_id, type, beatmap, mode;
 			msg.channel.fetchMessages({ limit: 50 }).then(msgs => {
@@ -778,6 +778,17 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			function step2() {
 				if (beatmap.approved > 0) {//has to be a leaderboarded map for this to work
 					lolapi.osuScoreUser(user_stats.user_id, true, mode, beatmap_id, CONFIG.API_MAXAGE.COMPARE.GET_SCORE_USER).then(user_scores => {
+						//filter by correct mods
+						if (ending_parameter !== "") {
+							let temp = [];
+							for (let b in user_scores) {
+								if (user_scores[b].enabled_mods === UTILS.getModNumber(ending_parameter)) {
+									temp.push(user_scores[b]);
+								}
+							}
+							user_scores = temp;
+							temp = undefined;
+						}
 						user_scores.map(v => { v.beatmap_id = beatmap_id; return v; });
 						let jobs = [];
 						let jobtype = [];
@@ -808,8 +819,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		}).catch(e => {
 			reply(":x: The user `" + target + "` doesn't seem to exist.");
 		});
-	});
-	*/
+	}, { trigger: "+", accepts_opts: CONFIG.CONSTANTS.CGU_OPTS.OPTIONAL });
+
 	if (true) {//scope limiter for beatmap links
 		let id, type, mode, mod_string, beatmap;
 		if (preferences.get("abi")) {
@@ -1052,7 +1063,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				}
 			}
 		}
-	}
+	}endin
 
 	function commandGuessUsername(trigger_array,//array of command aliases, prefix needs to be included
 		elevated_permissions,//requires owner permissions
@@ -1166,7 +1177,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 							lolapi.getLink(msg.author.id).then(result => {
 								let username = msg.author.username;//suppose the link doesn't exist in the database
 								if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
-								callback(index, false, username, parameter, ending_paramter.trim());
+								callback(index, false, username, parameter, ending_parameter.trim());
 							}).catch(console.error);
 						}
 						else callback(index, false, explicit_username, parameter, ending_parameter.trim());//explicit
