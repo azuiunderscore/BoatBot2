@@ -73,6 +73,11 @@
 			"name": "ShigeToria",
 			"active": true,
 			"flags": "<:5star:365190043821932544> 🇰🇷🇺🇸🇯🇵"
+		},
+		"106188449643544576": {
+			"name": "3zachm",
+			"active": true,
+			"flags": "<:6star:365191487769804820><:4starm:365413133931511810> 🇺🇸"
 		}
 	},
 	"DISCORD_COMMAND_PREFIX": "!",
