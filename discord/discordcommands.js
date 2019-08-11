@@ -1071,9 +1071,10 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		elevated_permissions,//requires owner permissions
 		callback,
 
-		options//{ trigger: "str", accepts_opts: 0, 1, 2 }// 0= no, 1= optional, 2= mandatory
+		options = { trigger: "", accepts_opts: 0 }// 0= no, 1= optional, 2= mandatory
 		//example !compare { trigger: "+", accepts_opts: 1 }
-		//example !whatif { trigger: "", accepts_opts: 2 }
+		//example !whatif { trigger: "" (last param is it), accepts_opts: 2
+}
 		) {//optional callback only if successful
 		//returns (index, boolean: user_id = true / username = false, user_id or username, parameter, ending parameter)
 		//this command does not validate the existance of a username on the server
@@ -1106,7 +1107,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 							else {
 								ending_parameter = "";
 							}
-							callback(index, false, username, parameter, ending_parameter);
+							callback(index, false, username, parameter, ending_parameter.trim());
 						}).catch(console.error);
 					}
 					else if (parameter[0] === "$") {//shortcut
@@ -1121,12 +1122,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 							else {
 								ending_parameter = "";
 							}
-							callback(index, false, result[parameter.toLowerCase().substring(1)], parameter, ending_parameter);
+							callback(index, false, result[parameter.toLowerCase().substring(1)], parameter, ending_parameter.trim());
 						}).catch(e => {
 							if (e) reply(":x: An error has occurred. The shortcut may not exist.");
 						});
 					}
-					else if (parameter[0] === "^") {
+					else if (parameter[1] === "^") {//refers to the last command sent in the channel
 						msg.channel.fetchMessages({ before: msg.id, limit: 30 }).then(msgs => {
 							msgs = msgs.array();
 							let user_id;
@@ -1141,34 +1142,57 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 									break;
 								}
 							}
-							if (!UTILS.exists(user_id)) return reply(":x: Could not find a recent username queried.");
-							let ending_parameter = parameter;
-							if (options.accept_opts === CONFIG.CGU_OPTS.MANDATORY) {
-								ending_parameter = ending_parameter.substring(ending_parameter.indexOf(" ") + 1);//shortcuts can't have spaces
-							}
-							else if (options.accept_opts === CONFIG.CGU_OPTS.OPTIONAL) {
-								ending_parameter = ending_parameter.substring(ending_parameter.lastIndexOf(trigger) + trigger.length);
-							}
+							if (!UTILS.exists(user_id)) reply(":x: Could not find a recent username queried.");
 							else {
-								ending_parameter = "";
+								let ending_parameter = parameter;
+								if (options.accept_opts === CONFIG.CGU_OPTS.MANDATORY) {
+									ending_parameter = ending_parameter.substring(1);//it's just the ' character
+								}
+								else if (options.accept_opts === CONFIG.CGU_OPTS.OPTIONAL) {
+									ending_parameter = ending_parameter.substring(ending_parameter.lastIndexOf(trigger) + trigger.length);
+								}
+								else {
+									ending_parameter = "";
+								}
+								callback(index, true, user_id, parameter, ending_parameter.trim());
 							}
-							callback(index, true, user_id, parameter);
 						}).catch(e => {
 							console.error(e);
 							reply(":x: Could not find a recent username queried.");
 						});
 					}
-					else callback(index, false, parameter.trim(), parameter);//explicit
+					else {//explicit username specified (or just a parameter)
+						let ending_parameter = parameter;
+						let explicit_username = parameter;
+						if (options.accept_opts === CONFIG.CGU_OPTS.MANDATORY) {
+							ending_parameter = parameter.substring(parameter.lastIndexOf(" ") + 1);//assume that the last word is the parameter
+							explicit_username = parameter.substring(0, parameter.lastIndexOf(" "));
+						}
+						else if (options.accept_opts === CONFIG.CGU_OPTS.OPTIONAL) {
+							ending_parameter = parameter.substring(parameter.lastIndexOf(trigger) + trigger.length);
+							explicit_username = parameter.substring(parameter.lastIndexOf(trigger) + trigger.length);
+						}
+						else {
+							ending_parameter = "";
+						}
+						if (explicit_username === "") {
+							lolapi.getLink(msg.author.id).then(result => {
+								let username = msg.author.username;//suppose the link doesn't exist in the database
+								if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
+								callback(index, false, username, parameter, ending_paramter.trim());
+							}).catch(console.error);
+						}
+						else callback(index, false, explicit_username, parameter, ending_parameter.trim());//explicit
+					}
 					return true;
 				}
 				else return false;
 			}
-			else {//username not provided
 				if (!processRateLimit()) return false;
 				lolapi.getLink(msg.author.id).then(result => {
 					let username = msg.author.username;//suppose the link doesn't exist in the database
 					if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
-					callback(index, false, username, parameter);
+					callback(index, false, username, parameter, "");
 				}).catch(console.error);
 				return true;
 			}
