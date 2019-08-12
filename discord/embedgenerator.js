@@ -1027,6 +1027,61 @@ module.exports = class EmbedGenerator {
 			}).catch(reject);
 		});
 	}
+	slsdRaw(CONFIG, user, beatmap, score) {//single line score display
+		const user_format = {
+			user_id: "string",
+			username: "string",
+			pp_raw: "number",//float
+			pp_rank: "number",//int
+			pp_country_rank: "number",//int
+			pp_delta: "number"//set to 0 if no change
+		};
+		const beatmap_format = {
+			approved: "number",//int
+			mode: "number",//int
+			beatmap_id: "string",
+			beatmapset_id: "string",
+			object_count: "number",//int
+			max_combo: "number",//int
+			creator_id: "string",
+			creator: "string",
+			last_update: "object",//date
+			approved_date: "object",//date
+			diff_aim: "number",//float, ctb diff rating
+			diff_speed: "number",//float
+			difficultyrating: "number",//float
+			bpm: "number",//float
+			title: "string",
+			artist: "string"
+		};
+		const score_format = {
+			score: "number",//int
+			best_play_index: "number",//int; -1 = not best play
+			leaderboard_index: "number",//int; -1 = not on leaderboard
+			pp: "number",//float
+			pp_valid: "boolean",
+			max_pp: "number",//float
+			max_pp_valid: "boolean",
+			maxcombo: "number",//int
+			perfect: "boolean",//perfect combo (FC)
+			countmiss: "number",//int
+			count50: "number",//int
+			count100: "number",//int
+			countkatu: "number",//int, mania200
+			count300: "number",//int
+			countgeki: "number",//int, maniarainbow
+			enabled_mods: "number",//int
+			date: "object",
+			rank: "string",
+			progress: "number"//float, 1 if pass, between 0-1 if rank is "F", -1 if progress unavailable
+		};
+		for (let b in user_format) UTILS.assert(typeof (user[b]) === user_format[b], `user[${b}] expects ${user_format[b]} but is type ${typeof (user[b])} with value ${user[b]}`);
+		for (let b in beatmap_format) UTILS.assert(typeof (beatmap[b]) === beatmap_format[b], `beatmap[${b}] expects ${beatmap_format[b]} but is type ${typeof (beatmap[b])} with value ${beatmap[b]}`);
+		for (let b in score_format) UTILS.assert(typeof (score[b]) === score_format[b], `score[${b}] expects ${score_format[b]} but is type ${typeof (score[b])} with value ${score[b]}`);
+		let choke = "";
+		//
+		return `${CONFIG.EMOJIS[score.rank]} ${beatmap.artist.limit(20)} - ${beatmap.title.limit(30)} [${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)} ${beatmap.version.limit(15)}] ${score.enabled_mods !== 0 ? getMods(score.enabled_mods) + " " : ""} **${UTILS.calcAcc(beatmap.mode, score)} ${score.pp.round(0)}pp ${choke}**`;
+	}
 	matchRequest(match_object, user_object, beatmap_object) {
 		let newEmbed = new Discord.RichEmbed();
 		let game = match_object.games[match_object.games.length - 1];

@@ -21,6 +21,16 @@ String.prototype.indexOfInstance = function(searchString, index) {
 	}
 	return answer;
 }
+String.prototype.limit = function (size) {
+	let arr = this.split(" ");
+	let ans = "";
+	for (let i = 0; i < arr.length; ++i) {
+		if (ans.length + arr[i].length > size) break;
+		else ans += arr[i];
+	}
+	if (ans.length === 0) return this.substring(0, size);
+	else return ans;
+}
 Number.prototype.pad = function(size) {
 	let s = String(this);
 	while (s.length < (size || 2)) { s = "0" + s; }

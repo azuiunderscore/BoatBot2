@@ -1072,7 +1072,6 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		options = { trigger: "", accepts_opts: 0 }// 0= no, 1= optional, 2= mandatory
 		//example !compare { trigger: "+", accepts_opts: 1 }
 		//example !whatif { trigger: "" (last param is it), accepts_opts: 2
-}
 		) {//optional callback only if successful
 		//returns (index, boolean: user_id = true / username = false, user_id or username, parameter, ending parameter)
 		//this command does not validate the existance of a username on the server
