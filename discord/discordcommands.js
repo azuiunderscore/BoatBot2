@@ -355,10 +355,10 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	command(["boatsetprefix"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
 		preferences.set("prefix", "") ? reply(":white_check_mark: The prefix to use this bot has been removed. No prefix is needed to use commands.") : reply(":x: An error has occurred while setting the prefix.");
 	});
-	commandGuessUsername(usePrefix(["d1"]), false, (index, id, user, parameter) => {
+	commandGuessUsername(usePrefix(["d1"]), CONFIG.CONSTANTS.BOTOWNERS, (index, id, user, parameter) => {
 		reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + "` parameter: `" + parameter + "`");
 	});
-	commandGuessUsernameNumber(usePrefix(["d2"]), false, (index, id, user, number, guess_method) => {
+	commandGuessUsernameNumber(usePrefix(["d2"]), CONFIG.CONSTANTS.BOTOWNERS, (index, id, user, number, guess_method) => {
 		reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + "` number: `" + number + "` guess_method: `" + guess_method + "`");
 	});
 	commandGuessUsername(usePrefix(["statsplus", "sp", "osu", "std", "taiko", "sptaiko", "spt", "ctb", "spctb", "spc", "mania", "spmania", "spm"]), false, (index, id, user, parameter) => {
@@ -1118,7 +1118,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 						}).catch(console.error);
 					}
 					else if (parameter.substring(0, 2) === " $") {//shortcut
-						lolapi.getShortcut(msg.author.id, parameter.toLowerCase().substring(1)).then(result => {
+						lolapi.getShortcut(msg.author.id, parameter.toLowerCase().substring(2)).then(result => {
 							let ending_parameter = parameter.substring(2);
 							if (options.accepts_opts === CONFIG.CONSTANTS.CGU_OPTS.MANDATORY) {
 								ending_parameter = ending_parameter.substring(ending_parameter.indexOf(" ") + 1);//shortcuts can't have spaces
@@ -1129,7 +1129,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 							else {
 								ending_parameter = "";
 							}
-							callback(index, false, result[parameter.toLowerCase().substring(1)], parameter, ending_parameter.trim());
+							callback(index, false, result[parameter.toLowerCase().substring(2)], parameter, ending_parameter.trim());
 						}).catch(e => {
 							if (e) reply(":x: An error has occurred. The shortcut may not exist.");
 						});
