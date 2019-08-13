@@ -787,7 +787,7 @@ module.exports = class EmbedGenerator {
 			let diffstring = "";
 			for (let i = 0; i < 4; ++i) {//mode
 				for (let j = 0; j < 8; ++j) {//star value
-					if (other_diffs[i][j] > 0) diffstring += getStars(CONFIG, i, j) + ": " + other_diffs[i][j] + TAB;
+					if (other_diffs[i][j] > 0) diffstring += getStars(CONFIG, i, j) + other_diffs[i][j] + TAB;
 				}
 			}
 			let ppstring = "";
@@ -1030,21 +1030,30 @@ module.exports = class EmbedGenerator {
 			}).catch(reject);
 		});
 	}
-	slsdRaw(CONFIG, user, beatmap, score) {//single line score display
-		const user_format = {
-			user_id: "string",
-			username: "string",
-			pp_raw: "number",//float
-			pp_rank: "number",//int
-			pp_country_rank: "number",//int
-			pp_delta: "number"//set to 0 if no change
-		};
+	slsd(CONFIG, user, beatmaps, scores, end_index) {
+		let newEmbed = new Discord.RichEmbed();
+		UTILS.assert(beatmaps.length === scores.length);
+		UTILS.assert(end_index <= scores.length);
+		newEmbed.setTitle(`Top ${end_index} scores`);
+		newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, `https://a.ppy.sh/${user.user_id}?${UTILS.now()}`, `https://osu.ppy.sh/u/${user.user_id}`);
+		let sl_scores = [];//single line scores
+		for (let i = 0; i < end_index; ++i) {
+			sl_scores.push(this.slsdRaw(CONFIG, beatmaps[i], scores[i]));
+		}
+		for (let i = 0; i < Math.floor(sl_scores.length / 5); ++i) {
+			const fd = sl_scores.slice(i * 5, (i + 1) * 5).join("\n")
+			UTILS.debug("field length: " + fd.length);
+			newEmbed.addField("#" + ((i * 5) + 1) + " - #" + ((i + 1) * 5), fd);
+		}
+		newEmbed.setFooter("Beatmap artist, title, difficulty names have been truncated");
+		return newEmbed;
+	}
+	slsdRaw(CONFIG, beatmap, score) {//single line score display
 		const beatmap_format = {
 			approved: "number",//int
 			mode: "number",//int
 			beatmap_id: "string",
 			beatmapset_id: "string",
-			object_count: "number",//int
 			max_combo: "number",//int
 			creator_id: "string",
 			creator: "string",
@@ -1059,12 +1068,7 @@ module.exports = class EmbedGenerator {
 		};
 		const score_format = {
 			score: "number",//int
-			best_play_index: "number",//int; -1 = not best play
-			leaderboard_index: "number",//int; -1 = not on leaderboard
 			pp: "number",//float
-			pp_valid: "boolean",
-			max_pp: "number",//float
-			max_pp_valid: "boolean",
 			maxcombo: "number",//int
 			perfect: "boolean",//perfect combo (FC)
 			countmiss: "number",//int
@@ -1075,15 +1079,16 @@ module.exports = class EmbedGenerator {
 			countgeki: "number",//int, maniarainbow
 			enabled_mods: "number",//int
 			date: "object",
-			rank: "string",
-			progress: "number"//float, 1 if pass, between 0-1 if rank is "F", -1 if progress unavailable
+			rank: "string"
 		};
-		for (let b in user_format) UTILS.assert(typeof (user[b]) === user_format[b], `user[${b}] expects ${user_format[b]} but is type ${typeof (user[b])} with value ${user[b]}`);
 		for (let b in beatmap_format) UTILS.assert(typeof (beatmap[b]) === beatmap_format[b], `beatmap[${b}] expects ${beatmap_format[b]} but is type ${typeof (beatmap[b])} with value ${beatmap[b]}`);
 		for (let b in score_format) UTILS.assert(typeof (score[b]) === score_format[b], `score[${b}] expects ${score_format[b]} but is type ${typeof (score[b])} with value ${score[b]}`);
 		let choke = "";
-		//
-		return `${CONFIG.EMOJIS[score.rank]} ${beatmap.artist.limit(20)} - ${beatmap.title.limit(30)} [${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)} ${beatmap.version.limit(15)}] ${score.enabled_mods !== 0 ? getMods(score.enabled_mods) + " " : ""} **${UTILS.calcAcc(beatmap.mode, score)} ${score.pp.round(0)}pp ${choke}**`;
+		if (score.maxcombo === beatmap.max_combo) choke = "PC "
+		else if (score.maxcombo > .98 * beatmap.max_combo && score.countmiss === 0) choke = "FC "
+		else if (score.countmiss === 0) choke = (score.maxcombo - beatmap.max_combo) + "x ";
+		else choke = score.countmiss + CONFIG.EMOJIS.miss;
+		return `${CONFIG.EMOJIS[score.rank]}${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)}**${score.pp.round(0)}pp ${UTILS.calcAcc(beatmap.mode, score).toFixed(2)}% ${choke}${score.enabled_mods !== 0 ? getMods(score.enabled_mods) + " " : ""}**${beatmap.artist.limit(12)} - ${beatmap.title.limit(18)} [${beatmap.version.limit(12)}]`;
 	}
 	matchRequest(match_object, user_object, beatmap_object) {
 		let newEmbed = new Discord.RichEmbed();

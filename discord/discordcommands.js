@@ -512,7 +512,20 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			reply(":x: I need the \"read message history\" permission to process this request.");
 		});
 	});
-
+	commandGuessUsername(usePrefix(["alltop"]), CONFIG.CONSTANTS.BOTOWNERS, (index, id, user, parameter) => {
+		lolapi.osuGetUserTyped(user, 0, id, CONFIG.API_MAXAGE.ALL_TOP.GET_USER).then(user_stats => {
+			lolapi.osuGetUserBest(user_stats.user_id, 0, 30, true, CONFIG.API_MAXAGE.ALL_TOP.GET_USER_BEST).then(user_best => {
+				let jobs = [];
+				for (let i = 0; i < user_best.length; ++i) {
+					jobs.push(lolapi.osuBeatmap(user_best[i].beatmap_id, "b", 0, CONFIG.API_MAXAGE.ALL_TOP.GET_BEATMAP));
+				}
+				Promise.all(jobs).then(beatmaps => {
+					beatmaps = beatmaps.map(bs => bs[0]);
+					replyEmbed(embedgenerator.slsd(CONFIG, user_stats, beatmaps, user_best, 30));
+				}).catch(console.error);
+			}).catch(console.error);
+		}).catch(console.error);
+	});
 	commandGuessUsername(usePrefix(["recent", "r"]), false, (index, id, user, parameter) => {//this doesn't support play #s
 	request_profiler.begin("mode_detect");
 		lolapi.osuMostRecentMode(user, id, false, CONFIG.API_MAXAGE.RECENT.GET_USER_RECENT).then(mode => {

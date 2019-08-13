@@ -26,8 +26,9 @@ String.prototype.limit = function (size) {
 	let ans = "";
 	for (let i = 0; i < arr.length; ++i) {
 		if (ans.length + arr[i].length > size) break;
-		else ans += arr[i];
+		else ans += arr[i] + " ";
 	}
+	ans = ans.trim();
 	if (ans.length === 0) return this.substring(0, size);
 	else return ans;
 }

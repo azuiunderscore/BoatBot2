@@ -139,7 +139,7 @@
 		"C": "<:C_:365509580517801995>",
 		"D": "<:D_:365509580651757568>",
 		"F": "F",
-		"miss": "<:miss:610805042647138306>"
+		"miss": "<:miss:610819149828063232>"
 	},
 	"API_PORT": 56831,
 	"API_ADDRESS": "localhost",
@@ -155,7 +155,7 @@
 		"USER_PAGE": 86400,
 		"PHP_PROFILE_GENERAL": 86400,
 		"GET_USER_RECENT": 3600,
-		"GET_BEATMAP": 86400,//map or set
+		"GET_BEATMAP": 604800,//map or set, 1 week
 		"OSU_FILE": 604800,//1 week
 		"GET_SCORE_USER": 86400,
 		"GET_SCORE": 86400,
@@ -214,6 +214,11 @@
 			"OSU_FILE": 604800,
 			"GET_USER_BEST": 120,
 			"GET_SCORE": 120
+		},
+		"ALL_TOP": {
+			"GET_USER": 120,
+			"GET_USER_BEST": 120,
+			"GET_BEATMAP": 604800
 		}
 	},
 	"SHARD_COUNT": 3,
