@@ -861,6 +861,7 @@ module.exports = class EmbedGenerator {
 	}
 	recent(CONFIG, mode, play_index = 0, recent_scores, beatmap, leaderboard, user_scores, user_best, user_stats) {
 		let that = this;
+		UTILS.assert(UTILS.exists(recent_scores[play_index]));
 		recent_scores[play_index].best_play_index = UTILS.scoreIsUserTop100(recent_scores[play_index], user_best);//0-indexed
 		recent_scores[play_index].leaderboard_index = UTILS.scoreIsUserTop100(recent_scores[play_index], leaderboard);
 		const user_play_index = UTILS.scoreIsUserTop100(recent_scores[play_index], user_scores);

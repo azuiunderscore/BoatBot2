@@ -47,7 +47,7 @@ let api_doc_model = apicache.model("api_doc_model", api_doc);
 let shortcut_doc = new apicache.Schema({//basically user preferences
 	uid: { type: String, required: true },
 	shortcuts: { type: apicache.Schema.Types.Mixed, default: {}, required: true },
-	username: { type: String, required: true},
+	username: { type: String, required: isString },
 	verifiedAccounts: { type: apicache.Schema.Types.Mixed, default: {}, required: true }//["region:summonerid"] = expiry date ms
 }, { minimize: false });
 shortcut_doc.index({ uid: "hashed" });

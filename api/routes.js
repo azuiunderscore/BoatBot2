@@ -136,6 +136,7 @@ module.exports = function(CONFIG, apicache, serveWebRequest, response_type, load
 		});
 	}, true);
 	serveWebRequest("/setlink/:uid", (req, res, next) => {
+		if (!UTILS.exists(req.query.link)) req.query.link = "";
 		findShortcut(req.params.uid, res, doc => {
 			if (UTILS.exists(doc)) {
 				doc.username = req.query.link;

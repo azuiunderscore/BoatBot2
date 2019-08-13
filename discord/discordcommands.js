@@ -667,10 +667,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	});
 
 	//!whatif [target user] <+new pp value, overriding pp value>
-	commandGuessUsername(usePrefix(["whatif ", "whatiftaiko ", "whatifctb ", "whatifmania "]), false, (index, id, username, parameter, ending_parameter) => {
+	commandGuessUsername(usePrefix(["whatif", "whatiftaiko", "whatifctb", "whatifmania"]), false, (index, id, username, parameter, ending_parameter) => {
+		UTILS.debug("username: " + username);
+		UTILS.debug("ending_parameter: " + ending_parameter);
 		const new_pp = parseFloat(ending_parameter);
 		const new_score = parameter.indexOf("+") !== -1;
-		if (new_pp < 0) return reply(":x: The pp value of the new score must be a positive number.");
+		if (isNaN(new_pp) || new_pp < 0) return reply(":x: The pp value of the new score must be a positive number.");
 		lolapi.osuGetUser(username, index, id, CONFIG.API_MAXAGE.WHAT_IF.GET_USER).then(user => {
 			lolapi.osuGetUserBest(user.user_id, index, 100, true, CONFIG.API_MAXAGE.WHAT_IF.GET_USER_BEST).then(top => {
 				if (new_score) {
@@ -724,11 +726,13 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				}
 			}).catch(console.error);
 		}).catch(e => {
-			reply(":x: The user `" + target + "` doesn't seem to exist.");
+			reply(":x: The user `" + username + "` doesn't seem to exist.");
 		});
 	}, { trigger: "", accepts_opts: CONFIG.CONSTANTS.CGU_OPTS.MANDATORY });
 
 	commandGuessUsername(usePrefix(["scorecompare", "scompare", "compare", "scorevs", "c"]), false, (index, id, user, parameter, ending_parameter) => {
+		UTILS.inspect("username", user);
+		UTILS.inspect("ending_parameter", ending_parameter);
 		lolapi.osuGetUserTyped(user, index, id, CONFIG.API_MAXAGE.COMPARE.GET_USER).then(user_stats => {
 			let beatmap_id, type, beatmap, mode;
 			msg.channel.fetchMessages({ limit: 50 }).then(msgs => {
@@ -778,17 +782,22 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			function step2() {
 				if (beatmap.approved > 0) {//has to be a leaderboarded map for this to work
 					lolapi.osuScoreUser(user_stats.user_id, true, mode, beatmap_id, CONFIG.API_MAXAGE.COMPARE.GET_SCORE_USER).then(user_scores => {
+						UTILS.inspect("osuScoreUser", user_scores);
 						//filter by correct mods
 						if (ending_parameter !== "") {//the user specified mods
 							let temp = [];
+							const AMN = UTILS.getModNumber(ending_parameter.substring(1)).value;//applied mod number
+							UTILS.inspect("AMN", AMN);
 							for (let b in user_scores) {
-								if (user_scores[b].enabled_mods === UTILS.getModNumber(ending_parameter)) {
+								if (user_scores[b].enabled_mods === AMN) {
 									temp.push(user_scores[b]);
 								}
 							}
 							user_scores = temp;
 							temp = undefined;
 						}
+						UTILS.inspect("osuScoreUser with mod filter", user_scores);
+						if (user_scores.length === 0) return reply(":x: `" + user + "` doesn't have any of those scores on this beatmap.");
 						user_scores.map(v => { v.beatmap_id = beatmap_id; return v; });
 						let jobs = [];
 						let jobtype = [];
@@ -817,7 +826,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				}
 			}
 		}).catch(e => {
-			reply(":x: The user `" + target + "` doesn't seem to exist.");
+			reply(":x: The user `" + user + "` doesn't seem to exist.");
 		});
 	}, { trigger: "+", accepts_opts: CONFIG.CONSTANTS.CGU_OPTS.OPTIONAL });
 
@@ -1063,12 +1072,11 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				}
 			}
 		}
-	}endin
+	}
 
 	function commandGuessUsername(trigger_array,//array of command aliases, prefix needs to be included
 		elevated_permissions,//requires owner permissions
 		callback,
-
 		options = { trigger: "", accepts_opts: 0 }// 0= no, 1= optional, 2= mandatory
 		//example !compare { trigger: "+", accepts_opts: 1 }
 		//example !whatif { trigger: "" (last param is it), accepts_opts: 2
@@ -1086,20 +1094,22 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		*/
 		UTILS.defaultObjectValues({ trigger: "", accept_opts: 0 }, options);
 		command(trigger_array, true, elevated_permissions, (original, index, parameter) => {
+			UTILS.debug("cGU p1: " + parameter);
 			if (parameter.length !== 0) {//username explicitly provided
 				if (parameter.length < 70 && parameter[0] === " ") {//longest query should be less than 70 characters (required trailing space after command trigger)
 					if (!processRateLimit()) return false;
-					parameter = parameter.trim();
-					if (msg.mentions.users.size == 1) {//explicit mention
+					//parameter = parameter.trim();
+					UTILS.debug("cGU p2: " + parameter);
+					if (parameter[0] === " " && msg.mentions.users.size == 1) {//explicit mention
 						lolapi.getLink(msg.mentions.users.first().id).then(result => {
 							let username = msg.mentions.users.first().username;//suppose the link doesn't exist in the database
 							if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
-							let ending_parameter = parameter;
-							if (options.accept_opts === CONFIG.CGU_OPTS.MANDATORY) {
+							let ending_parameter = parameter.substring(parameter.indexOf(">") + 1);
+							if (options.accepts_opts === CONFIG.CONSTANTS.CGU_OPTS.MANDATORY) {
 								ending_parameter = ending_parameter.substring(ending_parameter.indexOf(" ") + 1);//mentions can't have spaces
 							}
-							else if (options.accept_opts === CONFIG.CGU_OPTS.OPTIONAL) {
-								ending_parameter = ending_parameter.substring(ending_parameter.lastIndexOf(trigger) + trigger.length);
+							else if (options.accepts_opts === CONFIG.CONSTANTS.CGU_OPTS.OPTIONAL) {
+								ending_parameter = ending_parameter.substring(ending_parameter.lastIndexOf(options.trigger));
 							}
 							else {
 								ending_parameter = "";
@@ -1107,14 +1117,14 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 							callback(index, false, username, parameter, ending_parameter.trim());
 						}).catch(console.error);
 					}
-					else if (parameter[0] === "$") {//shortcut
+					else if (parameter.substring(0, 2) === " $") {//shortcut
 						lolapi.getShortcut(msg.author.id, parameter.toLowerCase().substring(1)).then(result => {
-							let ending_parameter = parameter;
-							if (options.accept_opts === CONFIG.CGU_OPTS.MANDATORY) {
+							let ending_parameter = parameter.substring(2);
+							if (options.accepts_opts === CONFIG.CONSTANTS.CGU_OPTS.MANDATORY) {
 								ending_parameter = ending_parameter.substring(ending_parameter.indexOf(" ") + 1);//shortcuts can't have spaces
 							}
-							else if (options.accept_opts === CONFIG.CGU_OPTS.OPTIONAL) {
-								ending_parameter = ending_parameter.substring(ending_parameter.lastIndexOf(trigger) + trigger.length);
+							else if (options.accepts_opts === CONFIG.CONSTANTS.CGU_OPTS.OPTIONAL) {
+								ending_parameter = ending_parameter.substring(ending_parameter.lastIndexOf(options.trigger));
 							}
 							else {
 								ending_parameter = "";
@@ -1124,7 +1134,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 							if (e) reply(":x: An error has occurred. The shortcut may not exist.");
 						});
 					}
-					else if (parameter[1] === "^") {//refers to the last command sent in the channel
+					else if (parameter.substring(0, 2) === " ^") {//refers to the last command sent in the channel
 						msg.channel.fetchMessages({ before: msg.id, limit: 30 }).then(msgs => {
 							msgs = msgs.array();
 							let user_id;
@@ -1132,21 +1142,27 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 								if (msgs[i].author.id == client.user.id && //message was sent by bot
 									msgs[i].embeds.length == 1 && //embedded response
 									UTILS.exists(msgs[i].embeds[0].author) && //author present
-									UTILS.exists(msgs[i].embeds[0].author.url) && //url present
-									msgs[i].embeds[0].author.url.substring(0, 25) === "https://osu.ppy.sh/users/") {//https://osu.ppy.sh/users/4374286
-									const candidate = UTILS.arbitraryLengthInt(msgs[i].embeds[0].author.url.substring(25));
+									UTILS.exists(msgs[i].embeds[0].author.url)) {//url present
+									if (msgs[i].embeds[0].author.url.substring(0, 25) === "https://osu.ppy.sh/users/") {//https://osu.ppy.sh/users/4374286
+										const candidate = UTILS.arbitraryLengthInt(msgs[i].embeds[0].author.url.substring(25));
+										if (candidate !== "") user_id = parseInt(candidate);
+										break;
+									}
+									else if (msgs[i].embeds[0].author.url.substring(0, 21) === "https://osu.ppy.sh/u/") {//https://osu.ppy.sh/u/4374286
+									const candidate = UTILS.arbitraryLengthInt(msgs[i].embeds[0].author.url.substring(21));
 									if (candidate !== "") user_id = parseInt(candidate);
 									break;
+								}
 								}
 							}
 							if (!UTILS.exists(user_id)) reply(":x: Could not find a recent username queried.");
 							else {
-								let ending_parameter = parameter;
-								if (options.accept_opts === CONFIG.CGU_OPTS.MANDATORY) {
-									ending_parameter = ending_parameter.substring(1);//it's just the ' character
+								let ending_parameter = parameter.substring(2);
+								if (options.accepts_opts === CONFIG.CONSTANTS.CGU_OPTS.MANDATORY) {
+									ending_parameter = ending_parameter.substring(2);
 								}
-								else if (options.accept_opts === CONFIG.CGU_OPTS.OPTIONAL) {
-									ending_parameter = ending_parameter.substring(ending_parameter.lastIndexOf(trigger) + trigger.length);
+								else if (options.accepts_opts === CONFIG.CONSTANTS.CGU_OPTS.OPTIONAL) {
+									ending_parameter = ending_parameter.substring(ending_parameter.lastIndexOf(options.trigger));
 								}
 								else {
 									ending_parameter = "";
@@ -1161,17 +1177,24 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 					else {//explicit username specified (or just a parameter)
 						let ending_parameter = parameter;
 						let explicit_username = parameter;
-						if (options.accept_opts === CONFIG.CGU_OPTS.MANDATORY) {
+						UTILS.inspect("parameter.lastIndexOf(\" \")", parameter.lastIndexOf(" "));
+						if (options.accepts_opts === CONFIG.CONSTANTS.CGU_OPTS.MANDATORY) {
 							ending_parameter = parameter.substring(parameter.lastIndexOf(" ") + 1);//assume that the last word is the parameter
 							explicit_username = parameter.substring(0, parameter.lastIndexOf(" "));
 						}
-						else if (options.accept_opts === CONFIG.CGU_OPTS.OPTIONAL) {
-							ending_parameter = parameter.substring(parameter.lastIndexOf(trigger) + trigger.length);
-							explicit_username = parameter.substring(parameter.lastIndexOf(trigger) + trigger.length);
+						else if (options.accepts_opts === CONFIG.CONSTANTS.CGU_OPTS.OPTIONAL) {
+							if (parameter.lastIndexOf(options.trigger) !== -1) {
+								ending_parameter = parameter.substring(parameter.lastIndexOf(options.trigger));
+								explicit_username = parameter.substring(0, parameter.lastIndexOf(options.trigger));
+							}
+							else {
+								ending_parameter = "";
+							}
 						}
 						else {
 							ending_parameter = "";
 						}
+						explicit_username = explicit_username.trim();
 						if (explicit_username === "") {
 							lolapi.getLink(msg.author.id).then(result => {
 								let username = msg.author.username;//suppose the link doesn't exist in the database

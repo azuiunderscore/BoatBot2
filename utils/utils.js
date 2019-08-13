@@ -834,6 +834,9 @@ module.exports = class UTILS {
 				this.output(`${name} is type ${typeof(object)} as circularly referencing Object`);
 			}
 		}
+		else if (typeof (object) === "string") {
+			this.output(`${name} is type ${typeof(object)} with value(${object.length}) ${object}`);
+		}
 		else {
 			this.output(`${name} is type ${typeof(object)} with value ${object}`);
 		}
