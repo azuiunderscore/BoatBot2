@@ -435,11 +435,11 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	command(["https://osu.ppy.sh/u/", "http://osu.ppy.sh/u/", "https://osu.ppy.sh/users/", "http://osu.ppy.sh/users/"], true, false, (original, index, parameter) => {
 		const id = UTILS.arbitraryLengthInt(parameter);
 		lolapi.osuMostRecentMode(id, true, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER_RECENT).then(mrm => {
-			lolapi.osuGetUser(id, mrm, true, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
+			lolapi.osuGetUserTyped(id, mrm, true, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
 				replyEmbed(embedgenerator.signature(CONFIG, mrm, user_stats));
 			}).catch(console.error);
 		}).catch(e => {
-			lolapi.osuGetUser(id, 0, true, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
+			lolapi.osuGetUserTyped(id, 0, true, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
 				replyEmbed(embedgenerator.signature(CONFIG, 0, user_stats));
 			}).catch(console.error);
 		});
@@ -447,11 +447,11 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	command(usePrefix(["about", "credits", "acknowledgements", "contributors", "contributions"]), false, false, (original, index) => reply(CONFIG.ACKNOWLEDGEMENTS));
 	commandGuessUsername(usePrefix(["osusignature", "osusign", "osusig"]), false, (index, id, user, parameter) => {
 		lolapi.osuMostRecentMode(user, id, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER_RECENT).then(mrm => {
-			lolapi.osuGetUser(user, mrm, id, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
+			lolapi.osuGetUserTyped(user, mrm, id, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
 				replyEmbed(embedgenerator.signature(CONFIG, mrm, user_stats));
 			}).catch(console.error);
 		}).catch(e => {
-			lolapi.osuGetUser(user, 0, id, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
+			lolapi.osuGetUserTyped(user, 0, id, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
 				replyEmbed(embedgenerator.signature(CONFIG, 0, user_stats));
 			}).catch(console.error);
 		});

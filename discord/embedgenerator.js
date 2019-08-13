@@ -604,8 +604,10 @@ module.exports = class EmbedGenerator {
 			modeCommand = CONFIG.DISCORD_COMMAND_PREFIX + "spm";
 			newEmbed.setColor(255);
 		}
-		newEmbed.setAuthor(user_stats.username + "'s " + wordMode + " Profile", null, "https://osu.ppy.sh/users/" + user_stats.user_id);
-		newEmbed.setImage("https://lemmmy.pw/osusig/sig.php?colour=pink&uname=" + user_stats.user_id + "&pp=2&countryrank&removeavmargin&darktriangles&onlineindicator=undefined&xpbar&xpbarhex&mode=" + mode + "&random=" + UTILS.now());
+		newEmbed.setAuthor(user_stats.username, "", "https://osu.ppy.sh/users/" + user_stats.user_id);
+		//newEmbed.setImage("https://lemmmy.pw/osusig/sig.php?colour=pink&uname=" + user_stats.user_id + "&pp=2&countryrank&removeavmargin&darktriangles&onlineindicator=undefined&xpbar&xpbarhex&mode=" + mode + "&random=" + UTILS.now());
+		newEmbed.setDescription(`**${user_stats.pp_raw}pp (#${UTILS.numberWithCommas(user_stats.pp_rank)}) :flag_${user_stats.country.toLowerCase()}:#${UTILS.numberWithCommas(user_stats.pp_country_rank)}**\nlv. ${user_stats.level.round(1)}${TAB}${user_stats.accuracy.toFixed(2)}%\n${UTILS.numberWithCommas(user_stats.playcount)} plays${TAB}${(user_stats.total_seconds_played / 3600).round(0)} hours`);
+		newEmbed.setThumbnail("https://a.ppy.sh/" + user_stats.user_id);
 		newEmbed.setFooter("use " + modeCommand + " " + user_stats.username + " for more information");
 		return newEmbed;
 	}
