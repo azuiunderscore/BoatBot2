@@ -138,11 +138,12 @@
 		"B": "<:B_:365509580664602625>",
 		"C": "<:C_:365509580517801995>",
 		"D": "<:D_:365509580651757568>",
-		"F": "F"
+		"F": "F",
+		"miss": "<:miss:610805042647138306>"
 	},
 	"API_PORT": 56831,
 	"API_ADDRESS": "localhost",
-	"API_PERIOD": 200,//period (in ms) between requests to osu API servers. this is managed by the iapi.
+	"API_PERIOD": 100,//period (in ms) between requests to osu API servers. this is managed by the iapi.
 	"API_KEY": "insert random string here",//for internal api use only
 	"MONGODB_ADDRESS": "mongodb://localhost/apicache",//mongodb database address
 	"EWS_KEY": "insert random string here",//encrypted web services key
