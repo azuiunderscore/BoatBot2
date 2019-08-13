@@ -40,7 +40,7 @@ module.exports = class TextGenerator {
 		else return "`SIDE` the coin landed on its side";
 	}
 	stats(mode, user_stats) {
-		return UTILS.exists(user_stats) ? "Stats for " + user_stats.username + " (" + ["Standard", "Taiko", "Catch the Beat", "Mania"][mode] + "): http://osu.ppy.sh/u/" + user_stats.user_id + "\nScore:    " + UTILS.numberWithCommas(user_stats.ranked_score) + " (#" + user_stats.pp_rank + ")\nPlays:    " + user_stats.playcount + " (lv" + parseInt(user_stats.level) + ")\nAccuracy: " + UTILS.round(user_stats.accuracy, 2) + "%" : "User not found";
+		return UTILS.exists(user_stats) ? "Stats for " + user_stats.username + " (" + ["Standard", "Taiko", "Catch the Beat", "Mania"][mode] + "): <http://osu.ppy.sh/u/" + user_stats.user_id + ">\nScore:    " + UTILS.numberWithCommas(user_stats.ranked_score) + " (#" + user_stats.pp_rank + ")\nPlays:    " + user_stats.playcount + " (lv" + parseInt(user_stats.level) + ")\nAccuracy: " + UTILS.round(user_stats.accuracy, 2) + "%" : "User not found";
 	}
 	where(user_stats) {
 		return UTILS.exists(user_stats) ? user_stats.username + " is in " + UTILS.getCountryName(user_stats.country) : "The user is currently not online.";
