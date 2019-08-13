@@ -88,6 +88,6 @@ alpha testing, forked from supportbot @ iaace-NA/SupportBot
 - CPU: 4 Thread, Base clock 1.2GHz+
 - LAN: 12 Mbps Down/4 Mbps Up
 ## Commands
-see ~~https://supportbot.tk/~~
+see https://docs.iaace.gg/
 ## Installation
 see ~~https://github.com/iaace-NA/SupportBot/wiki~~
