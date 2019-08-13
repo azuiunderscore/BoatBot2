@@ -854,7 +854,7 @@ module.exports = class EmbedGenerator {
 				newEmbed.addField("\\[" + getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim) + " " + beatmap.version + "\\]" + UTILS.fstr(mods.value > 0, " ") + (UTILS.exists(beatmap.mod_dr) ? getStars(CONFIG, beatmap.mode, beatmap.mod_dr) : "") + mods.string, "Length: `" + UTILS.standardTimestamp(beatmap.total_length) + "` (`" + UTILS.standardTimestamp(beatmap.hit_length) + "`) BPM: `" + beatmap.bpm + "` FC: `" + beatmap.max_combo + "x`\nCS: `" + beatmap.diff_size + "` AR: `" + beatmap.diff_approach + "` OD: `" + beatmap.diff_overall + "` HP: `" + beatmap.diff_drain + "` Stars: `" + stars + "`" + ppstring + "\nDownload Beatmap: [" + CONFIG.EMOJIS.download + "](https://osu.ppy.sh/d/" + beatmap.beatmapset_id + ") [" + CONFIG.EMOJIS.downloadNV + "](https://osu.ppy.sh/d/" + beatmap.beatmapset_id + "n) [" + CONFIG.EMOJIS.osu_direct + "](https://iaace.gg/od/" + beatmap.beatmap_id + ") [" + CONFIG.EMOJIS.bloodcat + "](https://bloodcat.com/osu/s/" + beatmap.beatmapset_id + ")");
 				if (diff_count == 500) newEmbed.addField("This beatmap set has at least " + diff_count + " difficulties.", diffstring);
 				else if (diff_count > 1) newEmbed.addField("This beatmap set has " + diff_count + " difficulties.", diffstring);
-				UTILS.inspect("beatmap.approved", beatmap.approved);
+				//UTILS.inspect("beatmap.approved", beatmap.approved);
 				newEmbed.setFooter(`Map${footerauthor ? `ped by ${beatmap.creator},` : ""} ${beatmap.approved > 0 ? [null, "ranked", "approved", "qualified", "loved"][beatmap.approved] : "last updated"} ${UTILS.ago(UTILS.exists(beatmap.approved_date) ? beatmap.approved_date : beatmap.last_update)} at/on`, footerauthor ? `https://a.ppy.sh/${beatmap.creator_id}?${UTILS.now()}` : undefined);
 				newEmbed.setTimestamp(beatmap.last_update);
 				resolve(newEmbed);
@@ -884,7 +884,7 @@ module.exports = class EmbedGenerator {
 		if (!UTILS.exists(beatmap.max_combo) || isNaN(beatmap.max_combo)) beatmap.max_combo = 0;
 		user_stats.pp_delta = 0;//hardcoded for now, intended to be used with score tracking
 		return new Promise((resolve, reject) => {//calculates max pp
-			UTILS.inspect("mode", mode);
+			//UTILS.inspect("mode", mode);
 			if (mode === 0 || mode === 1) {
 				maxPPCalculator(CONFIG.BEATMAP_CACHE_LOCATION + beatmap.beatmap_id + ".osu", mode, { mods: recent_scores[play_index].enabled_mods, acc: 100 }).then(results => {
 					UTILS.debug("100% pp calc results:");
@@ -933,10 +933,10 @@ module.exports = class EmbedGenerator {
 					});
 				}
 				else {
-					UTILS.inspect("mode", mode);
-					UTILS.inspect(".rank", recent_scores[play_index].rank);
-					UTILS.inspect(".pp", recent_scores[play_index].pp);
-					UTILS.inspect(".approved", beatmap.approved);
+					//UTILS.inspect("mode", mode);
+					//UTILS.inspect(".rank", recent_scores[play_index].rank);
+					//UTILS.inspect(".pp", recent_scores[play_index].pp);
+					//UTILS.inspect(".approved", beatmap.approved);
 					step3();
 				}
 				function step3() {

@@ -530,7 +530,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 					let jobtype = [];
 					jobs.push(lolapi.osuBeatmapFile(beatmap.beatmap_id, beatmap.last_update.getTime(), CONFIG.API_MAXAGE.RECENT.OSU_FILE));//just ensures that a copy of the beatmap file is present in the cache directory
 					jobtype.push(CONFIG.CONSTANTS.OSU_FILE);
-					UTILS.inspect("beatmap.approved", beatmap.approved);
+					//UTILS.inspect("beatmap.approved", beatmap.approved);
 					if (recent_plays[0].rank !== "F" && (beatmap.approved === 1 || beatmap.approved === 2)) {//ranked or approved (possible top pp change)
 						jobs.push(lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.RECENT.GET_USER_BEST));//get user best
 						jobtype.push(CONFIG.CONSTANTS.USER_BEST);
@@ -731,63 +731,63 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	}, { trigger: "", accepts_opts: CONFIG.CONSTANTS.CGU_OPTS.MANDATORY });
 
 	commandGuessUsername(usePrefix(["scorecompare", "scompare", "compare", "scorevs", "c"]), false, (index, id, user, parameter, ending_parameter) => {
-		UTILS.inspect("username", user);
-		UTILS.inspect("ending_parameter", ending_parameter);
-		lolapi.osuGetUserTyped(user, index, id, CONFIG.API_MAXAGE.COMPARE.GET_USER).then(user_stats => {
-			let beatmap_id, type, beatmap, mode;
-			msg.channel.fetchMessages({ limit: 50 }).then(msgs => {
-				msgs = msgs.array();
-				for (let i = 0; i < msgs.length; ++i) {
-					if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url)) {
-						if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") !== -1) return newLink(msgs[i].embeds[0].url);
-						else if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21));
-					}
+		//UTILS.inspect("username", user);
+		//UTILS.inspect("ending_parameter", ending_parameter);
+		let beatmap_id, type, beatmap, mode;
+		msg.channel.fetchMessages({ limit: 50 }).then(msgs => {
+			msgs = msgs.array();
+			for (let i = 0; i < msgs.length; ++i) {
+				if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url)) {
+					if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") !== -1) return newLink(msgs[i].embeds[0].url);
+					else if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21));
 				}
-				reply(":x: Could not find a recent scorecard or beatmap.");
-			}).catch(e => {
-				console.error(e);
-				reply(":x: I need the \"read message history\" permission to process this request.");
-			});
-			function newLink(url) {// handles https://osu.ppy.sh/beatmapsets/ type links (include URL and mod string)
-				let parameter = url.substring(url.indexOfInstance("/", 4) + 1);
-				if (url.indexOf(" ") != -1) url = url.substring(0, url.indexOf(" "));//more comes after the url
-				beatmap_id = UTILS.arbitraryLengthInt(parameter);
-				type = "s";
-				if (url.indexOf("#osu") != -1) mode = 0;
-				else if (url.indexOf("#taiko") != -1) mode = 1;
-				else if (url.indexOf("#fruits") != -1) mode = 2;
-				else if (url.indexOf("#mania") != -1) mode = 3;
-				else mode = 0;
-				UTILS.debug("url is: " + url);
-				if (url.indexOfInstance("/", 5) != -1 && !isNaN(parseInt(url[url.indexOfInstance("/", 5) + 1]))) {//if the link is beatmap specific
-					UTILS.debug("new url: s/b");
-					beatmap_id = UTILS.arbitraryLengthInt(url.substring(url.indexOfInstance("/", 5) + 1))
-					type = "b";
-					lolapi.osuBeatmap(beatmap_id, "b", index, CONFIG.API_MAXAGE.COMPARE.GET_BEATMAP).then(new_beatmap => {//retrieve the entire set
-						beatmap = new_beatmap[0];
-						step2();
-					}).catch(console.error);
-				}
-				else step2();
 			}
-			function oldLink(parameter) {
-				beatmap_id = UTILS.arbitraryLengthInt(parameter);
+			reply(":x: Could not find a recent scorecard or beatmap.");
+		}).catch(e => {
+			console.error(e);
+			reply(":x: I need the \"read message history\" permission to process this request.");
+		});
+		function newLink(url) {// handles https://osu.ppy.sh/beatmapsets/ type links (include URL and mod string)
+			let parameter = url.substring(url.indexOfInstance("/", 4) + 1);
+			if (url.indexOf(" ") != -1) url = url.substring(0, url.indexOf(" "));//more comes after the url
+			beatmap_id = UTILS.arbitraryLengthInt(parameter);
+			type = "s";
+			if (url.indexOf("#osu") != -1) mode = 0;
+			else if (url.indexOf("#taiko") != -1) mode = 1;
+			else if (url.indexOf("#fruits") != -1) mode = 2;
+			else if (url.indexOf("#mania") != -1) mode = 3;
+			else mode = 0;
+			UTILS.debug("url is: " + url);
+			if (url.indexOfInstance("/", 5) != -1 && !isNaN(parseInt(url[url.indexOfInstance("/", 5) + 1]))) {//if the link is beatmap specific
+				UTILS.debug("new url: s/b");
+				beatmap_id = UTILS.arbitraryLengthInt(url.substring(url.indexOfInstance("/", 5) + 1))
 				type = "b";
-				mode = parameter.indexOf("&m=") != -1 ? parseInt(parameter[parameter.indexOf("&m=") + 3]) : 0;
-				lolapi.osuBeatmap(beatmap_id, type, index, CONFIG.API_MAXAGE.COMPARE.GET_BEATMAP).then(new_beatmap => {
+				lolapi.osuBeatmap(beatmap_id, "b", mode, CONFIG.API_MAXAGE.COMPARE.GET_BEATMAP).then(new_beatmap => {//retrieve the entire set
 					beatmap = new_beatmap[0];
 					step2();
 				}).catch(console.error);
 			}
-			function step2() {
-				if (beatmap.approved > 0) {//has to be a leaderboarded map for this to work
+			else step2();
+		}
+		function oldLink(parameter) {
+			beatmap_id = UTILS.arbitraryLengthInt(parameter);
+			type = "b";
+			mode = parameter.indexOf("&m=") != -1 ? parseInt(parameter[parameter.indexOf("&m=") + 3]) : 0;
+			lolapi.osuBeatmap(beatmap_id, type, mode, CONFIG.API_MAXAGE.COMPARE.GET_BEATMAP).then(new_beatmap => {
+				beatmap = new_beatmap[0];
+				step2();
+			}).catch(console.error);
+		}
+		function step2() {
+			if (beatmap.approved > 0) {//has to be a leaderboarded map for this to work
+				lolapi.osuGetUserTyped(user, mode, id, CONFIG.API_MAXAGE.COMPARE.GET_USER).then(user_stats => {
 					lolapi.osuScoreUser(user_stats.user_id, true, mode, beatmap_id, CONFIG.API_MAXAGE.COMPARE.GET_SCORE_USER).then(user_scores => {
-						UTILS.inspect("osuScoreUser", user_scores);
+						//UTILS.inspect("osuScoreUser", user_scores);
 						//filter by correct mods
 						if (ending_parameter !== "") {//the user specified mods
 							let temp = [];
 							const AMN = UTILS.getModNumber(ending_parameter.substring(1)).value;//applied mod number
-							UTILS.inspect("AMN", AMN);
+							//UTILS.inspect("AMN", AMN);
 							for (let b in user_scores) {
 								if (user_scores[b].enabled_mods === AMN) {
 									temp.push(user_scores[b]);
@@ -796,14 +796,14 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 							user_scores = temp;
 							temp = undefined;
 						}
-						UTILS.inspect("osuScoreUser with mod filter", user_scores);
+						//UTILS.inspect("osuScoreUser with mod filter", user_scores);
 						if (user_scores.length === 0) return reply(":x: `" + user + "` doesn't have any of those scores on this beatmap.");
 						user_scores.map(v => { v.beatmap_id = beatmap_id; return v; });
 						let jobs = [];
 						let jobtype = [];
 						jobs.push(lolapi.osuBeatmapFile(beatmap.beatmap_id, beatmap.last_update.getTime(), CONFIG.API_MAXAGE.COMPARE.OSU_FILE));//just ensures that a copy of the beatmap file is present in the cache directory
 						jobtype.push(CONFIG.CONSTANTS.OSU_FILE);
-						UTILS.inspect("beatmap.approved", beatmap.approved);
+						//UTILS.inspect("beatmap.approved", beatmap.approved);
 						if (beatmap.approved === 1 || beatmap.approved === 2) {//ranked or approved (possible top pp change)
 							jobs.push(lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.COMPARE.GET_USER_BEST));//get user best
 							jobtype.push(CONFIG.CONSTANTS.USER_BEST);
@@ -820,14 +820,15 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 							}).catch(console.error);
 						}).catch(console.error);
 					}).catch(console.error);
-				}
-				else {
-					reply(":x: This beatmap has no leaderboard.");
-				}
+				}).catch(e => {
+					reply(":x: The user `" + user + "` doesn't seem to exist.");
+					console.error(e);
+				});
 			}
-		}).catch(e => {
-			reply(":x: The user `" + user + "` doesn't seem to exist.");
-		});
+			else {
+				reply(":x: This beatmap has no leaderboard.");
+			}
+		}
 	}, { trigger: "+", accepts_opts: CONFIG.CONSTANTS.CGU_OPTS.OPTIONAL });
 
 	if (true) {//scope limiter for beatmap links
@@ -1177,7 +1178,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 					else {//explicit username specified (or just a parameter)
 						let ending_parameter = parameter;
 						let explicit_username = parameter;
-						UTILS.inspect("parameter.lastIndexOf(\" \")", parameter.lastIndexOf(" "));
+						//UTILS.inspect("parameter.lastIndexOf(\" \")", parameter.lastIndexOf(" "));
 						if (options.accepts_opts === CONFIG.CONSTANTS.CGU_OPTS.MANDATORY) {
 							ending_parameter = parameter.substring(parameter.lastIndexOf(" ") + 1);//assume that the last word is the parameter
 							explicit_username = parameter.substring(0, parameter.lastIndexOf(" "));
