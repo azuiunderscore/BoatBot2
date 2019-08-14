@@ -683,13 +683,19 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	commandGuessUsername(usePrefix(["whatiftaiko", "whatifctb", "whatifmania", "whatif"]), false, (index, id, username, parameter, ending_parameter) => {
 		UTILS.debug("username: " + username);
 		UTILS.debug("ending_parameter: " + ending_parameter);
+		let mode;
+		if (index === 0) mode = 1;
+		else if (index === 1) mode = 2;
+		else if (index === 2) mode = 3;
+		else if (index === 3) mode = 0;
+		else return reply(":x: Invalid mode");
 		const new_pp = parseFloat(ending_parameter);
 		const new_score = parameter.indexOf("+") !== -1;
 		if (isNaN(new_pp) || new_pp < 0) return reply(":x: The pp value of the new score must be a positive number.");
-		lolapi.osuGetUser(username, index, id, CONFIG.API_MAXAGE.WHAT_IF.GET_USER).then(user => {
-			lolapi.osuGetUserBest(user.user_id, index, 100, true, CONFIG.API_MAXAGE.WHAT_IF.GET_USER_BEST).then(top => {
+		lolapi.osuGetUser(username, mode, id, CONFIG.API_MAXAGE.WHAT_IF.GET_USER).then(user => {
+			lolapi.osuGetUserBest(user.user_id, mode, 100, true, CONFIG.API_MAXAGE.WHAT_IF.GET_USER_BEST).then(top => {
 				if (new_score) {
-					replyEmbed(embedgenerator.whatif(CONFIG, user, index, top, new_score, new_pp, null));
+					replyEmbed(embedgenerator.whatif(CONFIG, user, mode, top, new_score, new_pp, null));
 				}
 				else {
 					let id, type, beatmap;
@@ -715,7 +721,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 						UTILS.debug("url is: " + url);
 						if (url.indexOfInstance("/", 5) != -1 && !isNaN(parseInt(url[url.indexOfInstance("/", 5) + 1]))) {//if the link is beatmap specific
 							UTILS.debug("new url: s/b");
-							lolapi.osuBeatmap(UTILS.arbitraryLengthInt(url.substring(url.indexOfInstance("/", 5) + 1)), "b", index, CONFIG.API_MAXAGE.WHAT_IF.GET_BEATMAP).then(new_beatmap => {//retrieve the entire set
+							lolapi.osuBeatmap(UTILS.arbitraryLengthInt(url.substring(url.indexOfInstance("/", 5) + 1)), "b", mode, CONFIG.API_MAXAGE.WHAT_IF.GET_BEATMAP).then(new_beatmap => {//retrieve the entire set
 								beatmap = new_beatmap[0];
 								step2();
 							}).catch(console.error);
@@ -726,7 +732,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 						id = UTILS.arbitraryLengthInt(parameter);
 						type = "b";
 						//mode = parameter.indexOf("&m=") != -1 ? parseInt(parameter[parameter.indexOf("&m=") + 3]) : null;
-						lolapi.osuBeatmap(id, type, index, CONFIG.API_MAXAGE.WHAT_IF.GET_BEATMAP).then(new_beatmap => {
+						lolapi.osuBeatmap(id, type, mode, CONFIG.API_MAXAGE.WHAT_IF.GET_BEATMAP).then(new_beatmap => {
 							beatmap = new_beatmap[0];
 							id = new_beatmap[0].beatmapset_id;
 							type = "s";
@@ -734,7 +740,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 						}).catch(console.error);
 					}
 					function step2() {
-						replyEmbed(embedgenerator.whatif(CONFIG, user, index, top, new_score, new_pp, beatmap));
+						replyEmbed(embedgenerator.whatif(CONFIG, user, mode, top, new_score, new_pp, beatmap));
 					}
 				}
 			}).catch(console.error);
