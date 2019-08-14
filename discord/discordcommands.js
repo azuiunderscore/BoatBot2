@@ -680,7 +680,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	});
 
 	//!whatif [target user] <+new pp value, overriding pp value>
-	commandGuessUsername(usePrefix(["whatif", "whatiftaiko", "whatifctb", "whatifmania"]), false, (index, id, username, parameter, ending_parameter) => {
+	commandGuessUsername(usePrefix(["whatiftaiko", "whatifctb", "whatifmania", "whatif"]), false, (index, id, username, parameter, ending_parameter) => {
 		UTILS.debug("username: " + username);
 		UTILS.debug("ending_parameter: " + ending_parameter);
 		const new_pp = parseFloat(ending_parameter);
