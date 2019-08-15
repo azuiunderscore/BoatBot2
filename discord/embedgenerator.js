@@ -105,9 +105,15 @@ function getModObject(mod_string) {//takes in a string of mods non-comma separat
 		answer_object[b] = false;
 	}
 	for (let i = 0; i < mod_string.length; i += 2) {
-		if (UTILS.exists(short_mod_values[mod_string.substring(i, i + 2).toUpperCase()])) {
-			answer += short_mod_values[mod_string.substring(i, i + 2).toUpperCase()];
-			answer_object[mod_string.substring(i, i + 2).toUpperCase()] = true;
+		const candidate_mod = mod_string.substring(i, i + 2).toUpperCase();
+		if (UTILS.exists(short_mod_values[candidate_mod])) {
+			answer += short_mod_values[candidate_mod];
+			answer_object[candidate_mod] = true;
+			for (let b in doublemods) {
+				if (doublemods[b][0] === candidate_mod) {
+					answer += short_mod_values[doublemods[b][1]];
+				}
+			}
 		}
 	}
 	let answerstring = getMods(answer);
@@ -995,7 +1001,8 @@ module.exports = class EmbedGenerator {
 		for (let b in beatmap_format) UTILS.assert(typeof (beatmap[b]) === beatmap_format[b], `beatmap[${b}] expects ${beatmap_format[b]} but is type ${typeof (beatmap[b])} with value ${beatmap[b]}`);
 		for (let b in score_format) UTILS.assert(typeof (score[b]) === score_format[b], `score[${b}] expects ${score_format[b]} but is type ${typeof (score[b])} with value ${score[b]}`);
 		return new Promise((resolve, reject) => {
-			this.beatmap(CONFIG, beatmap, [beatmap], { creator: beatmap.creator, creator_id: beatmap.creator_id }, getMods(score.enabled_mods), beatmap.mode, true).then(beatmap_embed => {
+			const mod_string = getMods(score.enabled_mods);
+			this.beatmap(CONFIG, beatmap, [beatmap], { creator: beatmap.creator, creator_id: beatmap.creator_id }, mod_string, beatmap.mode, true).then(beatmap_embed => {
 				beatmap_embed = UTILS.embedRaw(beatmap_embed);
 				let newEmbed = new Discord.RichEmbed();
 				newEmbed.setURL(beatmap_embed.url);
@@ -1045,7 +1052,7 @@ module.exports = class EmbedGenerator {
 			UTILS.debug("field length: " + fd.length);
 			newEmbed.addField("#" + ((i * 5) + 1) + " - #" + ((i + 1) * 5), fd);
 		}
-		newEmbed.setFooter("Beatmap artist, title, difficulty names have been truncated");
+		newEmbed.setFooter("Beatmap artist, title, and difficulty names have been truncated.");
 		return newEmbed;
 	}
 	slsdRaw(CONFIG, beatmap, score) {//single line score display

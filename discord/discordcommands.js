@@ -652,7 +652,6 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				jobs.push(lolapi.osuGetUserTyped(user, mode, id, CONFIG.API_MAXAGE.RECENT.GET_USER));
 				jobtype.push(CONFIG.CONSTANTS.USER);
 				Promise.all(jobs).then(jra => {//job result array
-					request_profiler.end("dynamic");
 					UTILS.debug("\n" + ctable.getTable(request_profiler.endAllCtable()));
 					let user_best = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER_BEST)];
 					let leaderboard = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE)].map(v => { v.beatmap_id = beatmap.beatmap_id; return v; });
@@ -677,6 +676,54 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				}).catch(console.error);
 			}).catch(console.error);
 		}).catch(console.error);
+	});
+
+	commandGuessUsernameNumber(usePrefix(["besttaiko", "toptaiko", "btaiko", "ttaiko", "bt", "tt", "bestctb", "topctb", "bctb", "tctb", "bc", "tc", "bestmania", "topmania", "bmania", "tmania", "bm", "tm", "beststandard", "beststd", "best", "top"]), false, (index, id, user, number, guess_method)=> {
+		let mode;
+		if (index < 6) mode = 1;
+		else if (index < 12) mode = 2;
+		else if (index < 18) mode = 3;
+		else mode = 0;
+		UTILS.output("mode is " + mode);
+		if (number > 100 || number < 1) return reply(":x: Number out of range 1-100.");
+		--number;//0-index
+		lolapi.osuGetUserTyped(user, mode, id, CONFIG.API_MAXAGE.TOP.GET_USER).then(user_stats => {
+			lolapi.osuGetUserBest(user, mode, undefined, id, CONFIG.API_MAXAGE.TOP.GET_USER_BEST).then(user_best => {
+				lolapi.osuBeatmap(user_best[number].beatmap_id, "b", mode, CONFIG.API_MAXAGE.TOP.GET_BEATMAP).then(beatmap => {
+					beatmap = beatmap[0];
+					beatmap.mode = mode;//force assigning mode (autoconvert)
+					let jobs = [];
+					let jobtype = [];
+					jobs.push(lolapi.osuBeatmapFile(beatmap.beatmap_id, beatmap.last_update.getTime(), CONFIG.API_MAXAGE.TOP.OSU_FILE));//just ensures that a copy of the beatmap file is present in the cache directory
+					jobtype.push(CONFIG.CONSTANTS.OSU_FILE);
+					jobs.push(lolapi.osuScore(mode, user_best[number].beatmap_id, CONFIG.API_MAXAGE.TOP.GET_SCORE));
+					jobtype.push(CONFIG.CONSTANTS.SCORE);//leaderboard
+					jobs.push(lolapi.osuScoreUser(user, id, mode, user_best[number].beatmap_id, CONFIG.API_MAXAGE.TOP.GET_SCORE_USER));
+					jobtype.push(CONFIG.CONSTANTS.SCORE_USER);
+					Promise.all(jobs).then(jra => {//job result array
+						UTILS.debug("\n" + ctable.getTable(request_profiler.endAllCtable()));
+						let leaderboard = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE)].map(v => { v.beatmap_id = beatmap.beatmap_id; return v; });
+						let user_scores = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE_USER)].map(v => { v.beatmap_id = beatmap.beatmap_id; return v; });
+						embedgenerator.recent(CONFIG, mode, number, user_best, beatmap, leaderboard, user_scores, user_best, user_stats).then(embeds => {
+							const p_scm = preferences.get("scorecardmode");
+							if (p_scm === CONFIG.CONSTANTS.SCM_REDUCED) {
+								replyEmbed([{ r: embeds.full, t: 0 },
+								{ r: embeds.compact, t: 60000 }]);
+							}
+							else if (p_scm === CONFIG.CONSTANTS.SCM_FULL) replyEmbed([{ r: embeds.full, t: 0 }]);
+							else if (p_scm === CONFIG.CONSTANTS.SCM_COMPACT) replyEmbed([{ r: embeds.compact, t: 0 }]);
+							else {
+								replyEmbed([{ r: embeds.full, t: 0 },
+									{ r: embeds.compact, t: 60000 }]);
+								throw new Error("SCM not recognized: " + p_scm);
+							}
+						}).catch(console.error);
+					}).catch(console.error);
+				}).catch(console.error);
+			}).catch(console.error);
+		}).catch(e => {
+			console.error(e);
+		});
 	});
 
 	//!whatif [target user] <+new pp value, overriding pp value>
