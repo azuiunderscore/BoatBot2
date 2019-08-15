@@ -850,21 +850,22 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 					lolapi.osuScoreUser(user_stats.user_id, true, mode, beatmap_id, CONFIG.API_MAXAGE.COMPARE.GET_SCORE_USER).then(user_scores => {
 						//UTILS.inspect("osuScoreUser", user_scores);
 						//filter by correct mods
+						user_scores.map(v => { v.beatmap_id = beatmap_id; return v; });
+						let user_scores_mod_filtered = user_scores.map(v => v);
 						if (ending_parameter !== "") {//the user specified mods
 							let temp = [];
 							const AMN = UTILS.getModNumber(ending_parameter.substring(1)).value;//applied mod number
 							//UTILS.inspect("AMN", AMN);
-							for (let b in user_scores) {
-								if (user_scores[b].enabled_mods === AMN) {
-									temp.push(user_scores[b]);
+							for (let b in user_scores_mod_filtered) {
+								if (user_scores_mod_filtered[b].enabled_mods === AMN) {
+									temp.push(user_scores_mod_filtered[b]);
 								}
 							}
-							user_scores = temp;
+							user_scores_mod_filtered = temp;
 							temp = undefined;
 						}
 						//UTILS.inspect("osuScoreUser with mod filter", user_scores);
-						if (user_scores.length === 0) return reply(":x: `" + user + "` doesn't have any of those scores on this beatmap.");
-						user_scores.map(v => { v.beatmap_id = beatmap_id; return v; });
+						if (user_scores_mod_filtered.length === 0) return reply(":x: `" + user + "` doesn't have any of those scores on this beatmap.");
 						let jobs = [];
 						let jobtype = [];
 						jobs.push(lolapi.osuBeatmapFile(beatmap.beatmap_id, beatmap.last_update.getTime(), CONFIG.API_MAXAGE.COMPARE.OSU_FILE));//just ensures that a copy of the beatmap file is present in the cache directory
@@ -881,7 +882,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 						Promise.all(jobs).then(jra => {//job result array
 							let user_best = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER_BEST)];
 							let leaderboard = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE)].map(v => { v.beatmap_id = beatmap_id; return v; });
-							embedgenerator.recent(CONFIG, mode, 0, user_scores, beatmap, leaderboard, user_scores, user_best, user_stats).then(embeds => {
+							embedgenerator.recent(CONFIG, mode, 0, user_scores_mod_filtered, beatmap, leaderboard, user_scores, user_best, user_stats).then(embeds => {
 								replyEmbed(embeds.compact);//send compact scorecard no matter what
 							}).catch(console.error);
 						}).catch(console.error);

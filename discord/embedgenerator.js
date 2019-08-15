@@ -872,8 +872,8 @@ module.exports = class EmbedGenerator {
 		UTILS.assert(UTILS.exists(recent_scores[play_index]));
 		recent_scores[play_index].best_play_index = UTILS.scoreIsUserTop100(recent_scores[play_index], user_best);//0-indexed
 		recent_scores[play_index].leaderboard_index = UTILS.scoreIsUserTop100(recent_scores[play_index], leaderboard);
-		const user_play_index = UTILS.scoreIsUserTop100(recent_scores[play_index], user_scores);
 		user_scores.sort((a, b) => b.pp - a.pp);//used to determine pp validity
+		const user_play_index = UTILS.scoreIsUserTop100(recent_scores[play_index], user_scores);
 		recent_scores[play_index].progress = -1;
 		if (recent_scores[play_index].rank === "F" || user_play_index === -1) {//if play gets rank "F" or play is not top 100 of user
 			recent_scores[play_index].pp = 0;
@@ -882,8 +882,9 @@ module.exports = class EmbedGenerator {
 		if (user_play_index >= 0) {//one of user's top 100 scores on beatmap
 			recent_scores[play_index].pp = user_scores[user_play_index].pp;
 			if (user_play_index === 0) recent_scores[play_index].pp_valid = true;
+			else recent_scores[play_index].pp_valid = false;
 		}
-		if (recent_scores[play_index].best_play_index >= 0) {
+		else if (recent_scores[play_index].best_play_index >= 0) {//one of user's top 100 scores, ever
 			recent_scores[play_index].pp = user_best[recent_scores[play_index].best_play_index].pp;
 			recent_scores[play_index].pp_valid = true;
 		}
@@ -1020,7 +1021,7 @@ module.exports = class EmbedGenerator {
 					newEmbed.setDescription(`**__Personal Best #${score.best_play_index + 1}!__**`);//personal best indicator
 				}
 				else newEmbed.setColor(["#ffffff", "#ff0000", "#00ff00", "#0000ff"][beatmap.mode]);//otherwise, set color based on mode
-				const pcl_str = `**${score.pp_valid ? `${score.pp.round(2)}pp` : `~~${score.pp.round(2)}pp~~`}**${score.max_pp_valid ? `/${score.max_pp.round(2)}PP` : `${score.max_pp === 0 ? TAB : `~~/${score.max_pp.round(2)}PP~~`}`} **${score.maxcombo}x**${beatmap.max_combo !== 0 ? `/${beatmap.max_combo}X` : ""}${beatmap.mode === 3 ? " " : TAB}{${beatmap.mode === 3 ? ` ${score.countgeki}/${score.count300}/${score.countkatu}/${score.count100}/${score.count50}/${score.countmiss} ` : ` ${score.count300} / ${score.count100} / ${score.count50} / ${score.countmiss} `}}`;//pp combo line string
+				const pcl_str = `**${score.pp_valid ? `${score.pp.round(2)}pp` : `~~${score.pp.round(2)}pp~~`}**${score.max_pp_valid ? `/${score.max_pp.round(2)}PP` : `${score.max_pp === 0 ? TAB : `~~/${score.max_pp.round(2)}PP~~`}`} **${score.maxcombo}x**${beatmap.max_combo !== 0 ? `/${beatmap.max_combo}X` : ""}${TAB}{${beatmap.mode === 3 ? ` ${score.countgeki}/${score.count300}/${score.countkatu}/${score.count100}/${score.count50}/${score.countmiss} ` : ` ${score.count300} / ${score.count100} / ${score.count50} / ${score.countmiss} `}}`;//pp combo line string
 
 				//compact scorecard
 				let compact = new Discord.RichEmbed(UTILS.embedRaw(newEmbed));
