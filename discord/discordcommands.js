@@ -44,7 +44,10 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			//ensure user object exists within the server
 			const candidate_member = msg.guild.members.get(target_uid);
 			if (!UTILS.exists(candidate_member)) {
-				reply("Unable to find UID " + target_uid);
+				reply("Unable to find UID " + target_uid + " in cache. Try running the command again shortly.");
+				client.fetchUser(target_uid).then(t_user => {
+					msg.guild.fetchMember(t_user).then(() => {}).catch(console.error);
+				}).catch(console.error);
 				cancel = true;
 			}
 			else {
