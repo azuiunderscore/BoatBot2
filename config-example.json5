@@ -219,6 +219,14 @@
 			"GET_USER": 120,
 			"GET_USER_BEST": 120,
 			"GET_BEATMAP": 604800
+		},
+		"TOP": {
+			"GET_USER": 120,
+			"GET_BEATMAP": 604800,
+			"GET_SCORE_USER": 120,
+			"OSU_FILE": 604800,
+			"GET_USER_BEST": 120,
+			"GET_SCORE": 120
 		}
 	},
 	"SHARD_COUNT": 3,
