@@ -257,7 +257,10 @@ module.exports = class LOLAPI {
 		let that = this;
 		const type = id ? "id" : "string";
 		if (typeof(u) == "string") u = u.toLowerCase();
-		return new Promise((resolve, reject) => { that.get("get_user", { u, m, type }, that.CONFIG.API_CACHETIME.GET_USER, maxage).then(result => resolve(result[0])).catch(reject); });
+		return new Promise((resolve, reject) => { that.get("get_user", { u, m, type }, that.CONFIG.API_CACHETIME.GET_USER, maxage).then(result => {
+			if (result.length > 0) resolve(result[0]);
+			else reject();
+		}).catch(reject); });
 	}
 	osuGetUserTyped(u, m = 0, id, maxage) {
 		let that = this;
