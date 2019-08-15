@@ -219,6 +219,9 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	command(usePrefix(["ping", "latency"]), false, false, () => {
 		reply("command to response time: ", nMsg => textgenerator.ping_callback(msg, nMsg));
 	});
+	command(usePrefix(["pingv2", "pinglazer"]), false, false, () => {
+		reply("V2 command to response time: ", nMsg => textgenerator.ping_callback(msg, nMsg));
+	});
 	command(["iping"], false, false, () => {
 		lolapi.ping().then(times => reply(textgenerator.internal_ping(times))).catch(console.error);
 	});
