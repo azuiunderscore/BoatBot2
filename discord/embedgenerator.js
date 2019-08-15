@@ -780,7 +780,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setColor(255);
 		return newEmbed;
 	}
-	beatmap(CONFIG, beatmap, beatmapset, creator, mod_string = "", mode, footerauthor = false) {//returns a promise
+	beatmap(CONFIG, beatmap, beatmapset, mod_string = "", mode, footerauthor = false) {//returns a promise
 		return new Promise((resolve, reject) => {
 			UTILS.debug("mod_string is \"" + mod_string + "\"");
 			if (UTILS.exists(mode)) beatmap.mode = mode;
@@ -812,7 +812,7 @@ module.exports = class EmbedGenerator {
 			else step2();
 			function step2(oo) {
 				let newEmbed = new Discord.RichEmbed();
-				newEmbed.setAuthor(beatmap.creator, "https://a.ppy.sh/" + creator.user_id, "https://osu.ppy.sh/users/" + creator.user_id);
+				newEmbed.setAuthor(beatmap.creator, `https://a.ppy.sh/${beatmap.creator_id}?${UTILS.now()}`, "https://osu.ppy.sh/users/" + beatmap.creator_id);
 				//newEmbed.setURL("https://osu.ppy.sh/beatmapsets/" + beatmap.beatmapset_id + "#" + ["osu", "taiko", "fruits", "mania"][beatmap.mode] + "/" + beatmap.beatmap_id);
 				newEmbed.setURL("https://osu.ppy.sh/b/" + beatmap.beatmap_id + "&m=" + beatmap.mode);//old link for compatibility
 				newEmbed.setThumbnail("https://b.ppy.sh/thumb/" + beatmap.beatmapset_id + "l.jpg");
@@ -1003,7 +1003,7 @@ module.exports = class EmbedGenerator {
 		for (let b in score_format) UTILS.assert(typeof (score[b]) === score_format[b], `score[${b}] expects ${score_format[b]} but is type ${typeof (score[b])} with value ${score[b]}`);
 		return new Promise((resolve, reject) => {
 			const mod_string = getMods(score.enabled_mods);
-			this.beatmap(CONFIG, beatmap, [beatmap], { creator: beatmap.creator, creator_id: beatmap.creator_id }, mod_string, beatmap.mode, true).then(beatmap_embed => {
+			this.beatmap(CONFIG, beatmap, [beatmap], mod_string, beatmap.mode, true).then(beatmap_embed => {
 				beatmap_embed = UTILS.embedRaw(beatmap_embed);
 				let newEmbed = new Discord.RichEmbed();
 				newEmbed.setURL(beatmap_embed.url);
