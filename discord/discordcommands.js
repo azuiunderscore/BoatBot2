@@ -521,6 +521,10 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	commandGuessUsername(usePrefix(["alltop"]), CONFIG.CONSTANTS.BOTOWNERS, (index, id, user, parameter) => {
 		lolapi.osuGetUserTyped(user, 0, id, CONFIG.API_MAXAGE.ALL_TOP.GET_USER).then(user_stats => {
 			lolapi.osuGetUserBest(user_stats.user_id, 0, 30, true, CONFIG.API_MAXAGE.ALL_TOP.GET_USER_BEST).then(user_best => {
+				user_best.map(s => {
+					s.pp_valid = true;
+					return s;
+				});
 				let jobs = [];
 				for (let i = 0; i < user_best.length; ++i) {
 					jobs.push(lolapi.osuBeatmap(user_best[i].beatmap_id, "b", 0, CONFIG.API_MAXAGE.ALL_TOP.GET_BEATMAP));
@@ -849,22 +853,18 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 					lolapi.osuScoreUser(user_stats.user_id, true, mode, beatmap_id, CONFIG.API_MAXAGE.COMPARE.GET_SCORE_USER).then(user_scores => {
 						//UTILS.inspect("osuScoreUser", user_scores);
 						//filter by correct mods
-						user_scores.map(v => { v.beatmap_id = beatmap_id; return v; });
-						let user_scores_mod_filtered = user_scores.map(v => v);
+						user_scores.map((v, i) => {
+							v.beatmap_id = beatmap_id;
+							v.pp_valid = (i === 0);
+							return v;
+						});
+						let user_score_mod_index = 0;
 						if (ending_parameter !== "") {//the user specified mods
-							let temp = [];
 							const AMN = UTILS.getModNumber(ending_parameter.substring(1)).value;//applied mod number
-							//UTILS.inspect("AMN", AMN);
-							for (let b in user_scores_mod_filtered) {
-								if (user_scores_mod_filtered[b].enabled_mods === AMN) {
-									temp.push(user_scores_mod_filtered[b]);
-								}
-							}
-							user_scores_mod_filtered = temp;
-							temp = undefined;
+							user_score_mod_index = user_scores.findIndex(v => v.enabled_mods === AMN);
 						}
 						//UTILS.inspect("osuScoreUser with mod filter", user_scores);
-						if (user_scores_mod_filtered.length === 0) return reply(":x: `" + user + "` doesn't have any of those scores on this beatmap.");
+						if (user_score_mod_index === -1) return reply(":x: `" + user + "` doesn't have any of those scores on this beatmap.");
 						let jobs = [];
 						let jobtype = [];
 						jobs.push(lolapi.osuBeatmapFile(beatmap.beatmap_id, beatmap.last_update.getTime(), CONFIG.API_MAXAGE.COMPARE.OSU_FILE));//just ensures that a copy of the beatmap file is present in the cache directory
@@ -881,7 +881,20 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 						Promise.all(jobs).then(jra => {//job result array
 							let user_best = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER_BEST)];
 							let leaderboard = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE)].map(v => { v.beatmap_id = beatmap_id; return v; });
-							embedgenerator.recent(CONFIG, mode, 0, user_scores_mod_filtered, beatmap, leaderboard, user_scores, user_best, user_stats).then(embeds => {
+							embedgenerator.recent(CONFIG, mode, user_score_mod_index, user_scores, beatmap, leaderboard, user_scores, user_best, user_stats).then(embeds => {
+								if (ending_parameter === "" && user_scores.length > 1) {//user doesn't specify mods and there are multiple scores on the map,
+									let slsd = [];
+									for (let i = 0; i < user_scores.length; ++i) {
+										if (i !== user_score_mod_index) {
+											slsd.push(embedgenerator.slsdRaw(CONFIG, beatmap, user_scores[i], false));
+										}
+									}
+									for (let i = 0; i < Math.ceil(slsd.length / 5); ++i) {
+										const fd = slsd.slice(i * 5, (i + 1) * 5).join("\n");
+										UTILS.debug("field length: " + fd.length);
+										embeds.compact.addField("Other scores on this beatmap", fd);
+									}
+								}
 								replyEmbed(embeds.compact);//send compact scorecard no matter what
 							}).catch(console.error);
 						}).catch(console.error);

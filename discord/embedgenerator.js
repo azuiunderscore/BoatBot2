@@ -1048,15 +1048,15 @@ module.exports = class EmbedGenerator {
 		for (let i = 0; i < end_index; ++i) {
 			sl_scores.push(this.slsdRaw(CONFIG, beatmaps[i], scores[i]));
 		}
-		for (let i = 0; i < Math.floor(sl_scores.length / 5); ++i) {
-			const fd = sl_scores.slice(i * 5, (i + 1) * 5).join("\n")
+		for (let i = 0; i < Math.ceil(sl_scores.length / 5); ++i) {
+			const fd = sl_scores.slice(i * 5, (i + 1) * 5).join("\n");
 			UTILS.debug("field length: " + fd.length);
 			newEmbed.addField("#" + ((i * 5) + 1) + " - #" + ((i + 1) * 5), fd);
 		}
 		newEmbed.setFooter("Beatmap artist, title, and difficulty names have been truncated.");
 		return newEmbed;
 	}
-	slsdRaw(CONFIG, beatmap, score) {//single line score display
+	slsdRaw(CONFIG, beatmap, score, title = true) {//single line score display
 		const beatmap_format = {
 			approved: "number",//int
 			mode: "number",//int
@@ -1077,6 +1077,7 @@ module.exports = class EmbedGenerator {
 		const score_format = {
 			score: "number",//int
 			pp: "number",//float
+			pp_valid: "boolean",
 			maxcombo: "number",//int
 			perfect: "boolean",//perfect combo (FC)
 			countmiss: "number",//int
@@ -1092,11 +1093,21 @@ module.exports = class EmbedGenerator {
 		for (let b in beatmap_format) UTILS.assert(typeof (beatmap[b]) === beatmap_format[b], `beatmap[${b}] expects ${beatmap_format[b]} but is type ${typeof (beatmap[b])} with value ${beatmap[b]}`);
 		for (let b in score_format) UTILS.assert(typeof (score[b]) === score_format[b], `score[${b}] expects ${score_format[b]} but is type ${typeof (score[b])} with value ${score[b]}`);
 		let choke = "";
-		if (score.maxcombo === beatmap.max_combo) choke = "PC "
-		else if (score.maxcombo > .98 * beatmap.max_combo && score.countmiss === 0) choke = "FC "
-		else if (score.countmiss === 0) choke = (score.maxcombo - beatmap.max_combo) + "x ";
-		else choke = score.countmiss + CONFIG.EMOJIS.miss;
-		return `${CONFIG.EMOJIS[score.rank]}${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)}**${score.pp.round(0)}pp ${UTILS.calcAcc(beatmap.mode, score).toFixed(2)}% ${choke}${score.enabled_mods !== 0 ? getMods(score.enabled_mods) + " " : ""}**${beatmap.artist.limit(12)} - ${beatmap.title.limit(18)} [${beatmap.version.limit(12)}]`;
+		if (beatmap.max_combo !== 0) {//modes with defined maxcombos
+			if (score.maxcombo === beatmap.max_combo) choke = "PC" + (title ? " " : TAB);
+			else if (score.maxcombo > .98 * beatmap.max_combo && score.countmiss === 0) choke = "FC" + (title ? " " : TAB);
+			else if (score.countmiss === 0) choke = (score.maxcombo - beatmap.max_combo) + "x" + (title ? " " : TAB);
+			else choke = score.countmiss + CONFIG.EMOJIS.miss;//default display (just misses)
+		}
+		else choke = score.countmiss + CONFIG.EMOJIS.miss;//default display (just misses)
+		const beatmap_title = `${beatmap.artist.limit(12)} - ${beatmap.title.limit(18)} [${beatmap.version.limit(12)}]`;
+		if (title) {
+			return `${CONFIG.EMOJIS[score.rank]}${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)}**${score.pp_valid ? `${score.pp.round(0)}pp` : `~~${score.pp.round(0)}pp~~`} ${UTILS.calcAcc(beatmap.mode, score).toFixed(2)}% ${choke}${score.enabled_mods !== 0 ? getMods(score.enabled_mods) + " " : ""}**${beatmap_title}`;
+		}
+		else {
+			if (isNaN(score.pp)) score.pp = 0;
+			return `${CONFIG.EMOJIS[score.rank]}**${score.pp_valid ? `${score.pp.round(0)}pp` : `~~${score.pp.round(0)}pp~~`}${TAB}${UTILS.calcAcc(beatmap.mode, score).toFixed(2)}%${TAB}${choke}${score.enabled_mods !== 0 ? getMods(score.enabled_mods) + TAB : ""}**${UTILS.numberWithCommas(score.score)}${TAB}${score.maxcombo}x`;
+		}
 	}
 	matchRequest(match_object, user_object, beatmap_object) {
 		let newEmbed = new Discord.RichEmbed();

@@ -475,8 +475,8 @@ module.exports = class LOLAPI {
 		const type = id ? "id" : "string";
 		if (typeof(u) == "string") u = u.toLowerCase();
 		return new Promise((resolve, reject) => {
-			this.get("get_scores", { u, type, m, b }, this.CONFIG.API_CACHETIME.GET_SCORE_USER, maxage).then(a => {
-				resolve(a.map(score => {
+			this.get("get_scores", { u, type, m, b }, this.CONFIG.API_CACHETIME.GET_SCORE_USER, maxage).then(ans => {
+				ans = ans.map(score => {
 					score.score = parseInt(score.score);
 					score.maxcombo = parseInt(score.maxcombo);
 					score.count50 = parseInt(score.count50);
@@ -490,7 +490,9 @@ module.exports = class LOLAPI {
 					score.pp = parseFloat(score.pp);
 					score.date = new Date(score.date);
 					return score;
-				}));
+				});
+				ans.sort((a, b) => b.pp - a.pp);
+				resolve(ans);
 			}).catch(reject);
 		});
 	}
