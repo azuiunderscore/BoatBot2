@@ -631,16 +631,10 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		UTILS.output("mode is " + mode);
 		if (number > 50 || number < 1) return reply(":x: Number out of range 1-50.");
 		--number;//0-index
-		request_profiler.end("mode_detect");
-		request_profiler.begin("user_recent");
 		lolapi.osuGetUserRecent(user, mode, undefined, id, CONFIG.API_MAXAGE.RECENT.GET_USER_RECENT).then(recent_plays => {
-			request_profiler.end("user_recent");
-			request_profiler.begin("beatmap");
 			lolapi.osuBeatmap(recent_plays[number].beatmap_id, "b", mode, CONFIG.API_MAXAGE.RECENT.GET_BEATMAP).then(beatmap => {
 				beatmap = beatmap[0];
 				beatmap.mode = mode;//force assigning mode (autoconvert)
-				request_profiler.end("beatmap");
-				request_profiler.begin("dynamic");
 				let jobs = [];
 				let jobtype = [];
 				jobs.push(lolapi.osuBeatmapFile(beatmap.beatmap_id, beatmap.last_update.getTime(), CONFIG.API_MAXAGE.RECENT.OSU_FILE));//just ensures that a copy of the beatmap file is present in the cache directory
@@ -658,7 +652,6 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 				jobs.push(lolapi.osuGetUserTyped(user, mode, id, CONFIG.API_MAXAGE.RECENT.GET_USER));
 				jobtype.push(CONFIG.CONSTANTS.USER);
 				Promise.all(jobs).then(jra => {//job result array
-					UTILS.debug("\n" + ctable.getTable(request_profiler.endAllCtable()));
 					let user_best = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER_BEST)];
 					let leaderboard = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE)].map(v => { v.beatmap_id = beatmap.beatmap_id; return v; });
 					let user_scores = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE_USER)].map(v => { v.beatmap_id = beatmap.beatmap_id; return v; });
