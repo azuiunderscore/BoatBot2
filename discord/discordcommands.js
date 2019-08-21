@@ -588,10 +588,22 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 									{ r: embeds.compact, t: 60000, s }]);
 								throw new Error("SCM not recognized: " + p_scm);
 							}
-						}).catch(console.error);
-					}).catch(console.error);
-				}).catch(console.error);
-			}).catch(console.error);
+						}).catch(e => {
+							console.error(e);
+							reply(":x: Failed generating an embed for this score.");
+						});
+					}).catch(e => {
+						console.error(e);
+						reply(":x: We're unable to retrieve score/leaderboard information for this user's most recent play.");
+					});
+				}).catch(e => {
+					console.error(e);
+					reply(":x: We're unable to retrieve the beatmap data for this user's most recent play.");
+				});
+			}).catch(e => {
+				console.error(e);
+				reply(":x: We're unable to retrieve this user's most recent plays.");
+			});
 		}).catch(e => {
 			console.error(e);
 			reply(":x: This user has no recent plays.");
@@ -636,6 +648,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		if (number > 50 || number < 1) return reply(":x: Number out of range 1-50.");
 		--number;//0-index
 		lolapi.osuGetUserRecent(user, mode, undefined, id, CONFIG.API_MAXAGE.RECENT.GET_USER_RECENT).then(recent_plays => {
+			if (recent_plays.length === 0) return reply(`:x: This user hasn't ${["clicked any circles", "played any taiko", "caught any fruits", "smashed any keys"][mode]} in the last 24 hours.`);
+			else if (!UTILS.exists(recent_plays[number])) return reply(":x: We only have the most recent data up to score #" + recent_plays.length + ".");
 			lolapi.osuBeatmap(recent_plays[number].beatmap_id, "b", mode, CONFIG.API_MAXAGE.RECENT.GET_BEATMAP).then(beatmap => {
 				beatmap = beatmap[0];
 				beatmap.mode = mode;//force assigning mode (autoconvert)
@@ -675,10 +689,22 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 								{ r: embeds.compact, t: 60000, s }]);
 							throw new Error("SCM not recognized: " + p_scm);
 						}
-					}).catch(console.error);
-				}).catch(console.error);
-			}).catch(console.error);
-		}).catch(console.error);
+					}).catch(e => {
+						console.error(e);
+						reply(":x: Failed generating an embed for this score.");
+					});
+				}).catch(e => {
+					console.error(e);
+					reply(":x: We're unable to retrieve score/leaderboard information for this user's most recent play.");
+				});
+			}).catch(e => {
+				console.error(e);
+				reply(":x: We're unable to retrieve the beatmap data for this user's most recent play.");
+			});
+		}).catch(e => {
+			console.error(e);
+			reply(":x: Failed to retrieve this user's most recent plays.");
+		});
 	});
 
 	commandGuessUsernameNumber(usePrefix(["besttaiko", "toptaiko", "btaiko", "ttaiko", "bt", "tt", "bestctb", "topctb", "bctb", "tctb", "bc", "tc", "bestmania", "topmania", "bmania", "tmania", "bm", "tm", "beststandard", "beststd", "best", "top"]), false, (index, id, user, number, guess_method)=> {
@@ -864,7 +890,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 							user_score_mod_index = user_scores.findIndex(v => v.enabled_mods === AMN);
 						}
 						//UTILS.inspect("osuScoreUser with mod filter", user_scores);
-						if (user_score_mod_index === -1) return reply(":x: `" + user + "` doesn't have any of those scores on this beatmap.");
+						if (user_score_mod_index === -1 || user_scores.length === 0) return reply(":x: `" + user + "` doesn't have any of those scores on this beatmap.");
 						let jobs = [];
 						let jobtype = [];
 						jobs.push(lolapi.osuBeatmapFile(beatmap.beatmap_id, beatmap.last_update.getTime(), CONFIG.API_MAXAGE.COMPARE.OSU_FILE));//just ensures that a copy of the beatmap file is present in the cache directory
@@ -896,9 +922,18 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 									}
 								}
 								replyEmbed(embeds.compact);//send compact scorecard no matter what
-							}).catch(console.error);
-						}).catch(console.error);
-					}).catch(console.error);
+							}).catch(e => {
+								reply(":x: Failed to generate embed.");
+								console.error(e);
+							});
+						}).catch(e => {
+							reply(":x: We're unable to retrieve score/leaderboard information for this user's most recent play.");
+							console.error(e);
+						});
+					}).catch(e => {
+						reply(":x: We're unable to retrieve this user's scores on this beatmap.")
+						console.error(e);
+					});
 				}).catch(e => {
 					reply(":x: The user `" + user + "` doesn't seem to exist.");
 					console.error(e);
