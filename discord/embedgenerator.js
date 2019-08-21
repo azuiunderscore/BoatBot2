@@ -17,13 +17,13 @@ function getStars(CONFIG, mode, stars, diff_aim) {
 	UTILS.assert(!isNaN(stars) || !isNaN(diff_aim));
 	if (isNaN(stars)) stars = diff_aim;
 	stars = Math.floor(stars);
-	if (stars >= 8) stars = 7;
+	if (stars >= 9) stars = 8;
 	return CONFIG.EMOJIS.stars[parseInt(mode)][stars];
 }
-function wholeStarValue(stars, diff_aim) {//for emojis only, returns 1-6
+function wholeStarValue(stars, diff_aim) {//for emojis only, returns 1-8
 	if (isNaN(stars) || !UTILS.exists(stars)) stars = diff_aim;
 	stars = Math.floor(stars);
-	if (stars >= 8) stars = 7;
+	if (stars >= 9) stars = 8;
 	else if (stars < 1) stars = 1;
 	return stars;
 }
