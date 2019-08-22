@@ -367,12 +367,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	commandGuessUsernameNumber(usePrefix(["d2"]), CONFIG.CONSTANTS.BOTOWNERS, (index, id, user, number, guess_method) => {
 		reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + "` number: `" + number + "` guess_method: `" + guess_method + "`");
 	});
-	commandGuessUsername(usePrefix(["statsplus", "sp", "osu", "std", "taiko", "sptaiko", "spt", "ctb", "spctb", "spc", "mania", "spmania", "spm"]), false, (index, id, user, parameter) => {
+	commandGuessUsername(usePrefix(["taiko", "sptaiko", "spt", "ctb", "spctb", "spc", "mania", "spmania", "spm", "statsplus", "sp", "osu", "std"]), false, (index, id, user, parameter) => {
 		let mode;
-		if (index < 4) mode = 0;
-		else if (index < 7) mode = 1;
-		else if (index < 10) mode = 2;
-		else mode = 3;
+		if (index < 3) mode = 1;
+		else if (index < 6) mode = 2;
+		else if (index < 9) mode = 3;
+		else mode = 0;
 		lolapi.osuGetUser(user, mode, id, CONFIG.API_MAXAGE.SP.GET_USER).then(user_stats => {
 			if (!UTILS.exists(user_stats)) return reply(":x: This user could not be found.");
 			lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.SP.GET_USER_BEST).then(user_best => {
