@@ -384,8 +384,14 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 						}).catch(console.error);
 					}).catch(console.error);
 				}).catch(console.error);
-			}).catch(console.error);
-		}).catch(console.error);
+			}).catch(e => {
+				reply(":x: We're unable to retrieve this user's top 100 plays.");
+				console.error(e);
+			});
+		}).catch(e => {
+			reply(":x: Could not find the user `" + user + "`.");
+			console.error(e);
+		});
 	});
 	/*
 	command([preferences.get("prefix") + "verify "], true, false, (original, index, parameter) => {
