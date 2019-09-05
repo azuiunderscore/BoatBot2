@@ -724,6 +724,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		--number;//0-index
 		lolapi.osuGetUserTyped(user, mode, id, CONFIG.API_MAXAGE.TOP.GET_USER).then(user_stats => {
 			lolapi.osuGetUserBest(user, mode, undefined, id, CONFIG.API_MAXAGE.TOP.GET_USER_BEST).then(user_best => {
+				if (!UTILS.exists(user_best[number])) return reply(":x: We only have the most recent pass up to score #" + recent_plays.length + ".");
 				lolapi.osuBeatmap(user_best[number].beatmap_id, "b", mode, CONFIG.API_MAXAGE.TOP.GET_BEATMAP).then(beatmap => {
 					beatmap = beatmap[0];
 					beatmap.mode = mode;//force assigning mode (autoconvert)
@@ -786,6 +787,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		--number;//0-index
 		lolapi.osuGetUserTyped(user, mode, id, CONFIG.API_MAXAGE.TOP.GET_USER).then(user_stats => {
 			lolapi.osuGetUserBest(user, mode, undefined, id, CONFIG.API_MAXAGE.TOP.GET_USER_BEST).then(user_best => {
+				if (!UTILS.exists(user_best[number])) return reply(":x: We only have the most recent pass up to score #" + recent_plays.length + ".");
 				const user_best_ds = user_best.map(v => v).sort((a, b) => b.date.getTime() - a.date.getTime());//user best date sorted
 				lolapi.osuBeatmap(user_best_ds[number].beatmap_id, "b", mode, CONFIG.API_MAXAGE.TOP.GET_BEATMAP).then(beatmap => {
 					beatmap = beatmap[0];
