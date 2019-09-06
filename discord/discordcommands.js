@@ -314,14 +314,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			else reply(":x: No records for user id " + msg.mentions.users.first().id);
 		}).catch(console.error);
 	});
-	/*
 	command([preferences.get("prefix") + "invite"], false, false, (original, index) => {
 		reply("This is the link to add BoatBot to other servers: <" + CONFIG.BOT_ADD_LINK + ">\nAdding it requires the \"Manage Server\" permission.");
 	});
 	command([preferences.get("prefix") + "help"], false, false, (original, index) => {
-		reply(":white_check_mark: A PM has been sent to you with information on how to use BoatBot.");
-		replyEmbedToAuthor(embedgenerator.help(CONFIG));
-	});*/
+		reply("Please see <https://docs.iaace.gg/> for documentation on how to use BoatBot Lazer, as well as our terms and conditions of service.");
+	});
 	command(usePrefix(["setshortcut ", "ss ", "createshortcut ", "addshortcut "]), true, false, (original, index, parameter) => {
 		if (parameter[0] !== "$") return reply(":x: The shortcut must begin with an `$`. Please try again.");
 		else if (parameter.indexOf(" ") === -1) return reply(":x: The shortcut word and the username must be separated by a space. Please try again.");
