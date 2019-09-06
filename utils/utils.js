@@ -228,7 +228,7 @@ module.exports = class UTILS {
 	copy(obj) {//no functions
 		return JSON.parse(JSON.stringify(obj));
 	}
-	removeAllOccurances(arr, deletable) {
+	removeAllOccurances(arr, deletable) {//in place deletion
 		let deleted = 0;
 		if (typeof(deletable) === "function") {
 			for (let i = 0; i < arr.length; ++i) {

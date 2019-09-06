@@ -1346,10 +1346,10 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 										break;
 									}
 									else if (msgs[i].embeds[0].author.url.substring(0, 21) === "https://osu.ppy.sh/u/") {//https://osu.ppy.sh/u/4374286
-									const candidate = UTILS.arbitraryLengthInt(msgs[i].embeds[0].author.url.substring(21));
-									if (candidate !== "") user_id = parseInt(candidate);
-									break;
-								}
+										const candidate = UTILS.arbitraryLengthInt(msgs[i].embeds[0].author.url.substring(21));
+										if (candidate !== "") user_id = parseInt(candidate);
+										break;
+									}
 								}
 							}
 							if (!UTILS.exists(user_id)) reply(":x: Could not find a recent username queried.");
@@ -1487,11 +1487,17 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 								if (msgs[i].author.id == client.user.id && //message was sent by bot
 									msgs[i].embeds.length == 1 && //embedded response
 									UTILS.exists(msgs[i].embeds[0].author) && //author present
-									UTILS.exists(msgs[i].embeds[0].author.url) && //url present
-									msgs[i].embeds[0].author.url.substring(0, 25) === "https://osu.ppy.sh/users/") {//https://osu.ppy.sh/users/4374286
-									const candidate = UTILS.arbitraryLengthInt(msgs[i].embeds[0].author.url.substring(25));
-									if (candidate !== "") user_id = parseInt(candidate);
-									break;
+									UTILS.exists(msgs[i].embeds[0].author.url)) {//url present
+									if (msgs[i].embeds[0].author.url.substring(0, 25) === "https://osu.ppy.sh/users/") {//https://osu.ppy.sh/users/4374286
+										const candidate = UTILS.arbitraryLengthInt(msgs[i].embeds[0].author.url.substring(25));
+										if (candidate !== "") user_id = parseInt(candidate);
+										break;
+									}
+									else if (msgs[i].embeds[0].author.url.substring(0, 21) === "https://osu.ppy.sh/u/") {//https://osu.ppy.sh/u/4374286
+										const candidate = UTILS.arbitraryLengthInt(msgs[i].embeds[0].author.url.substring(21));
+										if (candidate !== "") user_id = parseInt(candidate);
+										break;
+									}
 								}
 							}
 							if (!UTILS.exists(user_id)) reply(":x: Could not find a recent username queried.");
