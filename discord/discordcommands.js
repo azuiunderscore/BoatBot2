@@ -652,7 +652,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 		if (number > 50 || number < 1) return reply(":x: Number out of range 1-50.");
 		--number;//0-index
 		lolapi.osuGetUserRecent(user, mode, undefined, id, CONFIG.API_MAXAGE.RECENT.GET_USER_RECENT).then(recent_plays => {
-			if (recent_plays.length === 0) return reply(`:x: This user hasn't ${["clicked any circles", "played any taiko", "caught any fruits", "smashed any keys"][mode]} in the last 24 hours.`);
+			if (recent_plays.length === 0) return reply(`:x: ${id ? "This user" : "`" + user + "`"} hasn't ${["clicked any circles", "played any taiko", "caught any fruits", "smashed any keys"][mode]} in the last 24 hours.`);
 			else if (!UTILS.exists(recent_plays[number])) return reply(":x: We only have the most recent data up to score #" + recent_plays.length + ".");
 			lolapi.osuBeatmap(recent_plays[number].beatmap_id, "b", mode, CONFIG.API_MAXAGE.RECENT.GET_BEATMAP).then(beatmap => {
 				beatmap = beatmap[0];
