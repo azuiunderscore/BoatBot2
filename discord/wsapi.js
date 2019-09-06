@@ -79,6 +79,9 @@ module.exports = class WSAPI {
 
 		38: IAPI wants to respond to shard LoL api request
 		39: shard LoL API request via ws
+
+		40: IAPI wants shard to run tracking eligibility check (population, permissions)
+		41: shard responds with (users in role, permissions valid per cid, population)
 	*/
 	constructor(INIT_CONFIG, discord_client, INIT_STATUS) {
 		this.client = discord_client;

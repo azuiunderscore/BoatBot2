@@ -107,6 +107,39 @@ msg_audit_doc.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
 let msg_audit_model = apicache.model("msg_audit_model", msg_audit_doc);
 
 
+let track_stat_doc = new apicache.Schema({
+	user_id: { type: String, required: true },
+	username: { type: String, required: true },
+	next_scheduled_update: { type: Date, required: true },
+	pp: { type: Number, default: 0, required: true },
+	rank: { type: Number, default: 0, required: true },
+	mode: { type: Number, required: true },
+	expireAt: { type: Date, required: true }
+});
+track_stat_doc.index({ user_id: 1 });
+track_stat_doc.index({ username: "hashed" });
+track_stat_doc.index({ next_scheduled_update: -1 });
+track_stat_doc.index({ mode: 1 });
+track_stat_doc.index({ expireAt: 1 }, { expireAfterSeconds: 0 });//expire old docs after a week or something
+let track_stat_model = apicache.model("track_stat_model", track_stat_doc);
+
+let track_setting_doc = new apicache.Schema({
+	type: { type: String, required: true },//r = role, l = link, i = include, e = exclude, c = country, v = server voluntary enabled, opt-in = user opt in, opt-out = user opt out
+	mode: { type: Number, required: true },//osu mode
+	id: { type: String, required: isString },//r = role id, l = empty string, i = osu id, e = osu id, c = country id, v= sid, opt-in = uid, opt-out = uid
+	cid: { type: String, required: true },//channel to report to
+	sid: { type: String, required: true },//server this setting belongs to
+	pp_threshold: { type: Number, required: false },
+	top_threshold: { type: Number, required: false },
+	rank_threshold: { type: Number, required: false }
+});
+track_setting_doc.index({ type: 1 });
+track_setting_doc.index({ id: "hashed" });
+track_setting_doc.index({ cid: "hashed" });
+track_setting_doc.index({ sid: "hashed" });
+let track_setting_model = apicache.model("track_setting_model", track_setting_doc);
+
+
 let server_preferences_doc = new apicache.Schema({
 	id: { type: String, required: true },//id of server
 	prefix: { type: String, required: isString, default: CONFIG.DISCORD_COMMAND_PREFIX },//default bot prefix
