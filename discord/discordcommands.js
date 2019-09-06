@@ -712,6 +712,76 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			reply(":x: Failed to retrieve this user's most recent plays.");
 		});
 	});
+	commandGuessUsernameNumber(usePrefix(["recentpassstandard", "recentstandardpass", "recentpassstd", "recentstdpass", "rpstandard", "rstandardp", "rpstd", "rstdp", "rps", "rsp", "recenttaikopass", "recentpasstaiko", "rptaiko", "rtaikop", "rpt", "rtp", "recentctbpass", "recentpassctb", "rpctb", "rctbp", "rpc", "rcp", "recentmaniapass", "recentpassmania", "rpmania", "rmaniap", "rmp", "rpm"]), false, (index, id, user, number, guess_method)=> {
+		request_profiler.begin("mode_detect");
+		let mode;
+		if (index < 10) mode = 0;
+		else if (index < 16) mode = 1;
+		else if (index < 22) mode = 2;
+		else mode = 3;
+		UTILS.output("mode is " + mode);
+		if (number > 50 || number < 1) return reply(":x: Number out of range 1-50.");
+		--number;//0-index
+		lolapi.osuGetUserRecent(user, mode, undefined, id, CONFIG.API_MAXAGE.RECENT.GET_USER_RECENT).then(recent_plays => {
+			UTILS.removeAllOccurances(recent_plays, a => a.rank === "F");//remove all fails
+			if (recent_plays.length === 0) return reply(`:x: This user hasn't ${["clicked any circles", "played any taiko", "caught any fruits", "smashed any keys"][mode]} in the last 24 hours.`);
+			else if (!UTILS.exists(recent_plays[number])) return reply(":x: We only have the most recent pass up to score #" + recent_plays.length + ".");
+			lolapi.osuBeatmap(recent_plays[number].beatmap_id, "b", mode, CONFIG.API_MAXAGE.RECENT.GET_BEATMAP).then(beatmap => {
+				beatmap = beatmap[0];
+				beatmap.mode = mode;//force assigning mode (autoconvert)
+				let jobs = [];
+				let jobtype = [];
+				jobs.push(lolapi.osuBeatmapFile(beatmap.beatmap_id, beatmap.last_update.getTime(), CONFIG.API_MAXAGE.RECENT.OSU_FILE));//just ensures that a copy of the beatmap file is present in the cache directory
+				jobtype.push(CONFIG.CONSTANTS.OSU_FILE);
+				if (beatmap.approved === 1 || beatmap.approved === 2) {//ranked or approved (possible top pp change)
+					jobs.push(lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.RECENT.GET_USER_BEST));//get user best
+					jobtype.push(CONFIG.CONSTANTS.USER_BEST);
+				}
+				if (beatmap.approved > 0) {//leaderboarded score (check beatmap leaderboards)
+					jobs.push(lolapi.osuScore(mode, recent_plays[number].beatmap_id, CONFIG.API_MAXAGE.RECENT.GET_SCORE));
+					jobtype.push(CONFIG.CONSTANTS.SCORE);//leaderboard
+					jobs.push(lolapi.osuScoreUser(user, id, mode, recent_plays[number].beatmap_id, CONFIG.API_MAXAGE.RECENT.GET_SCORE_USER));
+					jobtype.push(CONFIG.CONSTANTS.SCORE_USER);
+				}
+				jobs.push(lolapi.osuGetUserTyped(user, mode, id, CONFIG.API_MAXAGE.RECENT.GET_USER));
+				jobtype.push(CONFIG.CONSTANTS.USER);
+				Promise.all(jobs).then(jra => {//job result array
+					let user_best = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER_BEST)];
+					let leaderboard = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE)].map(v => { v.beatmap_id = beatmap.beatmap_id; return v; });
+					let user_scores = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE_USER)].map(v => { v.beatmap_id = beatmap.beatmap_id; return v; });
+					let user_stats = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER)];
+					embedgenerator.recent(CONFIG, mode, number, recent_plays, beatmap, leaderboard, user_scores, user_best, user_stats).then(embeds => {
+						let s;//try count string
+						//if (preferences.get("replaycount")) s = `Try #${UTILS.tryCount(recent_plays, number)}`;
+						const p_scm = preferences.get("scorecardmode");
+						if (p_scm === CONFIG.CONSTANTS.SCM_REDUCED) {
+							replyEmbed([{ r: embeds.full, t: 0, s },
+							{ r: embeds.compact, t: 60000, s }]);
+						}
+						else if (p_scm === CONFIG.CONSTANTS.SCM_FULL) replyEmbed([{ r: embeds.full, t: 0, s }]);
+						else if (p_scm === CONFIG.CONSTANTS.SCM_COMPACT) replyEmbed([{ r: embeds.compact, t: 0, s }]);
+						else {
+							replyEmbed([{ r: embeds.full, t: 0, s },
+								{ r: embeds.compact, t: 60000, s }]);
+							throw new Error("SCM not recognized: " + p_scm);
+						}
+					}).catch(e => {
+						console.error(e);
+						reply(":x: Failed generating an embed for this score.");
+					});
+				}).catch(e => {
+					console.error(e);
+					reply(":x: We're unable to retrieve score/leaderboard information for this user's most recent pass.");
+				});
+			}).catch(e => {
+				console.error(e);
+				reply(":x: We're unable to retrieve the beatmap data for this user's most recent pass.");
+			});
+		}).catch(e => {
+			console.error(e);
+			reply(":x: Failed to retrieve this user's most recent passes.");
+		});
+	});
 
 	commandGuessUsernameNumber(usePrefix(["besttaiko", "toptaiko", "btaiko", "ttaiko", "bt", "tt", "bestctb", "topctb", "bctb", "tctb", "bc", "tc", "bestmania", "topmania", "bmania", "tmania", "bm", "tm", "beststandard", "beststd", "best", "top"]), false, (index, id, user, number, guess_method)=> {
 		let mode;
