@@ -1,6 +1,6 @@
 "use strict";
 const UTILS = new (require("../utils/utils.js"))();
-module.exports = function(CONFIG, apicache, serveWebRequest, response_type, load_average, disciplinary_model, shortcut_doc_model, getBans, shardBroadcast, sendExpectReply, sendExpectReplyBroadcast, sendToShard, server_preferences_model, dc_load_average) {
+module.exports = function(CONFIG, apicache, serveWebRequest, response_type, load_average, disciplinary_model, shortcut_doc_model, getBans, shardBroadcast, sendExpectReply, sendExpectReplyBroadcast, sendToShard, server_preferences_model, dc_load_average, track_stat_model, track_setting_model) {
 	serveWebRequest("/createshortcut/:uid", function(req, res, next) {
 		findShortcut(req.params.uid, res, doc => {
 			if (UTILS.exists(doc)) {
@@ -390,6 +390,48 @@ module.exports = function(CONFIG, apicache, serveWebRequest, response_type, load
 				}
 				else res.json({ success: true });
 			});
+		});
+	}, true);
+	serveWebRequest("/addtracking", (req, res, next) => {
+		//always check for duplicates
+		track_setting_model.find({ type: req.query.type, mode: req.query.mode, sid: req.query.sid, cid: req.query.cid }, (err, docs) => {
+			if (docs.length === 0) {//setting doesn't exist
+				writeNew();
+			}
+			else {//at least one doc exists with the fulfilling criteria
+				//save the new one
+				Promise.all(docs.map(d => new Promise((resolve, reject) => {
+					d.remove(e => {
+						if (e) reject(e);
+						else resolve();
+					})
+				}))).then(() => {
+					writeNew();
+				}).catch(e => {
+					console.error(e);
+					res.status(500).end();
+				});
+			}
+			function writeNew() {
+				let new_doc = new track_setting_model({
+					type: req.query.type,
+					mode: parseInt(req.query.mode),
+					id: req.query.id,
+					cid: req.query.cid,
+					sid: req.query.sid,
+					pp_threshold: parseInt(req.query.pp_threshold),
+					top_threshold: parseInt(req.query.top_threshold),
+					rank_threshold: parseInt(req.query.rank_threshold),
+					c_rank: parseInt(req.query.c_rank)
+				});
+				new_doc.save((e, doc) => {
+					if (e) {
+						console.error(e);
+						res.status(500).end();
+					}
+					else res.status(200).end();
+				});
+			}
 		});
 	}, true);
 	serveWebRequest("/ping", function (req, res, next) {

@@ -23,6 +23,8 @@ const load_average = [new LoadAverage(60), new LoadAverage(60), new LoadAverage(
 const dc_load_average = new LoadAverage(60);//discord command load average
 const express = require("express");
 const website = express();
+let MultiPoller = require("../utils/multipoller.js");
+let tracker = MultiPoller("ScoreTracker");
 
 const UTILS = new (require("../utils/utils.js"))();
 let Profiler = require("../utils/timeprofiler.js");
@@ -126,12 +128,13 @@ let track_stat_model = apicache.model("track_stat_model", track_stat_doc);
 let track_setting_doc = new apicache.Schema({
 	type: { type: String, required: true },//r = role, l = link, i = include, e = exclude, c = country, v = server voluntary enabled, opt-in = user opt in, opt-out = user opt out
 	mode: { type: Number, required: true },//osu mode
-	id: { type: String, required: isString },//r = role id, l = empty string, i = osu id, e = osu id, c = country id, v= sid, opt-in = uid, opt-out = uid
+	id: { type: String, required: isString },//r = role id, l = empty string, i = osu id, e = osu id, c = country id, v = empty string, opt-in = uid, opt-out = uid
 	cid: { type: String, required: true },//channel to report to
 	sid: { type: String, required: true },//server this setting belongs to
 	pp_threshold: { type: Number, required: false },
 	top_threshold: { type: Number, required: false },
-	rank_threshold: { type: Number, required: false }
+	rank_threshold: { type: Number, required: false },
+	c_rank: { type: Number, required: false }//minimum country rank
 });
 track_setting_doc.index({ type: 1 });
 track_setting_doc.index({ id: "hashed" });
@@ -269,6 +272,7 @@ function getBans(user, callback) {
 		callback(bans);
 	});
 }
+
 serveWebRequest("/osu/:cachetime/:maxage/:request_id/", function (req, res, next) {
 	if (!UTILS.exists(irs[req.params.request_id])) irs[req.params.request_id] = [0, 0, 0, 0, 0, new Date().getTime()];
 	++irs[req.params.request_id][0];
@@ -329,7 +333,7 @@ serveWebRequest("/eval/:script", function (req, res, next) {
 	}
 	res.json(result).end();
 }, true);
-routes(CONFIG, apicache, serveWebRequest, response_type, load_average, disciplinary_model, shortcut_doc_model, getBans, shardBroadcast, sendExpectReply, sendExpectReplyBroadcast, sendToShard, server_preferences_model, dc_load_average);
+routes(CONFIG, apicache, serveWebRequest, response_type, load_average, disciplinary_model, shortcut_doc_model, getBans, shardBroadcast, sendExpectReply, sendExpectReplyBroadcast, sendToShard, server_preferences_model, dc_load_average, track_stat_model, track_setting_model);
 function serveWebRequest(branch, callback, validate = false) {
 	if (typeof(branch) == "string") {
 		website.get(branch, function (req, res, next) {
