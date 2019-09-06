@@ -136,10 +136,12 @@ module.exports = class Preferences {
 					}
 				}
 				else {//otherwise make a new one
-					UTILS.debug(this.sid + " preferences: preferences file not found");
-					console.error(new Error("Default preferences could not be written."));
+					UTILS.output(this.sid + " preferences: preferences file not found");
 					cache[this.sid] = UTILS.copy(newPreferences);
-					//writing will be handled by the other boatbot 1 process
+					fs.writeFile(this.path, JSON.stringify(cache[this.sid]), e => {
+						if (e) console.error(e);
+						else UTILS.output("wrote new preferences file");
+					});
 				}
 			}
 			else UTILS.debug(this.sid + " preferences: cache hit");//exists in cache and nothing needs to be done
