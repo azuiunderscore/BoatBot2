@@ -9,6 +9,7 @@ const child_process = require("child_process");
 const HORIZONTAL_SEPARATOR = "------------------------------";
 const VERIFIED_ICON = "✅";
 const TAB = " ";
+const HALF_TAB = " ";
 const MANIA_KEY_COLOR = [0, 13421823, 13421823, 13421823, 10066431, 6711039, 3289855, 255, 204, 204, 204];
 const MODE_COLOR = ["#ffffff", "#ff0000", "#00ff00", "#0000ff"];
 function getStars(CONFIG, mode, stars, diff_aim) {
@@ -1020,7 +1021,7 @@ module.exports = class EmbedGenerator {
 					newEmbed.setDescription(`**__Personal Best #${score.best_play_index + 1}!__**`);//personal best indicator
 				}
 				else newEmbed.setColor(["#ffffff", "#ff0000", "#00ff00", "#0000ff"][beatmap.mode]);//otherwise, set color based on mode
-				const pcl_str = `**${score.pp_valid ? `${score.pp.round(2)}pp` : `~~${score.pp.round(2)}pp~~`}**${score.max_pp_valid ? `/${score.max_pp.round(2)}PP` : `${score.max_pp === 0 ? TAB : `~~/${score.max_pp.round(2)}PP~~`}`} **${score.maxcombo}x**${beatmap.max_combo !== 0 ? `/${beatmap.max_combo}X` : ""}${TAB}{${beatmap.mode === 3 ? ` ${score.countgeki}/${score.count300}/${score.countkatu}/${score.count100}/${score.count50}/${score.countmiss} ` : ` ${score.count300} / ${score.count100} / ${score.count50} / ${score.countmiss} `}}`;//pp combo line string
+				const pcl_str = `**${score.pp_valid ? `${score.pp.round(2)}pp` : `~~${score.pp.round(2)}pp~~`}**${score.max_pp_valid ? `/${score.max_pp.round(2)}PP` : `${score.max_pp === 0 ? TAB : `~~/${score.max_pp.round(2)}PP~~`}`}${HALF_TAB}**${score.maxcombo}x**${beatmap.max_combo !== 0 ? `/${beatmap.max_combo}X` : ""}${TAB}{${beatmap.mode === 3 ? ` ${score.countgeki}/${score.count300}/${score.countkatu}/${score.count100}/${score.count50}/${score.countmiss} ` : ` ${score.count300} / ${score.count100} / ${score.count50} / ${score.countmiss} `}}`;//pp combo line string
 
 				//compact scorecard
 				let compact = new Discord.RichEmbed(UTILS.embedRaw(newEmbed));
@@ -1093,19 +1094,19 @@ module.exports = class EmbedGenerator {
 		for (let b in score_format) UTILS.assert(typeof (score[b]) === score_format[b], `score[${b}] expects ${score_format[b]} but is type ${typeof (score[b])} with value ${score[b]}`);
 		let choke = "";
 		if (beatmap.max_combo !== 0) {//modes with defined maxcombos
-			if (score.maxcombo === beatmap.max_combo) choke = "PC" + (title ? " " : TAB);
-			else if (score.maxcombo > .98 * beatmap.max_combo && score.countmiss === 0) choke = "FC" + (title ? " " : TAB);
-			else if (score.countmiss === 0) choke = (score.maxcombo - beatmap.max_combo) + "x" + (title ? " " : TAB);
+			if (score.maxcombo === beatmap.max_combo) choke = "PC" + " ";
+			else if (score.maxcombo > .98 * beatmap.max_combo && score.countmiss === 0) choke = "FC" + " ";
+			else if (score.countmiss === 0) choke = (score.maxcombo - beatmap.max_combo) + "x" + " ";
 			else choke = score.countmiss + CONFIG.EMOJIS.miss;//default display (just misses)
 		}
 		else choke = score.countmiss + CONFIG.EMOJIS.miss;//default display (just misses)
 		const beatmap_title = `${beatmap.artist.limit(12)} - ${beatmap.title.limit(18)} [${beatmap.version.limit(12)}]`;
-		if (title) {
+		if (title) {//title must be displayed
 			return `${CONFIG.EMOJIS[score.rank]}${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)}**${score.pp_valid ? `${score.pp.round(0)}pp` : `~~${score.pp.round(0)}pp~~`} ${UTILS.calcAcc(beatmap.mode, score).toFixed(2)}% ${choke}${score.enabled_mods !== 0 ? getMods(score.enabled_mods) + " " : ""}**${beatmap_title}`;
 		}
-		else {
+		else {//title is already presented
 			if (isNaN(score.pp)) score.pp = 0;
-			return `${CONFIG.EMOJIS[score.rank]}**${score.pp_valid ? `${score.pp.round(0)}pp` : `~~${score.pp.round(0)}pp~~`}${TAB}${UTILS.calcAcc(beatmap.mode, score).toFixed(2)}%${TAB}${choke}${score.enabled_mods !== 0 ? getMods(score.enabled_mods) + TAB : ""}**${UTILS.numberWithCommas(score.score)}${TAB}${score.maxcombo}x`;
+			return `${CONFIG.EMOJIS[score.rank]}**${score.pp_valid ? `${score.pp.round(0)}pp` : `~~${score.pp.round(0)}pp~~`}${TAB}${UTILS.calcAcc(beatmap.mode, score).toFixed(2)}%${TAB}${choke}${score.enabled_mods !== 0 ? getMods(score.enabled_mods) : ""}${TAB}**${UTILS.numberWithCommas(score.score)}${TAB}${score.maxcombo}x${HALF_TAB}\\🕙*${UTILS.shortAgo(score.date)}*`;
 		}
 	}
 	matchRequest(match_object, user_object, beatmap_object) {

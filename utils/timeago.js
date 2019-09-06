@@ -36,8 +36,14 @@ var timeago = function() {
   obj.ago = function(nd, s) {
     var r = Math.round,
         dir = ' ago',
-      pl = function(v, n) {
-        return (s === undefined) ? n + ' ' + v + (n > 1 ? 's' : '') + dir : n + v.substring(0, 1)
+      pl = function (v, number) {
+        if (s === undefined) {
+          return number + ' ' + v + (number > 1 ? 's' : '') + dir
+        }
+        else {
+          if (v === "month") return number + "M";
+          else return number + v.substring(0, 1);
+        }
       },
       ts = Date.now() - new Date(nd).getTime(),
       ii;

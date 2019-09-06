@@ -151,6 +151,9 @@ module.exports = class UTILS {
 	ago(date) {
 		return ta.ago(date);
 	}
+	shortAgo(date) {
+		return ta.ago(date, true);
+	}
 	until(date) {
 		const now = new Date().getTime();
 		let answer = ta.ago(now - (date.getTime() - now));
