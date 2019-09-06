@@ -2,12 +2,13 @@
 const fs = require("fs");
 const argv_options = new (require("getopts"))(process.argv.slice(2), {
 	alias: { c: ["config"] },
-	default: { c: "config.json5" }});
+	default: { c: "config.json5" }
+});
 let CONFIG;
 const JSON5 = require("json5");
 try {
 	CONFIG = JSON5.parse(fs.readFileSync("../" + argv_options.config, "utf-8"));
-	CONFIG.VERSION = "v2.0.0";//b for non-release (in development)
+	CONFIG.VERSION = "v2.1.0b";//b for non-release (in development)
 }
 catch (e) {
 	console.log("something's wrong with config.json");
@@ -152,7 +153,7 @@ let server_preferences_doc = new apicache.Schema({
 	auto_opgg: { type: Boolean, required: true, default: true },//automatically embed respond to op.gg links
 	force_prefix: { type: Boolean, required: true, default: false },
 	release_notifications: { type: Boolean, required: true, default: true },
-	feedback_enabled: { type: Boolean, required: true, default: true},
+	feedback_enabled: { type: Boolean, required: true, default: true },
 	//music
 
 	max_music_length: { type: Number, required: true, default: 360 },//in seconds
@@ -185,9 +186,11 @@ let limiter = require("bottleneck");
 for (let b in CONFIG.OSU_SERVERS) region_limiters[b] = new limiter({ maxConcurrent: 1, minTime: CONFIG.API_PERIOD });
 let irs = {};//individual request statistics
 let database_profiler = new Profiler("Database Profiler");
-let server = https.createServer({ key: fs.readFileSync("../data/keys/server.key"),
-		cert: fs.readFileSync("../data/keys/server.crt"),
-		ca: fs.readFileSync("../data/keys/ca.crt")}, website).listen(CONFIG.API_PORT);
+let server = https.createServer({
+	key: fs.readFileSync("../data/keys/server.key"),
+	cert: fs.readFileSync("../data/keys/server.crt"),
+	ca: fs.readFileSync("../data/keys/ca.crt")
+}, website).listen(CONFIG.API_PORT);
 server.setTimeout(120000);
 UTILS.output(CONFIG.VERSION + " IAPI " + process.env.NODE_ENV + " mode ready and listening on port " + CONFIG.API_PORT);
 let websocket = require("express-ws")(website, server);
@@ -258,7 +261,7 @@ function sendToShard(message, id, callback) {
 	if (UTILS.exists(shard_ws[id + ""]) && shard_ws[id + ""].readyState == 1) shard_ws[id + ""].send(JSON.stringify(message), callback);
 }
 function getBans(user, callback) {
-	disciplinary_model.find({ user, ban: true, active: true, $or: [{ date : { $eq: new Date(0) } }, { date: { $gte: new Date() } }] }, "target_id date", (err, docs) => {
+	disciplinary_model.find({ user, ban: true, active: true, $or: [{ date: { $eq: new Date(0) } }, { date: { $gte: new Date() } }] }, "target_id date", (err, docs) => {
 		if (err) console.error(err);
 		let bans = {};
 		docs.forEach(ban => {
@@ -335,7 +338,7 @@ serveWebRequest("/eval/:script", function (req, res, next) {
 }, true);
 routes(CONFIG, apicache, serveWebRequest, response_type, load_average, disciplinary_model, shortcut_doc_model, getBans, shardBroadcast, sendExpectReply, sendExpectReplyBroadcast, sendToShard, server_preferences_model, dc_load_average, track_stat_model, track_setting_model);
 function serveWebRequest(branch, callback, validate = false) {
-	if (typeof(branch) == "string") {
+	if (typeof (branch) == "string") {
 		website.get(branch, function (req, res, next) {
 			UTILS.debug("\trequest received: " + req.originalUrl);
 			if (validate && !UTILS.exists(req.query.k)) return res.status(401).end();//no key
@@ -346,7 +349,7 @@ function serveWebRequest(branch, callback, validate = false) {
 	}
 	else {
 		for (let b in branch) {
-			website.get(branch[b], function(req, res, next){
+			website.get(branch[b], function (req, res, next) {
 				UTILS.debug("\trequest received: " + req.originalUrl);
 				if (validate && !UTILS.exists(req.query.k)) return res.status(401).end();//no key
 				if (validate && req.query.k !== CONFIG.API_KEY) return res.status(403).end();//wrong key
@@ -383,15 +386,15 @@ function checkCache(url, maxage, request_id) {
 				if (UTILS.exists(maxage) && apicache.Types.ObjectId(doc.id).getTimestamp().getTime() < new Date().getTime() - (maxage * 1000)) {//if expired
 					//UTILS.output("\tmaxage expired url: " + url);
 					load_average[3].add();
-					if (UTILS.exists(irs[request_id])) ++irs[request_id][3];
-					doc.remove(() => {});
+					if (UTILS.exists(irs[request_id]))++irs[request_id][3];
+					doc.remove(() => { });
 					reject(null);
 				}
 				else resolve(doc.toObject().response);
 			}
 			else {
 				load_average[4].add();
-				if (UTILS.exists(irs[request_id])) ++irs[request_id][4];
+				if (UTILS.exists(irs[request_id]))++irs[request_id][4];
 				reject(null);
 			}
 		});
@@ -414,7 +417,7 @@ function get(region, url, cachetime, maxage, request_id) {
 			checkCache(url, maxage, request_id).then((cached_result) => {
 				//UTILS.output("\tcache hit: " + url);
 				load_average[2].add();
-				if (UTILS.exists(irs[request_id])) ++irs[request_id][2];
+				if (UTILS.exists(irs[request_id]))++irs[request_id][2];
 				resolve(cached_result);
 			}).catch((e) => {
 				if (UTILS.exists(e)) console.error(e);
@@ -428,7 +431,7 @@ function get(region, url, cachetime, maxage, request_id) {
 							resolve(body);
 						}
 					});
-				}, null, () => {});
+				}, null, () => { });
 			});
 		}
 		else {//force refresh maxage == 0
@@ -439,15 +442,15 @@ function get(region, url, cachetime, maxage, request_id) {
 					else {
 						//UTILS.output("\tuncached: " + url);
 						load_average[1].add();
-						if (UTILS.exists(irs[request_id])) ++irs[request_id][1];
+						if (UTILS.exists(irs[request_id]))++irs[request_id][1];
 						if (cachetime != 0) addCache(url, body, cachetime);
 						resolve(body);
 					}
 				});
-			}, null, () => {});
+			}, null, () => { });
 		}
 	});
 }
 function isString(s) {
-	return typeof(s) === "string";
+	return typeof (s) === "string";
 }

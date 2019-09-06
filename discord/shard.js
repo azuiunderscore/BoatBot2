@@ -4,7 +4,8 @@ const start_time = new Date().getTime();
 const fs = require("fs");
 const argv_options = new (require("getopts"))(process.argv.slice(2), {
 	alias: { c: ["config"] },
-	default: { c: "config.json5" }});
+	default: { c: "config.json5" }
+});
 const Discord = require("discord.js");
 let discordcommands = require("./discordcommands.js");
 
@@ -17,7 +18,7 @@ let CONFIG;
 const JSON5 = require("json5");
 try {
 	CONFIG = JSON5.parse(fs.readFileSync("../" + argv_options.config, "utf-8"));
-	CONFIG.VERSION = "v2.0.0";//b for non-release (in development)
+	CONFIG.VERSION = "v2.1.0b";//b for non-release (in development)
 	CONFIG.BANS = {};
 }
 catch (e) {
@@ -85,7 +86,7 @@ client.on("guildCreate", function (guild) {
 	}).catch(console.error);
 
 });
-client.on("guildDelete", function(guild) {
+client.on("guildDelete", function (guild) {
 	UTILS.output("Server Left: " + guild.id + " :: " + guild.region + " :: " + guild.name + " :: Population=" + guild.memberCount + " :: " + guild.owner.user.tag);
 	sendToChannel(CONFIG.LOG_CHANNEL_ID, ":x:`$" + process.env.SHARD_ID + "`Server Left: `" + guild.id + "` :: " + guild.region + " :: " + guild.name + " :: :busts_in_silhouette:" + guild.memberCount + " :: " + guild.owner.user.tag);
 });
@@ -105,7 +106,7 @@ function sendToChannel(cid, text) {//duplicated in discordcommands.js
 function sendEmbedToChannel(cid, embed, approvable = false) {
 	wsapi.sendEmbedToChannel(cid, embed, approvable);
 }
-function loadAllStaticResources(callback = () => {}) {
+function loadAllStaticResources(callback = () => { }) {
 	callback();
 }
 setInterval(() => {//long term maintenance loop
