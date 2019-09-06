@@ -1,6 +1,6 @@
-# BoatBot Lazer v2.0.0a
+# BoatBot Lazer v2.0.0
 osu! statistics for discord
-alpha testing, forked from supportbot @ iaace-NA/SupportBot
+forked from supportbot @ iaace-NA/SupportBot
 (c) 2018; source available, all rights reserved
 
 <a href="https://discord.gg/57Z8Npg" target="_blank" rel="noopener"><img src="https://discordapp.com/api/guilds/270537301749137418/embed.png" alt="current users" /></a>
