@@ -68,6 +68,7 @@ const modnames = [
 	{ val: 134217728, name: "Key3", short: "3K" },
 	{ val: 268435456, name: "Key2", short: "2K" },
 	{ val: 536870912, name: "ScoreV2", short: "V2" },
+	{ val: 1073741824, name: "Mirror", short: "MR" }
 ];
 const doublemods = [
 	["NC", "DT"],
