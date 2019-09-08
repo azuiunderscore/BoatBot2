@@ -457,8 +457,11 @@ module.exports = function (CONFIG, apicache, serveWebRequest, response_type, loa
 		});
 	}, true);
 	serveWebRequest("/gettracking", (req, res, next) => {
-		//always check for duplicates
-		track_setting_model.find({ sid: req.query.sid, cid: req.query.cid }, (err, docs) => {
+		let opts = { sid: req.query.sid, cid: req.query.cid };
+		for (let b in opts) {
+			if (!UTILS.exists(opts[b])) delete opts[b];
+		}
+		track_setting_model.find(opts, (err, docs) => {
 			if (err) {
 				console.error(err);
 				res.status(500).end();
