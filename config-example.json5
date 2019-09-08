@@ -230,6 +230,18 @@
 			"OSU_FILE": 604800,
 			"GET_USER_BEST": 120,
 			"GET_SCORE": 120
+		},
+		"TRACK_SETTING": {
+			"GET_USER": 86400
+		},
+		"TRACKING": {
+			"GET_USER_RECENT": 5,
+			"GET_BEATMAP": 86400,
+			"GET_SCORE_USER": 5,
+			"GET_SCORE": 5,
+			"GET_USER": 20,
+			"GET_USER_BEST": 5,
+			"OSU_FILE": 604800
 		}
 	},
 	"SHARD_COUNT": 3,

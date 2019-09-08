@@ -272,6 +272,52 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			reply("There were " + successes + " successes and " + errors + " failures.");
 		}).catch(console.error);
 	});
+	command(usePrefix(["migratetracking"]), false, CONFIG.CONSTANTS.BOTOWNERS, (original, index) => {
+		const fs = require("fs");
+		const old_settings = JSON.parse(fs.readFileSync("/home/iaace/bbs/data/local/tracking.json"));
+		let tasks = [];
+		let nec = 0;//non-existent channels
+		function getSIDfromCID(cid) {
+			return new Promise((resolve, reject) => {
+				client.shard.broadcastEval(`let candidate_channel = this.channels.get("${cid}");
+				candidate_channel != undefined ? candidate_channel.guild.id : null;`).then(possible_usernames => {
+					for (let b in possible_usernames) if (UTILS.exists(possible_usernames[b])) return resolve(possible_usernames[b]);
+					resolve(null);
+				}).catch(reject);
+			});
+		}
+		for (let b in old_settings) {//each user
+			if (isNaN(UTILS.strictParseInt(b))) continue;
+			for (let c in old_settings[b].mode) {//each mode
+				for (let d in old_settings[b].mode[c].channels) {//each channel setting
+					tasks.push(function () {
+						return new Promise((resolve, reject) => {
+							getSIDfromCID(old_settings[b].mode[c].channels[d].cid).then(sid => {
+								if (UTILS.exists(sid)) {
+									lolapi.upsertTracking("i", c, b, old_settings[b].mode[c].channels[d].cid, sid, old_settings[b].mode[c].channels[d].pp_threshold, old_settings[b].mode[c].channels[d].top_threshold, old_settings[b].mode[c].channels[d].rank_threshold).then(resolve).catch(e => {
+										resolve({ success: false });
+									});
+								}
+								else {
+									++nec;
+									resolve({ success: false });
+								}
+							}).catch(e => {
+								console.error(e);
+								resolve({ success: false });
+							});
+						});
+					});
+				}
+			}
+		}
+		UTILS.sequential(tasks).then(results => {
+			let errors = 0, successes = 0;
+			for (let b in results) results[b].success ? ++successes : ++errors;
+			reply("There were " + successes + " successes and " + errors + " failures. Non existent channels: " + nec);
+		}).catch(console.error);
+	});
+
 	command(usePrefix(["link "]), true, false, (original, index, parameter) => {
 		if (msg.mentions.users.size == 0) {
 			lolapi.osuGetUser(parameter, 0, false, CONFIG.API_MAXAGE.LINK).then(user => {
@@ -1235,7 +1281,62 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 			const new_setting = index === 0;
 			preferences.set("feedback_enabled", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will allow the use of global feedback commands in this server." : "BoatBot will not allow the use of global feedback commands in this server."))).catch(reply);
 		});
-
+		command(usePrefix(["track osu ", "track taiko ", "track ctb ", "track mania "]), true, CONFIG.CONSTANTS.BOTCOMMANDERS, (original, index, parameter) => {
+			let username = parameter.substring(1, parameter.indexOf("\"", 1));
+			let ppt = undefined;
+			let tt = undefined;
+			let rt = undefined;
+			if (parameter.indexOf("pp=") != -1) {
+				ppt = UTILS.arbitraryLengthInt(parameter.substring(parameter.indexOf("pp=") + 3));
+				if (ppt <= 0 || (isNaN(ppt) && ppt != undefined)) {
+					return reply(":x: pp must be a value greater than 0");
+				}
+			}
+			if (parameter.indexOf("top=") != -1) {
+				tt = UTILS.arbitraryLengthInt(parameter.substring(parameter.indexOf("top=") + 4));
+				if (tt < 1 || tt > 100 || (isNaN(tt) && tt != undefined)) {
+					return reply(":x: personal best must be between 1-100");
+				}
+			}
+			if (parameter.indexOf("rank=") != -1) {
+				rt = UTILS.arbitraryLengthInt(parameter.substring(parameter.indexOf("rank=") + 5));
+				if (rt < 1 || rt > 100 || (isNaN(rt) && rt != undefined)) {
+					return reply(":x: beatmap rank must be between 1-100");
+				}
+			}
+			if (!UTILS.exists(ppt) && !UTILS.exists(tt) && !UTILS.exists(rt)) {
+				return reply(":x: You must set at least 1 reporting criteria or set the default server or channel tracking criteria.");
+			}
+			if (!msg.channel.permissionsFor(client.user).has(["SEND_MESSAGES", "EMBED_LINKS"])) {
+				return reply(":x: Could not track user without send messages and embed links permission in this channel.");
+			}
+			lolapi.osuGetUserTyped(username, index, false, CONFIG.API_MAXAGE.TRACK_SETTING.GET_USER).then(user_stats => {
+				lolapi.upsertTracking("i", index, user_stats.user_id, msg.channel.id, msg.guild.id, ppt, tt, rt).then(() => {
+					reply(":white_check_mark:`" + user_stats.username + "` : min pp= `" + ppt + "`, beatmap rank= `" + rt + "`, personal best= `" + tt + "`.");
+				}).catch(e => {
+					console.error(e);
+					reply(":x: Internal error. Contact BoatBot staff for assistance.");
+				});
+			}).catch(e => {
+				reply(":x: Unable to find the user `" + username + "`. Did you surround the username with \"quotes\"?");
+			});
+		});
+		command(usePrefix(["tracking"]), false, CONFIG.CONSTANTS.BOTCOMMANDERS, (original, index) => {
+			lolapi.getServerTrackingSettings(msg.guild.id).then(settings => {
+				replyEmbed(embedgenerator.tracking(CONFIG, settings));
+			}).catch(e => {
+				console.error(e);
+				reply(":x: Internal error. Contact BoatBot staff for assistance.");
+			});
+		});
+		command(usePrefix(["setting tracking reset server"]), false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
+			lolapi.resetTrackingSettings(msg.guild.id).then(() => {
+				reply(":white_check_mark: Tracking settings for this server have been reset.");
+			}).catch(e => {
+				console.error(e);
+				reply(":x: An error has occurred.");
+			})
+		});
 		/*
 		command(["boatbot settings reset all"], false, CONFIG.CONSTANTS.ADMINISTRATORS, () => reply(":warning: You are about to reset all the preferences associated with this server. To confirm this action, please send the command: `boatbot settings reset all confirm`"));
 		command(["boatbot settings reset all confirm"], false, CONFIG.CONSTANTS.ADMINISTRATORS, () => {

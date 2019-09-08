@@ -605,6 +605,18 @@ module.exports = class LOLAPI {
 	resetPreferences(sid) {
 		return this.getIAPI("resetpreferences", { id: sid });
 	}
+	upsertTracking(type, mode, id, cid, sid, pp_threshold, top_threshold, rank_threshold, c_rank) {
+		return this.getIAPI("addtracking", { type, mode, id, cid, sid, pp_threshold, top_threshold, rank_threshold, c_rank });
+	}
+	getChannelTrackingSettings(cid) {
+		return this.getIAPI("gettracking", { cid });
+	}
+	getServerTrackingSettings(sid) {
+		return this.getIAPI("gettracking", { sid });
+	}
+	resetTrackingSettings(sid) {
+		return this.getIAPI("resettracking", { sid });
+	}
 	stats() {
 		return this.getIAPI("stats", {});
 	}

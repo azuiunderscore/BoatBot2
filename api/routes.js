@@ -1,11 +1,11 @@
 "use strict";
 const UTILS = new (require("../utils/utils.js"))();
-module.exports = function(CONFIG, apicache, serveWebRequest, response_type, load_average, disciplinary_model, shortcut_doc_model, getBans, shardBroadcast, sendExpectReply, sendExpectReplyBroadcast, sendToShard, server_preferences_model, dc_load_average, track_stat_model, track_setting_model) {
-	serveWebRequest("/createshortcut/:uid", function(req, res, next) {
+module.exports = function (CONFIG, apicache, serveWebRequest, response_type, load_average, disciplinary_model, shortcut_doc_model, getBans, shardBroadcast, sendExpectReply, sendExpectReplyBroadcast, sendToShard, server_preferences_model, dc_load_average, track_stat_model, track_setting_model) {
+	serveWebRequest("/createshortcut/:uid", function (req, res, next) {
 		findShortcut(req.params.uid, res, doc => {
 			if (UTILS.exists(doc)) {
 				let shortcut_count = 0;
-				for (let b in doc.shortcuts) ++shortcut_count;
+				for (let b in doc.shortcuts)++shortcut_count;
 				if (shortcut_count >= 50) return res.json({ success: false });
 				doc.shortcuts[req.query.from] = req.query.to;
 				doc.markModified("shortcuts");
@@ -35,7 +35,7 @@ module.exports = function(CONFIG, apicache, serveWebRequest, response_type, load
 			}
 		});
 	}, true);
-	serveWebRequest("/removeshortcut/:uid", function(req, res, next) {
+	serveWebRequest("/removeshortcut/:uid", function (req, res, next) {
 		findShortcut(req.params.uid, res, doc => {
 			if (UTILS.exists(doc)) {
 				delete doc.shortcuts[req.query.from];
@@ -51,7 +51,7 @@ module.exports = function(CONFIG, apicache, serveWebRequest, response_type, load
 			else res.json({ success: true });
 		});
 	}, true);
-	serveWebRequest("/removeallshortcuts/:uid", function(req, res, next) {
+	serveWebRequest("/removeallshortcuts/:uid", function (req, res, next) {
 		findShortcut(req.params.uid, res, doc => {
 			if (UTILS.exists(doc)) {
 				doc.shortcuts = {};
@@ -67,7 +67,7 @@ module.exports = function(CONFIG, apicache, serveWebRequest, response_type, load
 			else res.json({ success: true });
 		});
 	}, true);
-	serveWebRequest("/getshortcut/:uid", function(req, res, next) {
+	serveWebRequest("/getshortcut/:uid", function (req, res, next) {
 		findShortcut(req.params.uid, res, doc => {
 			if (UTILS.exists(doc)) {
 				if (UTILS.exists(doc.shortcuts[req.query.from])) {
@@ -80,13 +80,13 @@ module.exports = function(CONFIG, apicache, serveWebRequest, response_type, load
 			else res.status(404).end();
 		});
 	}, true);
-	serveWebRequest("/getshortcuts/:uid", function(req, res, next) {
+	serveWebRequest("/getshortcuts/:uid", function (req, res, next) {
 		findShortcut(req.params.uid, res, doc => {
 			if (UTILS.exists(doc)) res.json({ shortcuts: doc.toObject().shortcuts });
 			else res.send("{}");
 		});
 	}, true);
-	serveWebRequest("/getverified/:uid", function(req, res, next) {
+	serveWebRequest("/getverified/:uid", function (req, res, next) {
 		findShortcut(req.params.uid, res, doc => {
 			if (UTILS.exists(doc)) {
 				const now = new Date().getTime();
@@ -100,11 +100,11 @@ module.exports = function(CONFIG, apicache, serveWebRequest, response_type, load
 			else res.json({ verifiedAccounts: {} });
 		});
 	}, true);
-	serveWebRequest("/setverified/:uid", function(req, res, next) {
+	serveWebRequest("/setverified/:uid", function (req, res, next) {
 		findShortcut(req.params.uid, res, doc => {
 			if (UTILS.exists(doc)) {
 				let shortcut_count = 0;
-				for (let b in doc.verifiedAccounts) ++shortcut_count;
+				for (let b in doc.verifiedAccounts)++shortcut_count;
 				if (shortcut_count >= 50) return res.json({ success: false });
 				doc.verifiedAccounts[req.query.from] = new Date(parseInt(req.query.to));
 				doc.markModified("verifiedAccounts");
@@ -165,7 +165,7 @@ module.exports = function(CONFIG, apicache, serveWebRequest, response_type, load
 			}
 		});
 	}, true);
-	serveWebRequest("/getlink/:uid", function(req, res, next) {
+	serveWebRequest("/getlink/:uid", function (req, res, next) {
 		findShortcut(req.params.uid, res, doc => {
 			if (UTILS.exists(doc)) res.json({ username: doc.toObject().username });
 			else res.json({ username: "" });
@@ -188,30 +188,36 @@ module.exports = function(CONFIG, apicache, serveWebRequest, response_type, load
 			}
 			else res.json({ success: true });
 			if (req.query.notify == "true") {
-				if (req.query.user != "true") shardBroadcast({ type: 18,
+				if (req.query.user != "true") shardBroadcast({
+					type: 18,
 					sid: req.query.id,
 					reason: req.query.reason,
 					date: parseInt(req.query.date),
 					issuer_tag: req.query.issuer_tag,
-					issuer_avatarURL: req.query.issuer_avatarURL });
-				else sendExpectReplyBroadcast({ type: 20,
+					issuer_avatarURL: req.query.issuer_avatarURL
+				});
+				else sendExpectReplyBroadcast({
+					type: 20,
 					uid: req.query.id,
 					reason: req.query.reason,
 					issuer_tag: req.query.issuer_tag,
 					issuer_avatarURL: req.query.issuer_avatarURL,
-					date: parseInt(req.query.date) }).then(results => {
-						for (let i = 0; i < results.length; ++i) {
-							if (results[i].connected) {
-								sendToShard({ type: 22,
-									uid: req.query.id,
-									reason: req.query.reason,
-									issuer_tag: req.query.issuer_tag,
-									issuer_avatarURL: req.query.issuer_avatarURL,
-									date: parseInt(req.query.date) }, i);
-								break;
-							}
+					date: parseInt(req.query.date)
+				}).then(results => {
+					for (let i = 0; i < results.length; ++i) {
+						if (results[i].connected) {
+							sendToShard({
+								type: 22,
+								uid: req.query.id,
+								reason: req.query.reason,
+								issuer_tag: req.query.issuer_tag,
+								issuer_avatarURL: req.query.issuer_avatarURL,
+								date: parseInt(req.query.date)
+							}, i);
+							break;
 						}
-					}).catch(console.error);
+					}
+				}).catch(console.error);
 			}
 			getBans(req.query.user == "true", bans => {
 				shardBroadcast({ type: req.query.user == "true" ? 14 : 16, bans });//updates all shards with new ban information
@@ -235,29 +241,34 @@ module.exports = function(CONFIG, apicache, serveWebRequest, response_type, load
 			}
 			else {
 				res.json({ success: true });
-				if (req.query.notify == "true")
-				{
-					if (req.query.user == "true") sendExpectReplyBroadcast({ type: 20,
-					uid: req.query.id,
-					reason: req.query.reason,
-					issuer_tag: req.query.issuer_tag,
-					issuer_avatarURL: req.query.issuer_avatarURL, }).then(results => {
+				if (req.query.notify == "true") {
+					if (req.query.user == "true") sendExpectReplyBroadcast({
+						type: 20,
+						uid: req.query.id,
+						reason: req.query.reason,
+						issuer_tag: req.query.issuer_tag,
+						issuer_avatarURL: req.query.issuer_avatarURL,
+					}).then(results => {
 						for (let i = 0; i < results.length; ++i) {
 							if (results[i].connected) {
-								sendToShard({ type: 24,
+								sendToShard({
+									type: 24,
 									uid: req.query.id,
 									reason: req.query.reason,
 									issuer_tag: req.query.issuer_tag,
-									issuer_avatarURL: req.query.issuer_avatarURL }, i);
+									issuer_avatarURL: req.query.issuer_avatarURL
+								}, i);
 								break;
 							}
 						}
 					}).catch(console.error);
-					else shardBroadcast({ type: 18,
+					else shardBroadcast({
+						type: 18,
 						sid: req.query.id,
 						reason: req.query.reason,
 						issuer_tag: req.query.issuer_tag,
-						issuer_avatarURL: req.query.issuer_avatarURL });
+						issuer_avatarURL: req.query.issuer_avatarURL
+					});
 				}
 			}
 		});
@@ -293,24 +304,30 @@ module.exports = function(CONFIG, apicache, serveWebRequest, response_type, load
 					shardBroadcast({ type: req.query.user == "true" ? 14 : 16, bans });
 				});//update shards with new ban list
 				errored ? res.status(500).end() : res.json({ success: true });
-				if (req.query.user != "true") shardBroadcast({ type: 30,
+				if (req.query.user != "true") shardBroadcast({
+					type: 30,
 					sid: req.query.id,
 					issuer_tag: req.query.issuer_tag,
-					issuer_avatarURL: req.query.issuer_avatarURL });
-				else sendExpectReplyBroadcast({ type: 20,
+					issuer_avatarURL: req.query.issuer_avatarURL
+				});
+				else sendExpectReplyBroadcast({
+					type: 20,
 					uid: req.query.id,
 					issuer_tag: req.query.issuer_tag,
-					issuer_avatarURL: req.query.issuer_avatarURL }).then(results => {
-						for (let i = 0; i < results.length; ++i) {
-							if (results[i].connected) {
-								sendToShard({ type: 28,
-									uid: req.query.id,
-									issuer_tag: req.query.issuer_tag,
-									issuer_avatarURL: req.query.issuer_avatarURL }, i);
-								break;
-							}
+					issuer_avatarURL: req.query.issuer_avatarURL
+				}).then(results => {
+					for (let i = 0; i < results.length; ++i) {
+						if (results[i].connected) {
+							sendToShard({
+								type: 28,
+								uid: req.query.id,
+								issuer_tag: req.query.issuer_tag,
+								issuer_avatarURL: req.query.issuer_avatarURL
+							}, i);
+							break;
 						}
-					}).catch(console.error);
+					}
+				}).catch(console.error);
 			}
 		});
 	}, true);
@@ -371,7 +388,7 @@ module.exports = function(CONFIG, apicache, serveWebRequest, response_type, load
 	}, true);
 	serveWebRequest("/setpreferences", (req, res, next) => {
 		findPreferences(req.query.id, res, doc => {
-			if(!UTILS.exists(doc)) return res.status(412).end();//precondition failed
+			if (!UTILS.exists(doc)) return res.status(412).end();//precondition failed
 			let c_val = req.query.val;
 			if (req.query.type === "number") c_val = parseInt(type);
 			else if (req.query.type === "boolean") {
@@ -380,7 +397,7 @@ module.exports = function(CONFIG, apicache, serveWebRequest, response_type, load
 				else return res.status(400).end();
 			}
 			else if (req.query.type === "string" && !UTILS.exists(c_val)) c_val = "";
-			UTILS.debug("typeof is " + typeof(c_val) + " while actual value is " + c_val);
+			UTILS.debug("typeof is " + typeof (c_val) + " while actual value is " + c_val);
 			doc[req.query.prop] = c_val;
 			doc.markModified(req.query.prop);
 			doc.save(e => {
@@ -394,7 +411,7 @@ module.exports = function(CONFIG, apicache, serveWebRequest, response_type, load
 	}, true);
 	serveWebRequest("/addtracking", (req, res, next) => {
 		//always check for duplicates
-		track_setting_model.find({ type: req.query.type, mode: req.query.mode, sid: req.query.sid, cid: req.query.cid }, (err, docs) => {
+		track_setting_model.find({ type: req.query.type, mode: req.query.mode, id: req.query.id, sid: req.query.sid, cid: req.query.cid }, (err, docs) => {
 			if (docs.length === 0) {//setting doesn't exist
 				writeNew();
 			}
@@ -413,7 +430,7 @@ module.exports = function(CONFIG, apicache, serveWebRequest, response_type, load
 				});
 			}
 			function writeNew() {
-				let new_doc = new track_setting_model({
+				let new_setting = {
 					type: req.query.type,
 					mode: parseInt(req.query.mode),
 					id: req.query.id,
@@ -423,14 +440,64 @@ module.exports = function(CONFIG, apicache, serveWebRequest, response_type, load
 					top_threshold: parseInt(req.query.top_threshold),
 					rank_threshold: parseInt(req.query.rank_threshold),
 					c_rank: parseInt(req.query.c_rank)
-				});
+				};
+				for (let b of ["pp_threshold", "top_threshold", "rank_threshold", "c_rank"]) {
+					if (isNaN(new_setting[b])) delete new_setting[b];
+				}
+				let new_doc = new track_setting_model(new_setting);
+				UTILS.debug(JSON.stringify(new_setting, null, "\t"), true);
 				new_doc.save((e, doc) => {
 					if (e) {
 						console.error(e);
 						res.status(500).end();
 					}
-					else res.status(200).end();
+					else res.json({ success: true });
 				});
+			}
+		});
+	}, true);
+	serveWebRequest("/gettracking", (req, res, next) => {
+		//always check for duplicates
+		track_setting_model.find({ sid: req.query.sid, cid: req.query.cid }, (err, docs) => {
+			if (err) {
+				console.error(err);
+				res.status(500).end();
+			}
+			else {
+				Promise.all(docs.map(d => {
+					d = d.toObject();
+					if (d.type === "i" || d.type === "e") {
+						return new Promise((resolve, reject) => {
+							track_stat_model.find({ user_id: d.id }, null, { sort: { "_id": -1 } }, (err, docs) => {
+								if (err) reject(err);
+								else if (docs.length !== 0) {
+									d.username = docs[0].username;
+									resolve(d);
+								}
+								else {
+									resolve(d);
+								}
+							});
+						});
+					}
+					else {
+						return new Promise((resolve, reject) => { resolve(d) });
+					}
+				})).then(ans => {
+					res.json(ans);
+				}).catch(e => {
+					console.error(e);
+					res.status(500).end();
+				});
+			}
+		});
+	}, true);
+	serveWebRequest("/resettracking", (req, res, next) => {
+		track_setting_model.deleteMany({ sid: req.query.sid }, err => {
+			if (!err) res.json({ success: true });
+			else {
+				console.error(err);
+				res.status(500).end();
 			}
 		});
 	}, true);

@@ -25,7 +25,7 @@ const dc_load_average = new LoadAverage(60);//discord command load average
 const express = require("express");
 const website = express();
 let MultiPoller = require("../utils/multipoller.js");
-let tracker = MultiPoller("ScoreTracker");
+//let tracker = new MultiPoller("ScoreTracker");
 
 const UTILS = new (require("../utils/utils.js"))();
 let Profiler = require("../utils/timeprofiler.js");
@@ -114,6 +114,7 @@ let track_stat_doc = new apicache.Schema({
 	user_id: { type: String, required: true },
 	username: { type: String, required: true },
 	next_scheduled_update: { type: Date, required: true },
+	most_recent_score_date: { type: Date, required: true },
 	pp: { type: Number, default: 0, required: true },
 	rank: { type: Number, default: 0, required: true },
 	mode: { type: Number, required: true },
@@ -122,16 +123,17 @@ let track_stat_doc = new apicache.Schema({
 track_stat_doc.index({ user_id: 1 });
 track_stat_doc.index({ username: "hashed" });
 track_stat_doc.index({ next_scheduled_update: -1 });
+track_stat_doc.index({ most_recent_score_date: -1 });
 track_stat_doc.index({ mode: 1 });
 track_stat_doc.index({ expireAt: 1 }, { expireAfterSeconds: 0 });//expire old docs after a week or something
 let track_stat_model = apicache.model("track_stat_model", track_stat_doc);
 
 let track_setting_doc = new apicache.Schema({
-	type: { type: String, required: true },//r = role, l = link, i = include, e = exclude, c = country, v = server voluntary enabled, opt-in = user opt in, opt-out = user opt out
+	type: { type: String, required: true },//r = role, l = link, i = include, e = exclude, c = country, v = server voluntary enabled, o = user opt in, d = server/channel default
 	mode: { type: Number, required: true },//osu mode
-	id: { type: String, required: isString },//r = role id, l = empty string, i = osu id, e = osu id, c = country id, v = empty string, opt-in = uid, opt-out = uid
+	id: { type: String, required: isString },//r = role id, l = empty string, i = osu id, e = osu id, c = country id, v = empty string, opt-in = uid, d = sid
 	cid: { type: String, required: true },//channel to report to
-	sid: { type: String, required: true },//server this setting belongs to
+	sid: { type: String, required: isString },//server this setting belongs to
 	pp_threshold: { type: Number, required: false },
 	top_threshold: { type: Number, required: false },
 	rank_threshold: { type: Number, required: false },

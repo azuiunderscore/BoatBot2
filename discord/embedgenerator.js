@@ -244,108 +244,19 @@ function ppCalculator(pathToOsu, mode, options) {
 		else reject(new Error("invalid osu mode: " + mode))
 	});
 }
-function getMatchTags(summonerID, match) {
-	let answer = [];
-	if (!UTILS.exists(summonerID)) return answer;//bot
-	if (match.gameDuration < 300) return answer;
-	const stats = UTILS.stats(summonerID, match);
-	if (stats.largestMultiKill === 3) answer.push("TRIPLE");
-	else if (stats.largestMultiKill === 4) answer.push("QUADRA");
-	else if (stats.largestMultiKill >= 5) answer.push("PENTA");
-	const pID = UTILS.teamParticipant(summonerID, match).participantId;
-	const m_level = UTILS.exists(UTILS.findParticipantIdentityFromPID(match, pID).mastery) ? UTILS.findParticipantIdentityFromPID(match, pID).mastery : mastery;
-	if (m_level === 0) answer.push("First_Time");
-	else if (m_level === 1) answer.push("\"First_Time\"");
-	let sortable_all = UTILS.copy(match);//match with both teams
-	const teamID = UTILS.teamParticipant(summonerID, match).teamId;
-	for (let b in sortable_all.participants) {
-		const KDA = UTILS.KDAFromStats(sortable_all.participants[b].stats);
-		sortable_all.participants[b].stats.KDA = KDA.KDA;
-		sortable_all.participants[b].stats.KDANoPerfect = KDA.KDANoPerfect;
-		sortable_all.participants[b].stats.KDNoPerfect = KDA.KDNoPerfect;
-		sortable_all.participants[b].stats.inverseKDA = KDA.inverseKDA;
-		sortable_all.participants[b].stats.totalCS = sortable_all.participants[b].stats.totalMinionsKilled + sortable_all.participants[b].stats.neutralMinionsKilled;
-		sortable_all.participants[b].stats.damageTaken = sortable_all.participants[b].stats.totalDamageTaken + sortable_all.participants[b].stats.damageSelfMitigated;
-		sortable_all.participants[b].stats.KP = KDA.K + KDA.A;
-		sortable_all.participants[b].stats.inverseDeaths = -KDA.D;
+function getUnicodeMode(mode) {
+	if (mode == 0) {
+		return '\\⭕';
 	}
-	let sortable_team = UTILS.copy(sortable_all);//match with ally team only
-	UTILS.removeAllOccurances(sortable_team.participants, p => p.teamId !== teamID);
-	const criteria = [{ statName: "totalCS", designation: "Most_CS", direct: true },
-	{ statName: "totalDamageDealtToChampions", designation: "Most_Champion_Damage", direct: true },
-	{ statName: "totalDamageDealt", designation: "Most_Damage", direct: true },
-	{ statName: "visionScore", designation: "Most_Vision", direct: true },
-	{ statName: "assists", designation: "Selfless", direct: true },
-	{ statName: "inverseKDA", designation: "Heavy", direct: true },
-	{ statName: "damageDealtToObjectives", designation: "Objective_Focused", direct: true },
-	{ statName: "damageTaken", designation: "Most_Damage_Taken", direct: true },
-	{ statName: "KP", designation: "Highest_KP", direct: true },
-	{ statName: "timeCCingOthers", designation: "Most_CC", direct: true },
-	{ statName: "largestKillingSpree", designation: "Scary", direct: true },
-	{ statName: "inverseDeaths", designation: "Slippery", direct: true },
-	{ statName: "goldEarned", designation: "Most_Gold", direct: true },
-	{ statName: "KDANoPerfect", designation: "KDA", direct: false },
-	{ statName: "KDNoPerfect", designation: "KD", direct: false }];//simple, single stat criteria only
-	let non_direct = [];
-	for (let c in criteria) {
-		UTILS.assert(UTILS.exists(sortable_all.participants[0].stats[criteria[c].statName]));
-		sortable_all.participants.sort((a, b) => b.stats[criteria[c].statName] - a.stats[criteria[c].statName]);
-		sortable_team.participants.sort((a, b) => b.stats[criteria[c].statName] - a.stats[criteria[c].statName]);
-		//UTILS.debug(criteria[c].statName + ": " + sortable_all.participants.map(p => p.participantId + ":" + p.stats[criteria[c].statName]).join(", "));
-		//UTILS.debug("team " + criteria[c].statName + ": " + sortable_team.participants.map(p => p.participantId + ":" + p.stats[criteria[c].statName]).join(", "));
-		if (criteria[c].direct) {
-			if (sortable_all.participants[0].participantId === pID) answer.push(criteria[c].designation);
-			else if (sortable_team.participants[0].participantId === pID) answer.push("*" + criteria[c].designation);
-		}
-		else {
-			if (sortable_team.participants[0].participantId === pID) non_direct.push(criteria[c].designation);
-		}
+	else if (mode == 1) {
+		return '\\🥁';
 	}
-	if ((non_direct.indexOf("KDA") !== -1 && non_direct.indexOf("KD") !== -1) || (answer.indexOf("*Most_Champion_Damage") !== -1 || answer.indexOf("Most_Champion_Damage") !== -1)) answer.push("Carry");
-	const win = UTILS.determineWin(summonerID, match);
-	const ally_K = sortable_team.participants.reduce((total, increment) => total + increment.stats.kills, 0);
-	const enemy_K = sortable_all.participants.reduce((total, increment) => total + increment.stats.kills, 0) - ally_K;
-	if (win && (ally_K + enemy_K >= 5) && (ally_K >= (enemy_K * 3)) && match.gameDuration < (30 * 60)) answer.push("Easy");
-	if ((ally_K + enemy_K) >= (match.gameDuration / 30)) answer.push("Bloody");
-	if (match.teams[0].inhibitorKills > 0 && match.teams[1].inhibitorKills > 0) answer.push("Close");
-	return answer;
-}
-function transformTimelineToArray(match, timeline) {
-	let teams = {};
-	for (let b in match.participants) teams[match.participants[b].participantId + ""] = match.participants[b].teamId + "";
-	let answer = [];
-	for (let i = 0; i < timeline.frames.length; ++i) {
-		let team_total_gold = { "100": 0, "200": 0 };
-		for (let j = 1; j <= Object.keys(timeline.frames[i].participantFrames).length; ++j) {//for each participant frame
-			team_total_gold[teams[j + ""]] += timeline.frames[i].participantFrames[j + ""].totalGold;
-		}
-		answer.push({ x: i, y: team_total_gold["200"] - team_total_gold["100"] });
+	else if (mode == 2) {
+		return '\\' + UTILS.randomOf(["🍅", "🍇", "🍈", "🍉", "🍊", "🍋", "🍌", "🍍", "🍎", "🍏", "🍐", "🍑", "🍒", "🍓"]);
 	}
-	return answer;
-}
-function getLikelyLanes(CONFIG, champion_ids) {
-	UTILS.assert(champion_ids.length === 5);
-	let lane_permutations = UTILS.permute([0, 1, 2, 3, 4]);
-	let probabilities = lane_permutations.map((lane_assignments => {
-		let sum = 0;
-		for (let i = 0; i < lane_assignments.length; ++i) {//use specific lane assignment element from lane_permutations array
-			sum += LANE_PCT[champion_ids[i]][lane_assignments[i]];
-		}
-		return sum;
-	}));
-	let max = probabilities[0];//highest probability seen so far
-	let index_of_max = 0;//index of the above
-	for (let i = 1; i < probabilities.length; ++i) {
-		if (probabilities[i] > max) {
-			max = probabilities[i];
-			index_of_max = i;
-		}
+	else if (mode == 3) {
+		return '\\🎹';
 	}
-	let answer = {};
-	answer.assignments = lane_permutations[index_of_max].map(lane_number => lane_number + 1);
-	answer.confidence = max / 5;
-	UTILS.debug("highest probability lane assignments are:\n" + answer.assignments.map((lane_number, index) => CONFIG.STATIC.CHAMPIONS[champion_ids[index]].name + ": " + ["Top", "Jungle", "Mid", "Support", "Bot"][lane_number - 1] + " : " + LANE_PCT[champion_ids[index]][lane_number - 1] + "%").join("\n") + "\nwith total probability: " + (max / 5) + "%");
-	return answer;
 }
 module.exports = class EmbedGenerator {
 	constructor() { }
@@ -1270,6 +1181,34 @@ module.exports = class EmbedGenerator {
 				setColor(dpp);
 			}
 		}
+		return newEmbed;
+	}
+	tracking(CONFIG, settings) {
+		let newEmbed = new Discord.RichEmbed();
+		newEmbed.setTitle("Automatic Score Tracking Settings For This Channel");
+
+		const rb_i = settings.findIndex(e => e.type === "r");//role based tracking index
+		const rb_s = rb_i === -1 ? "Disabled" : `Enabled`;//role based tracking status
+		newEmbed.addField("Role Based", "Status: " + rb_s + "\nActive Roles:");//if status is enabled, then show default settings
+
+		const lb_i = settings.findIndex(e => e.type === "l");//link based tracking index
+		const lb_s = lb_i === -1 ? "Disabled" : `Enabled (min pp= \`${settings[lb_i].pp_threshold}\`, beatmap rank= \`${settings[lb_i].rank_threshold}\`, personal best= \`${settings[lb_i].top_threshold}\`)`;//link based tracking status
+		newEmbed.addField("!Link Based", "Status: " + lb_s + "\nActive Users:");
+
+		const ob_i = settings.findIndex(e => e.type === "o");//opt-in based tracking index
+		const ob_s = ob_i === -1 ? "Disabled" : `Enabled (min pp= \`${settings[ob_i].pp_threshold}\`, beatmap rank= \`${settings[ob_i].rank_threshold}\`, personal best= \`${settings[ob_i].top_threshold}\`)`;//opt-in based tracking status
+		newEmbed.addField("User Opt-in", "Status: " + ob_s + "\nActive Users:");
+
+		let custom_user_s = [];
+		for (let b in settings) {
+			if (settings[b].type == "i") {
+				custom_user_s.push(`${getUnicodeMode(settings[b].mode)}${UTILS.exists(settings[b].username) ? settings[b].username : "`" + settings[b].id + "`"} (pp=${UTILS.exists(settings[b].pp_threshold) ? settings[b].pp_threshold : ""}, rank=${UTILS.exists(settings[b].rank_threshold) ? settings[b].rank_threshold : ""}, top=${UTILS.exists(settings[b].top_threshold) ? settings[b].top_threshold : ""})`);
+			}
+		}
+		custom_user_s = custom_user_s.join("\n");
+		if (custom_user_s === "") custom_user_s = "Not Configured";
+		newEmbed.addField("Custom Users", custom_user_s);
+		newEmbed.addField("Countries", "Not Configured");
 		return newEmbed;
 	}
 }
