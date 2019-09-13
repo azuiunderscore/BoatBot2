@@ -247,11 +247,11 @@
 		}, {
 			MESSAGES: 8,
 			TIME_S: 60,
-			MEMBER_COUNT: 200
+			MEMBER_COUNT: 50
 		}, {
 			MESSAGES: 10,
 			TIME_S: 60,
-			MEMBER_COUNT: 1000
+			MEMBER_COUNT: 200
 		}]
 	},
 	"FEEDBACK": {
