@@ -52,7 +52,8 @@ const preferencesFormat = {
 	"replaycount": "boolean",
 	"abi": "boolean",
 	"force_prefix": "boolean",
-	"feedback_enabled": "boolean"
+	"feedback_enabled": "boolean",
+	"compare_mode": "number"
 };
 const newPreferences = {//new server defaults
 	"id": "",
@@ -102,7 +103,8 @@ const newPreferences = {//new server defaults
 	"replaycount": true,
 	"abi": true,
 	"force_prefix": false,
-	"feedback_enabled": true//allow use of global feedback commands
+	"feedback_enabled": true,//allow use of global feedback commands
+	"compare_mode": 3//3 means all comparisons allowed, 2 means old comparisons only, 1 means self comparisons only, 0 means all comparisons off
 };
 let CONFIG;
 const JSON5 = require("json5");
