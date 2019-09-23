@@ -138,7 +138,7 @@ module.exports = class Preferences {
 				else {//otherwise make a new one
 					UTILS.output(this.sid + " preferences: preferences file not found");
 					cache[this.sid] = UTILS.copy(newPreferences);
-					fs.writeFile(this.path, JSON.stringify(cache[this.sid]), e => {
+					fs.writeFile(this.path, JSON.stringify(cache[this.sid], null, "\t"), e => {
 						if (e) console.error(e);
 						else UTILS.output("wrote new preferences file");
 					});
