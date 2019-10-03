@@ -25,7 +25,76 @@ const dc_load_average = new LoadAverage(60);//discord command load average
 const express = require("express");
 const website = express();
 let MultiPoller = require("../utils/multipoller.js");
-//let tracker = new MultiPoller("ScoreTracker");
+let tracker = new MultiPoller("ScoreTracker", updatesDue, checkForUpdates, checkReadyForUpdate, justUpdated, stalled, {
+	min_queue_length: 100,
+	max_queue_length: 1500,
+	slow_update_interval: 1200,
+	fast_update_interval: 500,
+	status_check_interval: 10000,
+	soft_update_interval: 25
+});
+function updatesDue() {
+	return new Promise((resolve, reject) => {
+		UTILS.debug("call to updatesDue()");
+		sendExpectReplyBroadcast({ type: 42 }).then(values => {
+			let id_map = {};
+			for (let b in values) {//for each shard response
+				for (let c in values[b].id_map) {//for each server id
+					id_map[c] = values[b].id_map[c];//copy the channels
+				}
+			}
+			//id_map is now populated
+			let trackable = {};
+			track_setting_model.find({ type: "i" }).on("data", doc => {
+				if (UTILS.exists(id_map[doc.sid]) && UTILS.exists(id_map[doc.sid][doc.cid])) {//valid server and channel
+					if (!UTILS.exists(trackable[doc.id])) {
+						trackable[doc.id]["0"] = 0;
+						trackable[doc.id]["1"] = 0;
+						trackable[doc.id]["2"] = 0;
+						trackable[doc.id]["3"] = 0;
+					}
+					++trackable[doc.id];
+				}
+			}).on("error", console.error).on("end", async () => {
+				let update_order = [];
+				const now = UTILS.now();
+				for (let b in trackable) {
+					for (let c in trackable[b]) {
+						if (trackable[b][c] === 0) continue;
+						let docs = await track_stat_model.find({ user_id: b, mode: c }, null, { sort: { next_scheduled_update: -1 }});
+						if (UTILS.exists(docs) && UTILS.exists(docs[0])) {
+							if (now > docs[0].next_scheduled_update.getTime()) update_order.push({ id: b, mode:c, lateness: now - docs[0].next_scheduled_update.getTime() });
+						}
+						else {//create a blank track_stat_doc
+							let new_doc = new track_stat_model({ user_id: b, next_scheduled_update: new Date(), most_recent_score_date: new Date(0), mode: c, expireAt: new Date(now + (7 * 24 * 60 * 60 * 1000))});
+							new_doc.save(console.error);
+						}
+					}
+				}
+				update_order.sort((b, a) => a.lateness - b.lateness);//descending
+				resolve(update_order.map(v => {
+					return { id: `${v.id}:${v.mode}`, options: {
+						lateness: v.lateness,
+						id: v.id,
+						mode: v.mode
+					}};
+				}));
+			});
+		}).catch(console.error);
+	});
+}
+function checkForUpdates(id, options) {
+	return new Promise((resolve, reject) => {});
+}
+function checkReadyForUpdate(id) {
+	return new Promise((resolve, reject) => {});
+}
+function justUpdated(id, results, error) {
+}
+function stalled() {
+	console.error("Score Tracking Stalled");
+}
+
 
 const UTILS = new (require("../utils/utils.js"))();
 let Profiler = require("../utils/timeprofiler.js");
@@ -112,7 +181,7 @@ let msg_audit_model = apicache.model("msg_audit_model", msg_audit_doc);
 
 let track_stat_doc = new apicache.Schema({
 	user_id: { type: String, required: true },
-	username: { type: String, required: true },
+	username: { type: String, required: isString },
 	next_scheduled_update: { type: Date, required: true },
 	most_recent_score_date: { type: Date, required: true },
 	pp: { type: Number, default: 0, required: true },

@@ -82,6 +82,9 @@ module.exports = class WSAPI {
 
 		40: IAPI wants shard to run tracking eligibility check (population, permissions)
 		41: shard responds with (users in role, permissions valid per cid, population)
+
+		42: IAPI wants shard to report eligible servers and channels for tracking
+		43: shard responds with { sid: { cid: null }}
 	*/
 	constructor(INIT_CONFIG, discord_client, INIT_STATUS) {
 		this.client = discord_client;
@@ -264,6 +267,18 @@ module.exports = class WSAPI {
 					break;
 				case 38:
 					this.wsmm.wsMessageCallback(data);
+					break;
+				case 42:
+					let ans = {};
+					this.client.guilds.forEach(g => {
+						ans[g.id] = {};
+						g.channels.forEach(c => {
+							if (c.type === "text" && c.permissionsFor(this.client.user).has(["EMBED_LINKS", "VIEW_CHANNEL", "SEND_MESSAGES"])) ans[g.id][c.id] = true;
+						});
+					});
+					data.id_map = ans;
+					data.type = 43;
+					this.send(data);
 					break;
 				default:
 					UTILS.output("ws encountered unexpected message type: " + data.type + "\ncontents: " + JSON.stringify(data, null, "\t"));
