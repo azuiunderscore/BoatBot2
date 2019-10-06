@@ -18,6 +18,7 @@ catch (e) {
 const lolapi = new (require("../utils/lolapi.js"))(CONFIG, "0", true, rawAPIRequest);
 
 let https = require('https');
+const UTILS = new (require("../utils/utils.js"))();
 let LoadAverage = require("../utils/loadaverage.js");
 const response_type = ["Total", "Uncachable", "Cache hit", "Cache hit expired", "Cache miss"];
 const load_average = [new LoadAverage(60), new LoadAverage(60), new LoadAverage(60), new LoadAverage(60), new LoadAverage(60)];
@@ -25,15 +26,69 @@ const dc_load_average = new LoadAverage(60);//discord command load average
 const express = require("express");
 const website = express();
 let MultiPoller = require("../utils/multipoller.js");
-let tracker = new MultiPoller("ScoreTracker", updatesDue, checkForUpdates, checkReadyForUpdate, justUpdated, stalled, {
-	min_queue_length: 100,
-	max_queue_length: 1500,
-	slow_update_interval: 1200,
-	fast_update_interval: 500,
-	status_check_interval: 10000,
-	soft_update_interval: 25
-});
+let Profiler = require("../utils/timeprofiler.js");
+let request = require("request");
+let wsRoutes = require("./websockets.js");
+let routes = require("./routes.js");
+UTILS.assert(UTILS.exists(CONFIG.API_PORT), "API port does not exist in config.");
+UTILS.output("Modules loaded.");
+let apicache = require("mongoose");
+apicache.connect(CONFIG.MONGODB_ADDRESS, { useNewUrlParser: true });//cache of summoner object name lookups
+apicache.connection.on("error", function (e) { throw e; });
+
+let tracker;
+setTimeout(() => {//wait for shards to startup
+		tracker = new MultiPoller("ScoreTracker", updatesDue, checkForUpdates, checkReadyForUpdate, justUpdated, stalled, {
+		min_queue_length: 100,
+		max_queue_length: 1500,
+		slow_update_interval: 1200,
+		fast_update_interval: 500,
+		status_check_interval: 10000,
+		soft_update_interval: 25
+	});
+}, 30000);
 function updatesDue() {
+	return new Promise((resolve, reject) => {
+		UTILS.debug("call to updatesDue()");
+		checkTrackedUsers(async () => {
+			let update_order = [];
+			const now = UTILS.now();
+			for (let b in trackable) {
+				for (let c in trackable[b]) {
+					if (trackable[b][c] === 0) continue;
+					let docs = await track_stat_model.find({ user_id: b, mode: c }, null, { sort: { _id: -1 }});//sort by _id decending, not next scheduled update (for forced tracking reasons)
+					if (UTILS.exists(docs) && UTILS.exists(docs[0])) {
+						if (now > docs[0].next_scheduled_update.getTime()) update_order.push({ id: b, mode:c, lateness: now - docs[0].next_scheduled_update.getTime() });
+					}
+					else {//create a blank track_stat_doc
+						let new_doc = new track_stat_model({ user_id: b, next_scheduled_update: new Date(), most_recent_score_date: new Date(0), mode: c, expireAt: new Date(now + (7 * 24 * 60 * 60 * 1000))});
+						new_doc.save(console.error);
+					}
+				}
+			}
+			update_order.sort((b, a) => a.lateness - b.lateness);//descending
+			resolve(update_order.map(v => {
+				return { id: `${v.id}:${v.mode}`, options: {
+					lateness: v.lateness,
+					id: v.id,
+					mode: v.mode
+				}};
+			}));
+		}).then(console.error);
+	});
+}
+function checkForUpdates(id, options) {
+	return new Promise((resolve, reject) => {});
+}
+function checkReadyForUpdate(id) {
+	return new Promise((resolve, reject) => {});
+}
+function justUpdated(id, results, error) {
+}
+function stalled() {
+	console.error("Score Tracking Stalled");
+}
+function checkTrackedUsers() {//usermodes
 	return new Promise((resolve, reject) => {
 		UTILS.debug("call to updatesDue()");
 		sendExpectReplyBroadcast({ type: 42 }).then(values => {
@@ -55,57 +110,44 @@ function updatesDue() {
 					}
 					++trackable[doc.id];
 				}
-			}).on("error", console.error).on("end", async () => {
-				let update_order = [];
-				const now = UTILS.now();
-				for (let b in trackable) {
-					for (let c in trackable[b]) {
-						if (trackable[b][c] === 0) continue;
-						let docs = await track_stat_model.find({ user_id: b, mode: c }, null, { sort: { next_scheduled_update: -1 }});
-						if (UTILS.exists(docs) && UTILS.exists(docs[0])) {
-							if (now > docs[0].next_scheduled_update.getTime()) update_order.push({ id: b, mode:c, lateness: now - docs[0].next_scheduled_update.getTime() });
-						}
-						else {//create a blank track_stat_doc
-							let new_doc = new track_stat_model({ user_id: b, next_scheduled_update: new Date(), most_recent_score_date: new Date(0), mode: c, expireAt: new Date(now + (7 * 24 * 60 * 60 * 1000))});
-							new_doc.save(console.error);
-						}
-					}
-				}
-				update_order.sort((b, a) => a.lateness - b.lateness);//descending
-				resolve(update_order.map(v => {
-					return { id: `${v.id}:${v.mode}`, options: {
-						lateness: v.lateness,
-						id: v.id,
-						mode: v.mode
-					}};
-				}));
+			}).on("error", reject).on("end", async () => {
+				resolve(trackable);
 			});
-		}).catch(console.error);
+		}).catch(reject);
 	});
 }
-function checkForUpdates(id, options) {
-	return new Promise((resolve, reject) => {});
-}
-function checkReadyForUpdate(id) {
-	return new Promise((resolve, reject) => {});
-}
-function justUpdated(id, results, error) {
-}
-function stalled() {
-	console.error("Score Tracking Stalled");
+function checkTrackedUsersInServer(sid) {//usermodes
+	return new Promise((resolve, reject) => {
+		UTILS.debug("call to updatesDue()");
+		sendExpectReplyBroadcast({ type: 44, sid }).then(values => {
+			let id_map = {};
+			for (let b in values) {//for each shard response
+				if (UTILS.exists(values[b].id_map)) {
+					for (let c in values[b].id_map) {//for each server id
+						id_map[c] = values[b].id_map[c];//copy the channels
+					}
+					break;
+				}
+			}
+			//id_map is now populated
+			let trackable = {};
+			track_setting_model.find({ type: "i", id: sid }).on("data", doc => {
+				if (UTILS.exists(id_map[doc.cid])) {//valid server and channel
+					if (!UTILS.exists(trackable[doc.id])) {
+						trackable[doc.id]["0"] = 0;
+						trackable[doc.id]["1"] = 0;
+						trackable[doc.id]["2"] = 0;
+						trackable[doc.id]["3"] = 0;
+					}
+					++trackable[doc.id];
+				}
+			}).on("error", reject).on("end", async () => {
+				resolve(trackable);
+			});
+		}).catch(reject);
+	});
 }
 
-
-const UTILS = new (require("../utils/utils.js"))();
-let Profiler = require("../utils/timeprofiler.js");
-let request = require("request");
-let wsRoutes = require("./websockets.js");
-let routes = require("./routes.js");
-UTILS.assert(UTILS.exists(CONFIG.API_PORT), "API port does not exist in config.");
-UTILS.output("Modules loaded.");
-let apicache = require("mongoose");
-apicache.connect(CONFIG.MONGODB_ADDRESS, { useNewUrlParser: true });//cache of summoner object name lookups
-apicache.connection.on("error", function (e) { throw e; });
 
 let api_doc = new apicache.Schema({
 	url: String,

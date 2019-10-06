@@ -84,7 +84,10 @@ module.exports = class WSAPI {
 		41: shard responds with (users in role, permissions valid per cid, population)
 
 		42: IAPI wants shard to report eligible servers and channels for tracking
-		43: shard responds with { sid: { cid: null }}
+		43: shard responds with { sid: { cid: true }}
+
+		44: IAPI wants shard to report eligible channels for tracking
+		45: shard responds with { cid: true } if server exists
 	*/
 	constructor(INIT_CONFIG, discord_client, INIT_STATUS) {
 		this.client = discord_client;
@@ -279,6 +282,23 @@ module.exports = class WSAPI {
 					data.id_map = ans;
 					data.type = 43;
 					this.send(data);
+					break;
+				case 44:
+					if (true) {
+						let ans = {};
+						let candidate = this.client.guilds.get(data.sid);
+						if (UTILS.exists(candidate)) {
+							candidate.channels.forEach(c => {
+								if (c.type === "text" && c.permissionsFor(this.client.user).has(["EMBED_LINKS", "VIEW_CHANNEL", "SEND_MESSAGES"])) ans[c.id] = true;
+							});
+							data.id_map = ans;
+						}
+						else {
+							data.id_map = null;
+						}
+						data.type = 45;
+						this.send(data);
+					}
 					break;
 				default:
 					UTILS.output("ws encountered unexpected message type: " + data.type + "\ncontents: " + JSON.stringify(data, null, "\t"));
