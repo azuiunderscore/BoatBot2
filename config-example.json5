@@ -78,8 +78,19 @@
 			"name": "3zachm",
 			"active": true,
 			"flags": "<:6star:365191487769804820><:4starm:365413133931511810> 🇺🇸"
+		},
+		"290554402467610624": {
+			"name": "Shadow",
+			"active": true,
+			"flags": "<:4starm:365413133931511810> 🇨🇦"
+		},
+		"398051205949161474": {
+			"name": "Suspect",
+			"active": true,
+			"flags": "<:5star:365190043821932544> 🇲🇽🇺🇸"
 		}
 	},
+	"SUPPORT_LANGUAGES": "English, Español, Dansk, Norsk, Svenska, 한국어, 日本語",
 	"DISCORD_COMMAND_PREFIX": "!",
 	"HELP_SERVER_INVITE_LINK": "https://discord.gg/",
 	"LOG_CHANNEL_ID": "insert discord channel id here",
