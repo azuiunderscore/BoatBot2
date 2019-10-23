@@ -201,6 +201,7 @@
 		"BEATMAP_AUTO": {
 			"GET_BEATMAP": 86400,
 			"OSU_FILE": 604800,//1 week
+			"GET_USER": 86400
 		},
 		"RECENT": {
 			"GET_USER_RECENT": 20,
