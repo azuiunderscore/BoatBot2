@@ -144,6 +144,7 @@ function getModObject(mod_string) {
 }
 
 /** Returns a string of mod abbreviations when given the numerical representation.
+ * @function getMods
  * @param modnum 	{Number}	A numerical representation of mods.
  * @return 			{String}	The mod abbreviations.
  * **/
@@ -175,6 +176,7 @@ function getMods(modnum) {
 }
 
 /** Gets the progress of a play.
+ * 	@function getProgress
  *	@param	mode 	{Number}	The numerical representation of a gamemode.
  *	@param oppai 				A reference to oppai.
  *	@param score				A score object.
