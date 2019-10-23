@@ -12,22 +12,33 @@ const TAB = " ";
 const HALF_TAB = " ";
 const MANIA_KEY_COLOR = [0, 13421823, 13421823, 13421823, 10066431, 6711039, 3289855, 255, 204, 204, 204];
 const MODE_COLOR = ["#ffffff", "#ff0000", "#00ff00", "#0000ff"];
+
+/** Returns the emoji for the star value provided.
+ *  @param CONFIG
+ *	@param mode	 	{Number}	The numerical representation of the target gamemode.
+ *	@param stars 	{Number}	The target star value.
+ * 	@param diff_aim {Number} 	TODO: Find out what this is
+ * **/
 function getStars(CONFIG, mode, stars, diff_aim) {
 	UTILS.assert(UTILS.exists(CONFIG));
 	UTILS.assert(UTILS.exists(mode));
 	UTILS.assert(!isNaN(stars) || !isNaN(diff_aim));
-	if (isNaN(stars)) stars = diff_aim;
-	stars = Math.floor(stars);
-	if (stars >= 9) stars = 8;
+
+	stars = wholeStarValue(stars, diff_aim);
+
 	return CONFIG.EMOJIS.stars[parseInt(mode)][stars];
 }
-function wholeStarValue(stars, diff_aim) {//for emojis only, returns 1-8
+
+/** Rounds a star value down and limits it to the range of 1-8
+ * 	@param stars	{Number} The star value to be rounded
+ * 	@param diff_aim {Number} TODO figure out what this is
+ *	@return			{Number} Whole number between 1 and 8
+ * **/
+function wholeStarValue(stars, diff_aim) {
 	if (isNaN(stars) || !UTILS.exists(stars)) stars = diff_aim;
-	stars = Math.floor(stars);
-	if (stars >= 9) stars = 8;
-	else if (stars < 1) stars = 1;
-	return stars;
+	return Math.min(Math.max(Math.floor(stars), 1), 8);
 }
+
 // the below code related to mod code interpretation was not written by me. it was taken off github here: https://github.com/limjeck/osuplus/blob/master/osuplus.user.js
 // I do not take credit for this portion of code.
 const modnames = [
@@ -63,10 +74,12 @@ const modnames = [
 	{ val: 536870912, name: "ScoreV2", short: "V2" },
 	{ val: 1073741824, name: "Mirror", short: "MR" }
 ];
+
 const doublemods = [
 	["NC", "DT"],
 	["PF", "SD"]
 ];
+
 const short_mod_values = {
 	"NF": 1,
 	"EZ": 2,
@@ -100,7 +113,13 @@ const short_mod_values = {
 	"2K": 268435456,
 	"V2": 536870912
 };
-function getModObject(mod_string) {//takes in a string of mods non-comma separated and turns it into the raw value
+
+/** Converts a string of mods represented by their 2 character abbreviation and outputs the numerical representation of the combination.
+ * @function getModObject
+ * @param  {String}	mod_string	A string of mods represented by their 2 character abbreviation.
+ * @return {Integer}			The numerical representation of the inputted mods.
+ * **/
+function getModObject(mod_string) {
 	let answer = 0;
 	let answer_object = {};
 	for (let b in short_mod_values) {
@@ -123,9 +142,17 @@ function getModObject(mod_string) {//takes in a string of mods non-comma separat
 	answer_object.string = answerstring;
 	return answer_object;
 }
+
+/** Returns a string of mod abbreviations when given the numerical representation.
+ * @param modnum 	{Number}	A numerical representation of mods.
+ * @return 			{String}	The mod abbreviations.
+ * **/
 function getMods(modnum) {
+
 	modnum = parseInt(modnum);
 	let mods = [];
+
+	// Regular mods
 	for (let i = modnames.length - 1; i >= 0; i--) {
 		if (modnames[i].val <= modnum) {
 			if (modnames[i].short !== "") {
@@ -134,15 +161,25 @@ function getMods(modnum) {
 			modnum -= modnames[i].val;
 		}
 	}
-	// handle doublemods
+
+	// Double Mods
 	for (let i = 0; i < doublemods.length; i++) {
 		if (mods.indexOf(doublemods[i][0]) >= 0) {
 			mods.splice(mods.indexOf(doublemods[i][1]), 1);
 		}
 	}
+
 	if (mods.length === 0) return "";
+
 	else return "+" + mods.reverse().join("");
 }
+
+/** Gets the progress of a play.
+ *	@param	mode 	{Number}	The numerical representation of a gamemode.
+ *	@param oppai 				A reference to oppai.
+ *	@param score				A score object.
+ *	@return			{Float}		A value between 0-1 or null	representing the percent completion of the map.
+ * **/
 function getProgress(mode, oppai, score) {//returns float between 0-1 or null if unavailable
 	if (mode === 0 || mode === 1) {
 		return (score.countmiss + score.count50 + score.count100 + score.count300) /
@@ -150,6 +187,8 @@ function getProgress(mode, oppai, score) {//returns float between 0-1 or null if
 	}
 	else return -1;//possible to implement for ctb or mania, autoconvert status needs to be detected
 }
+
+// TODO: Document this
 function maxPPCalculator(pathToOsu, mode, options) {//options.acc, options.combo, options.mods, options.stars, options.OD, options.score, options.objects
 	return new Promise((resolve, reject) => {
 		if (mode == 0 | mode == 1) {//specific score or general acc FC
@@ -195,6 +234,8 @@ function maxPPCalculator(pathToOsu, mode, options) {//options.acc, options.combo
 		else reject(new Error("invalid osu mode: " + mode))
 	});
 }
+
+// TODO: Document this
 function ppCalculator(pathToOsu, mode, options) {
 	//std: options.combo, options.mods, count300, count100, count50, countmiss
 	//mania: options.combo, options.mods, options.stars, options.OD, options.score, options.objects
@@ -245,111 +286,11 @@ function ppCalculator(pathToOsu, mode, options) {
 		else reject(new Error("invalid osu mode: " + mode))
 	});
 }
-function getMatchTags(summonerID, match) {
-	let answer = [];
-	if (!UTILS.exists(summonerID)) return answer;//bot
-	if (match.gameDuration < 300) return answer;
-	const stats = UTILS.stats(summonerID, match);
-	if (stats.largestMultiKill === 3) answer.push("TRIPLE");
-	else if (stats.largestMultiKill === 4) answer.push("QUADRA");
-	else if (stats.largestMultiKill >= 5) answer.push("PENTA");
-	const pID = UTILS.teamParticipant(summonerID, match).participantId;
-	const m_level = UTILS.exists(UTILS.findParticipantIdentityFromPID(match, pID).mastery) ? UTILS.findParticipantIdentityFromPID(match, pID).mastery : mastery;
-	if (m_level === 0) answer.push("First_Time");
-	else if (m_level === 1) answer.push("\"First_Time\"");
-	let sortable_all = UTILS.copy(match);//match with both teams
-	const teamID = UTILS.teamParticipant(summonerID, match).teamId;
-	for (let b in sortable_all.participants) {
-		const KDA = UTILS.KDAFromStats(sortable_all.participants[b].stats);
-		sortable_all.participants[b].stats.KDA = KDA.KDA;
-		sortable_all.participants[b].stats.KDANoPerfect = KDA.KDANoPerfect;
-		sortable_all.participants[b].stats.KDNoPerfect = KDA.KDNoPerfect;
-		sortable_all.participants[b].stats.inverseKDA = KDA.inverseKDA;
-		sortable_all.participants[b].stats.totalCS = sortable_all.participants[b].stats.totalMinionsKilled + sortable_all.participants[b].stats.neutralMinionsKilled;
-		sortable_all.participants[b].stats.damageTaken = sortable_all.participants[b].stats.totalDamageTaken + sortable_all.participants[b].stats.damageSelfMitigated;
-		sortable_all.participants[b].stats.KP = KDA.K + KDA.A;
-		sortable_all.participants[b].stats.inverseDeaths = -KDA.D;
-	}
-	let sortable_team = UTILS.copy(sortable_all);//match with ally team only
-	UTILS.removeAllOccurances(sortable_team.participants, p => p.teamId !== teamID);
-	const criteria = [{ statName: "totalCS", designation: "Most_CS", direct: true },
-	{ statName: "totalDamageDealtToChampions", designation: "Most_Champion_Damage", direct: true },
-	{ statName: "totalDamageDealt", designation: "Most_Damage", direct: true },
-	{ statName: "visionScore", designation: "Most_Vision", direct: true },
-	{ statName: "assists", designation: "Selfless", direct: true },
-	{ statName: "inverseKDA", designation: "Heavy", direct: true },
-	{ statName: "damageDealtToObjectives", designation: "Objective_Focused", direct: true },
-	{ statName: "damageTaken", designation: "Most_Damage_Taken", direct: true },
-	{ statName: "KP", designation: "Highest_KP", direct: true },
-	{ statName: "timeCCingOthers", designation: "Most_CC", direct: true },
-	{ statName: "largestKillingSpree", designation: "Scary", direct: true },
-	{ statName: "inverseDeaths", designation: "Slippery", direct: true },
-	{ statName: "goldEarned", designation: "Most_Gold", direct: true },
-	{ statName: "KDANoPerfect", designation: "KDA", direct: false },
-	{ statName: "KDNoPerfect", designation: "KD", direct: false }];//simple, single stat criteria only
-	let non_direct = [];
-	for (let c in criteria) {
-		UTILS.assert(UTILS.exists(sortable_all.participants[0].stats[criteria[c].statName]));
-		sortable_all.participants.sort((a, b) => b.stats[criteria[c].statName] - a.stats[criteria[c].statName]);
-		sortable_team.participants.sort((a, b) => b.stats[criteria[c].statName] - a.stats[criteria[c].statName]);
-		//UTILS.debug(criteria[c].statName + ": " + sortable_all.participants.map(p => p.participantId + ":" + p.stats[criteria[c].statName]).join(", "));
-		//UTILS.debug("team " + criteria[c].statName + ": " + sortable_team.participants.map(p => p.participantId + ":" + p.stats[criteria[c].statName]).join(", "));
-		if (criteria[c].direct) {
-			if (sortable_all.participants[0].participantId === pID) answer.push(criteria[c].designation);
-			else if (sortable_team.participants[0].participantId === pID) answer.push("*" + criteria[c].designation);
-		}
-		else {
-			if (sortable_team.participants[0].participantId === pID) non_direct.push(criteria[c].designation);
-		}
-	}
-	if ((non_direct.indexOf("KDA") !== -1 && non_direct.indexOf("KD") !== -1) || (answer.indexOf("*Most_Champion_Damage") !== -1 || answer.indexOf("Most_Champion_Damage") !== -1)) answer.push("Carry");
-	const win = UTILS.determineWin(summonerID, match);
-	const ally_K = sortable_team.participants.reduce((total, increment) => total + increment.stats.kills, 0);
-	const enemy_K = sortable_all.participants.reduce((total, increment) => total + increment.stats.kills, 0) - ally_K;
-	if (win && (ally_K + enemy_K >= 5) && (ally_K >= (enemy_K * 3)) && match.gameDuration < (30 * 60)) answer.push("Easy");
-	if ((ally_K + enemy_K) >= (match.gameDuration / 30)) answer.push("Bloody");
-	if (match.teams[0].inhibitorKills > 0 && match.teams[1].inhibitorKills > 0) answer.push("Close");
-	return answer;
-}
-function transformTimelineToArray(match, timeline) {
-	let teams = {};
-	for (let b in match.participants) teams[match.participants[b].participantId + ""] = match.participants[b].teamId + "";
-	let answer = [];
-	for (let i = 0; i < timeline.frames.length; ++i) {
-		let team_total_gold = { "100": 0, "200": 0 };
-		for (let j = 1; j <= Object.keys(timeline.frames[i].participantFrames).length; ++j) {//for each participant frame
-			team_total_gold[teams[j + ""]] += timeline.frames[i].participantFrames[j + ""].totalGold;
-		}
-		answer.push({ x: i, y: team_total_gold["200"] - team_total_gold["100"] });
-	}
-	return answer;
-}
-function getLikelyLanes(CONFIG, champion_ids) {
-	UTILS.assert(champion_ids.length === 5);
-	let lane_permutations = UTILS.permute([0, 1, 2, 3, 4]);
-	let probabilities = lane_permutations.map((lane_assignments => {
-		let sum = 0;
-		for (let i = 0; i < lane_assignments.length; ++i) {//use specific lane assignment element from lane_permutations array
-			sum += LANE_PCT[champion_ids[i]][lane_assignments[i]];
-		}
-		return sum;
-	}));
-	let max = probabilities[0];//highest probability seen so far
-	let index_of_max = 0;//index of the above
-	for (let i = 1; i < probabilities.length; ++i) {
-		if (probabilities[i] > max) {
-			max = probabilities[i];
-			index_of_max = i;
-		}
-	}
-	let answer = {};
-	answer.assignments = lane_permutations[index_of_max].map(lane_number => lane_number + 1);
-	answer.confidence = max / 5;
-	UTILS.debug("highest probability lane assignments are:\n" + answer.assignments.map((lane_number, index) => CONFIG.STATIC.CHAMPIONS[champion_ids[index]].name + ": " + ["Top", "Jungle", "Mid", "Support", "Bot"][lane_number - 1] + " : " + LANE_PCT[champion_ids[index]][lane_number - 1] + "%").join("\n") + "\nwith total probability: " + (max / 5) + "%");
-	return answer;
-}
+
 module.exports = class EmbedGenerator {
+
 	constructor() { }
+
 	test(x = "") {
 		let newEmbed = new Discord.RichEmbed();
 		newEmbed.setAuthor("Author \\🇺🇸");
@@ -359,6 +300,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setFooter("Footer 🇺🇸");
 		return newEmbed;
 	}
+
 	help(CONFIG) {
 		let newEmbed = new Discord.RichEmbed();
 		newEmbed.setTitle("Discord Commands");
@@ -413,6 +355,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setThumbnail("https://cdn.discordapp.com/attachments/423261885262069771/433465885420945409/cby4p-fp0aj-0.png");
 		return newEmbed;
 	}
+
 	serverBan(CONFIG, server, reason, date, issuer_tag, issuer_avatarURL) {
 		let newEmbed = new Discord.RichEmbed();
 		if (date == 0) {
@@ -434,6 +377,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setDescription("The reason given was: " + reason);
 		return newEmbed;
 	}
+
 	userBan(CONFIG, reason, date, issuer_tag, issuer_avatarURL) {
 		let newEmbed = new Discord.RichEmbed();
 		if (date == 0) {
@@ -455,6 +399,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setDescription("The reason given was: " + reason);
 		return newEmbed;
 	}
+
 	serverWarn(CONFIG, server, reason, issuer_tag, issuer_avatarURL) {
 		let newEmbed = new Discord.RichEmbed();
 		newEmbed.setTitle("This is an official warning for your server (" + server.name + ")");
@@ -466,6 +411,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setDescription("The reason given was: " + reason);
 		return newEmbed;
 	}
+
 	userWarn(CONFIG, reason, issuer_tag, issuer_avatarURL) {
 		let newEmbed = new Discord.RichEmbed();
 		newEmbed.setTitle("This is an official warning");
@@ -477,6 +423,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setDescription("The reason given was: " + reason);
 		return newEmbed;
 	}
+
 	serverUnban(CONFIG, server, issuer_tag, issuer_avatarURL) {
 		let newEmbed = new Discord.RichEmbed();
 		newEmbed.setTitle("This server (" + server.name + ") has been unbanned");
@@ -486,6 +433,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setAuthor(issuer_tag, issuer_avatarURL);
 		return newEmbed;
 	}
+
 	userUnban(CONFIG, issuer_tag, issuer_avatarURL) {
 		let newEmbed = new Discord.RichEmbed();
 		newEmbed.setTitle("You have been unbanned");
@@ -495,6 +443,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setAuthor(issuer_tag, issuer_avatarURL);
 		return newEmbed;
 	}
+
 	disciplinaryHistory(CONFIG, id, user, docs) {
 		let newEmbed = new Discord.RichEmbed();
 		newEmbed.setTitle("Disciplinary History");
@@ -523,6 +472,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setAuthor(id);
 		return newEmbed;
 	}
+
 	actionReport(CONFIG, id, docs) {
 		let newEmbed = new Discord.RichEmbed();
 		newEmbed.setTitle("Administrative Actions Report");
@@ -541,6 +491,7 @@ module.exports = class EmbedGenerator {
 		}
 		return newEmbed;
 	}
+
 	statsPlus(CONFIG, mode, user_stats, user_best, php_profile_leader, user_page, php_profile_general) {
 		let newEmbed = new Discord.RichEmbed();
 		let totalHits = parseInt(user_stats.count300) + parseInt(user_stats.count100) + parseInt(user_stats.count50);
@@ -588,6 +539,7 @@ module.exports = class EmbedGenerator {
 		//output(pfm);
 		return newEmbed;
 	}
+
 	signature(CONFIG, mode, user_stats) {
 		let newEmbed = new Discord.RichEmbed();
 		let wordMode;
@@ -619,6 +571,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setFooter("use " + modeCommand + " " + user_stats.username + " for more information");
 		return newEmbed;
 	}
+
 	statsPlusMods(CONFIG, mode, user_stats, user_best) {
 		let newEmbed = new Discord.RichEmbed();
 		let totalHits = parseInt(user_stats.count300) + parseInt(user_stats.count100) + parseInt(user_stats.count50);
@@ -643,6 +596,7 @@ module.exports = class EmbedGenerator {
 		//output(aim_acc.pfm);
 		return newEmbed;
 	}
+
 	feedback(CONFIG, type, destination, msg, user_history, server_history, usertag) {
 		/*type = 0: general message from user (destination 1)
 		type = 1: complaint (destination 1->2)
@@ -707,6 +661,7 @@ module.exports = class EmbedGenerator {
 		}
 		return newEmbed;
 	}
+
 	reviewFeedback(CONFIG, msg, approver, approved) {
 		if (!UTILS.exists(msg.embeds[0])) return 1;//no embed detected
 		if (!UTILS.exists(msg.embeds[0].footer) || !UTILS.exists(msg.embeds[0].footer.text)) return 2;//not approvable
@@ -746,22 +701,11 @@ module.exports = class EmbedGenerator {
 			return { edit };
 		}
 	}
+
 	raw(embed_object) {
 		return new Discord.RichEmbed(embed_object);
 	}
-	verify(CONFIG, summoner, uid) {
-		let newEmbed = new Discord.RichEmbed();
-		newEmbed.setTitle("Verify ownership of LoL account");
-		const now = new Date().getTime();
-		let code = now + "-" + uid + "-" + summoner.puuid;
-		code = now + "-" + crypto.createHmac("sha256", CONFIG.TPV_KEY).update(code).digest("hex");
-		newEmbed.setDescription("Verifying your LoL account gives you a \\" + VERIFIED_ICON + " which is displayed next to your name to prove you own an account. It is displayed when you run a LoL statistics command on an account you own. The ownership period expires after 1 year. 1 discord account can own multiple LoL accounts and 1 LoL account can be owned by multiple discord accounts.\nYour code is: ```" + code + "```");
-		newEmbed.addField("If you have already followed the instructions below, there is a problem with the code you provided.", "Reread the instructions below and try again.");
-		newEmbed.addField("Instructions", "See the below image to save the code provided above to your account. Once you have done this, resend the `" + CONFIG.DISCORD_COMMAND_PREFIX + "verify <region> <ign>` command again within the next 5 minutes **__after first waiting 30 seconds__**.");
-		newEmbed.setImage("https://supportbot.tk/f/tpv.png");//tpv tutorial image
-		newEmbed.setFooter("This code does not need to be kept secret. It expires in 5 minutes, and will only work on this discord and LoL account.");
-		return newEmbed;
-	}
+
 	debug(CONFIG, client, iapi_stats, c_eval) {
 		let newEmbed = new Discord.RichEmbed();
 		let serverbans = 0, userbans = 0;
@@ -782,6 +726,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setColor(255);
 		return newEmbed;
 	}
+
 	beatmap(CONFIG, beatmap, beatmapset, mod_string = "", mode, footerauthor = false) {//returns a promise
 		return new Promise((resolve, reject) => {
 			UTILS.debug("mod_string is \"" + mod_string + "\"");
@@ -868,6 +813,7 @@ module.exports = class EmbedGenerator {
 			}
 		});
 	}
+
 	recent(CONFIG, mode, play_index = 0, recent_scores, beatmap, leaderboard, user_scores, user_best, user_stats) {
 		let that = this;
 		UTILS.assert(UTILS.exists(recent_scores[play_index]));
@@ -953,6 +899,7 @@ module.exports = class EmbedGenerator {
 			}
 		});
 	}
+
 	fullScorecardRaw(CONFIG, user, beatmap, score) {
 		const user_format = {
 			user_id: "string",
@@ -1039,6 +986,7 @@ module.exports = class EmbedGenerator {
 			}).catch(reject);
 		});
 	}
+
 	slsd(CONFIG, user, beatmaps, scores, end_index) {
 		let newEmbed = new Discord.RichEmbed();
 		UTILS.assert(beatmaps.length === scores.length);
@@ -1057,6 +1005,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setFooter("Beatmap artist, title, and difficulty names have been truncated.");
 		return newEmbed;
 	}
+
 	slsdRaw(CONFIG, beatmap, score, title = true) {//single line score display
 		const beatmap_format = {
 			approved: "number",//int
@@ -1110,6 +1059,7 @@ module.exports = class EmbedGenerator {
 			return `${CONFIG.EMOJIS[score.rank]}**${score.pp_valid ? `${score.pp.round(0)}pp` : `~~${score.pp.round(0)}pp~~`}${TAB}${UTILS.calcAcc(beatmap.mode, score).toFixed(2)}%${TAB}${choke}${score.enabled_mods !== 0 ? getMods(score.enabled_mods) : ""}${TAB}**${UTILS.numberWithCommas(score.score)}${TAB}${score.maxcombo}x${HALF_TAB}\\🕙*${UTILS.shortAgo(score.date)}*`;
 		}
 	}
+
 	matchRequest(match_object, user_object, beatmap_object) {
 		let newEmbed = new Discord.RichEmbed();
 		let game = match_object.games[match_object.games.length - 1];
@@ -1190,6 +1140,7 @@ module.exports = class EmbedGenerator {
 			throw new Error("game mode unsupported");
 		}
 	}
+
 	whatif(CONFIG, user, mode, top, new_score, new_pp, beatmap) {//new_score (is this a new score?) new_pp (what is the new pp value?)
 		let newEmbed = new Discord.RichEmbed();
 		newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, null, `https://osu.ppy.sh/u/${user.user_id}`);
