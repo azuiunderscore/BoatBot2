@@ -84,7 +84,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
     });
 
     command(["boatsetprefix"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
-        preferences.set("prefix", "").then(() => reply(":white_check_mark: Prefixless operation enabled")).catch(reply);
+        preferences.set("prefix", "").then(() => reply(":white_check_mark: The prefix to use this bot has been removed. No prefix is needed to use commands.")).catch(reply);
     });
 
     command(usePrefix(["owner", "owners"]), false, false, (original, index) => {
@@ -575,17 +575,6 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         lolapi.removeAllShortcuts(msg.author.id).then(result => {
             reply(":white_check_mark: All shortcuts were removed.")
         }).catch(console.error);
-    });
-
-    // Documented earlier
-    command(["boatsetprefix "], true, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index, parameter) => {
-        parameter = parameter.toLowerCase();
-        preferences.set("prefix", parameter) ? reply(":white_check_mark: The prefix to use this bot has been changed to:" + parameter) : reply(":x: An error has occurred while setting the prefix.");
-    });
-
-    // Documented earlier
-    command(["boatsetprefix"], false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
-        preferences.set("prefix", "") ? reply(":white_check_mark: The prefix to use this bot has been removed. No prefix is needed to use commands.") : reply(":x: An error has occurred while setting the prefix.");
     });
 
     /** @command d1
@@ -1392,7 +1381,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @permissionlevel 0
      *  @param [osu username] +<new pp value>
      * **/
-    
+
     commandGuessUsername(usePrefix(["whatiftaiko", "whatifctb", "whatifmania", "whatif"]), false, (index, id, username, parameter, ending_parameter) => {
         UTILS.debug("username: " + username);
         UTILS.debug("ending_parameter: " + ending_parameter);
