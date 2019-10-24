@@ -189,13 +189,15 @@ module.exports = class UTILS {
 
 	/** Determines how long ago a date was
 	 * 	@param 	date
+	 * 	@return	{string}
 	 * **/
 	ago(date) {
 		return ta.ago(date);
 	}
 
-	/** Determines how long ago a date was
+	/** Determines how long ago a date was, indicated in short form
 	 * 	@param 	date
+	 * 	@return {string}
 	 * **/
 	shortAgo(date) {
 		return ta.ago(date, true);
