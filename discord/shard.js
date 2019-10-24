@@ -21,7 +21,7 @@ let CONFIG;
 const JSON5 = require("json5");
 try {
     CONFIG = JSON5.parse(fs.readFileSync("../" + argv_options.config, "utf-8"));
-    CONFIG.VERSION = "v2.0.5";//b for non-release (in development)
+    CONFIG.VERSION = "v2.0.6b";//b for non-release (in development)
     CONFIG.BANS = {};
 } catch (e) {
     console.log("something's wrong with config.json");
