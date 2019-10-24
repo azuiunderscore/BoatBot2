@@ -4,13 +4,16 @@ let seq = require("./promise-sequential.js");
 const fs = require("fs");
 const countries = JSON.parse(fs.readFileSync("../data/countries.json", "utf-8"));
 let child_process = require("child_process");
+
 String.prototype.replaceAll = function(search, replacement) {
 	let target = this;
 	return target.replace(new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), replacement);
 }
+
 String.prototype.count = function(search) {
 	return (this.match(new RegExp(search, "g")) || []).length;
 }
+
 String.prototype.indexOfInstance = function(searchString, index) {
 	let answer = -1;
 	for (let i = 0, count = 0; i < this.length - searchString.length; ++i) {
@@ -21,6 +24,7 @@ String.prototype.indexOfInstance = function(searchString, index) {
 	}
 	return answer;
 }
+
 String.prototype.limit = function (size) {
 	let arr = this.split(" ");
 	let ans = "";
@@ -32,11 +36,13 @@ String.prototype.limit = function (size) {
 	if (ans.length === 0) return this.substring(0, size);
 	else return ans;
 }
+
 Number.prototype.pad = function(size) {
 	let s = String(this);
 	while (s.length < (size || 2)) { s = "0" + s; }
 	return s;
 }
+
 const modnames = [
 	{ val: 1, name: "NoFail", short: "NF" },
 	{ val: 2, name: "Easy", short: "EZ" },
@@ -70,10 +76,12 @@ const modnames = [
 	{ val: 536870912, name: "ScoreV2", short: "V2" },
 	{ val: 1073741824, name: "Mirror", short: "MR" }
 ];
+
 const doublemods = [
 	["NC", "DT"],
 	["PF", "SD"]
 ];
+
 const short_mod_values = {
 	"NF": 1,
 	"EZ": 2,
@@ -107,26 +115,45 @@ const short_mod_values = {
 	"2K": 268435456,
 	"V2": 536870912
 };
+
 Number.prototype.round = function(decimal = 0) {
 	return Math.round(this * Math.pow(10, decimal)) / Math.pow(10, decimal);
 }
+
 module.exports = class UTILS {
-	output(t) {//general utility function
+	/** Prints a message to the console
+	 * 	@param t	 {string}	The message to print.
+	 * **/
+	output(t) {
 		if (this.exists(t)) {
 			let n = new Date().toISOString().slice(0, 19).replace('T', ' ');;
 			console.log(n + "." + new Date().getMilliseconds().pad(3) + " " + (this.exists(process.env.SHARD_ID) ? "$" + process.env.SHARD_ID : "") + ": " + t);
 		}
 	}
+	/**	Only prints the message to the console if debug mode is on
+	 *	@param 	t			{string}	The message to print.
+	 *	@param	override	{boolean}	If the message should be printed anyway.
+	 * **/
 	debug(t, override) {
 		if (this.exists(override)) {
 			if (override) this.output(t);
 		}
 		else if (process.env.DEBUG == "true") this.output(t);
 	}
-	exists(anyObject) {//general utility function
+
+	/** Checks an object to make sure it isn't undefined or null
+	 * @param 	anyObject	The object to check.
+	 * @returns {boolean}
+	 */
+	exists(anyObject) {
 		if (anyObject !== null && anyObject !== undefined) return true;
 		else return false;
 	}
+
+	/** Outputs a comma-seperated number
+	 * 	@param 	x 	{number}	The number to comma-seperate
+	 * 	@return 	{string}
+	 * **/
 	numberWithCommas(x) {//general utility function
 		if (this.exists(x)) {
 			let parts = x.toString().split(".");
@@ -135,26 +162,45 @@ module.exports = class UTILS {
 		}
 		else return "";
 	}
+
+	/**	Rounds the input to the next integer
+	 * 	@param num 	{number}	The number to round
+	 * 	@return {number}		The number rounded to the next integer
+	 * **/
 	round(num, decimal = 0) {
 		return Math.round(num * Math.pow(10, decimal)) / Math.pow(10, decimal);
 	}
+
+	/** Throws an error if the condition is false
+	 * 	@param condition				The condition to validate.
+	 * 	@param message		{string}	A message to be appended to the error.
+	 * **/
 	assert(condition, message) {
 		if (typeof (condition) != "boolean") {
 			console.trace();
-			throw new Error("asserting non boolean value: " + typeof (condition));
+			throw new Error("Asserting non boolean value: " + typeof (condition));
 		}
 		if (!condition) {
 			console.trace();
-			throw new Error("assertion false" + (this.exists(message) ? ": " + message : ""));
+			throw new Error("Assertion false" + (this.exists(message) ? ": " + message : ""));
 		}
 		return true;
 	}
+
+	/** Determines how long ago a date was
+	 * 	@param 	date
+	 * **/
 	ago(date) {
 		return ta.ago(date);
 	}
+
+	/** Determines how long ago a date was
+	 * 	@param 	date
+	 * **/
 	shortAgo(date) {
 		return ta.ago(date, true);
 	}
+
 	until(date) {
 		const now = new Date().getTime();
 		let answer = ta.ago(now - (date.getTime() - now));
@@ -765,6 +811,7 @@ module.exports = class UTILS {
 			}
 		});
 	}
+
 	permute(ext_input) {
 		let permArr = [];
 		let usedChars = [];
@@ -789,9 +836,11 @@ module.exports = class UTILS {
 			if (!this.exists(original[i])) original[i] = template[i];
 		}
 	}
+
 	now() {
 		return new Date().getTime();
 	}
+
 	scoreIsUserTop100(score, user_best) {
 		if (!this.exists(user_best)) return -1;
 		let that = this;

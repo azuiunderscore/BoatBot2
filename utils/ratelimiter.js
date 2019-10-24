@@ -58,7 +58,7 @@ module.exports = class RateLimiter {
 		this.check();
 		return this.timeFrequency - this.eventTimes.length - 1 >= 0 ? this.timeFrequency - this.eventTimes.length - 1 : 0;
 	}
-	
+
 	remainingTime() {//time in seconds before next available command
 		const ct = new Date().getTime();
 		return this.check(ct) ? 0 : ((this.eventTimes[0] + this.timePeriod) - ct) / 1000;

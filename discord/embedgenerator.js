@@ -180,7 +180,7 @@ function getMods(modnum) {
  *	@param	mode 	{Number}	The numerical representation of a gamemode.
  *	@param oppai 				A reference to oppai.
  *	@param score				A score object.
- *	@return			{Float}		A value between 0-1 or null	representing the percent completion of the map.
+ *	@return			{Float}		A value between 0-1 or -1 if the command doesn't work. Value between 0 and 1 represents the percent completion of the map.
  * **/
 function getProgress(mode, oppai, score) {//returns float between 0-1 or null if unavailable
 	if (mode === 0 || mode === 1) {

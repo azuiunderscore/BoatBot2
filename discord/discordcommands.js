@@ -1824,7 +1824,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @function command
      *  @param trigger_array        {Array}     Array of command aliases, prefix not included.
      *  @param parameters_expected  {Boolean}   Are parameters expected?
-     *  @param elevated_permissions {Boolean}   Does the command require owner permissions?
+     *  @param elevated_permissions {Boolean}   A representation of the permissions it requires. False is NORMALMEMBERs and true is BOTOWNERS. The rest of the levels are in the config.
      *  @param callback             {Function}  Optional callback.
      * **/
     function command(trigger_array, parameters_expected, elevated_permissions, callback, options = { // External call means not inside commandGuessUsername & commandGuessUsernameNumber
@@ -1875,7 +1875,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         }
     }
 
-    /** Not really that clear
+    /** A command that tries to infer an osu username from the command executor. Refer to comments in the function to understand how this works.
+     *  @function commandGuessUsername
+     *  @param trigger_array        {Array}     Array of command aliases, prefix not included.
+     *  @param elevated_permissions {Boolean}   A representation of the permissions it requires. False is NORMALMEMBERs and true is BOTOWNERS. The rest of the levels are in the config.
+     *  @param callback             {Function}  Optional callback.
+     *  @return                     {index, boolean: user_id = true / username = false, user_id or username, parameter, ending parameter}
      * **/
     function commandGuessUsername(trigger_array,//array of command aliases, prefix needs to be included
                                   elevated_permissions,//requires owner permissions
@@ -2007,11 +2012,16 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         }, {external: false});
     }
 
-    /** Not clear
+    /** A command that tries to infer an osu username from the command executor. The command also takes in an optional number directly after the command. Refer to comments in the function to understand how this works.
+     *  @function commandGuessUsername
+     *  @param trigger_array        {Array}     Array of command aliases, prefix not included.
+     *  @param elevated_permissions {Boolean}   A representation of the permissions it requires. False is NORMALMEMBERs and true is BOTOWNERS. The rest of the levels are in the config.
+     *  @param callback             {Function}  Optional callback.
+     *  @return                     {index, boolean: user_id = true / username = false, user_id or username, number}
      * **/
-    function commandGuessUsernameNumber(trigger_array,//array of command aliases, prefix needs to be included
-                                        elevated_permissions,//requires owner permissions
-                                        callback) {//optional callback only if successful
+    function commandGuessUsernameNumber(trigger_array,
+                                        elevated_permissions,
+                                        callback) {
         //returns (index, boolean: user_id = true / username = false, user_id or username, number)
         //this command does not validate the existance of a username on the server
         /*
