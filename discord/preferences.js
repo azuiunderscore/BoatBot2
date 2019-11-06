@@ -123,7 +123,7 @@ module.exports = class Preferences {
 		this.address = "https://" + CONFIG.API_ADDRESS;
 		this.port = CONFIG.API_PORT;
 		this.sid = UTILS.exists(guild) ? guild.id : undefined;
-		this.path = "/home/iaace/bbs/data/public/" + this.sid + ".json";
+		this.path = "~/bbs/data/public/" + this.sid + ".json";
 		if (UTILS.exists(this.sid)) {//server message
 			this.server_message = true;
 			if (!UTILS.exists(cache[this.sid])) {//doesn't exist in cache
