@@ -78,6 +78,11 @@
 			"name": "3zachm",
 			"active": true,
 			"flags": "<:6star:365191487769804820><:4starm:365413133931511810> 🇺🇸"
+		},
+		"290554402467610624": {
+			"name": "Shadow",
+			"active": true,
+			"flags": "<:4starm:365413133931511810> 🇨🇦"
 		}
 	},
 	"DISCORD_COMMAND_PREFIX": "!",
