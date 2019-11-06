@@ -3,6 +3,8 @@ config.json
 /api/node_modules/
 /data/static-api-cache/*
 !data/static-api-cache/.gitkeep
+/data/beatmap-cache/*
+!data/beatmap-cache/.gitkeep
 /data/keys/*
 !data/keys/.gitkeep
 *.bat
