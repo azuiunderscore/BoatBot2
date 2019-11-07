@@ -695,7 +695,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         }).catch(console.error);
     });
 
-    // TODO do this later
+    /** @command osu signature
+     *  @alias https://osu.ppy.sh/u/ http://osu.ppy.sh/u/ https://osu.ppy.sh/users/ http://osu.ppy.sh/users/
+     *  @description Returns a simple stats embed on the linked user
+     *  @permissionlevel 0
+     *  @param <URL path starting with the user_id>
+     * **/
     command(["https://osu.ppy.sh/u/", "http://osu.ppy.sh/u/", "https://osu.ppy.sh/users/", "http://osu.ppy.sh/users/"], true, false, (original, index, parameter) => {
         const id = UTILS.arbitraryLengthInt(parameter);
         lolapi.osuMostRecentMode(id, true, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER_RECENT).then(mrm => {
