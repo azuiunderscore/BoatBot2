@@ -36,7 +36,7 @@ function getStars(CONFIG, mode, stars, diff_aim) {
  * **/
 function wholeStarValue(stars, diff_aim) {
 	if (isNaN(stars) || !UTILS.exists(stars)) stars = diff_aim;
-	return Math.min(Math.max(Math.floor(stars), 1), 8);
+	return UTILS.constrain(Math.floor(stars), 1, 8);
 }
 
 // the below code related to mod code interpretation was not written by me. it was taken off github here: https://github.com/limjeck/osuplus/blob/master/osuplus.user.js
