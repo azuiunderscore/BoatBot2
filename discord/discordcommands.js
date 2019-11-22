@@ -298,7 +298,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @description Replies with your permissions level.
      *  @permissionlevel 0
      * **/
-    command(usePrefix(["permissionstest", "pt"]), false, false, () => {
+    command(usePrefix(["permissionstest", "pt"]), false, cPL("general"), () => {
         reply("You have " + ["normal", "bot commander", "moderator", "server admin", "server owner", "bot owner"][ACCESS_LEVEL] + " permissions.");
     });
 
@@ -308,7 +308,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @permissionlevel 0
      *  @param <user>
      * **/
-    command(usePrefix(["permissionstest ", "pt "]), true, false, () => {
+    command(usePrefix(["permissionstest ", "pt "]), true, cPL("general"), () => {
         if (msg.mentions.users.size != 1) return reply(":x: A user must be mentioned.");
         reply(msg.mentions.users.first().tag + " has " + ["normal", "bot commander", "moderator", "server admin", "server owner", "bot owner"][UTILS.accessLevel(CONFIG, msg, msg.mentions.users.first().id)] + " permissions.");
     });
@@ -332,7 +332,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @description Displays the time from command being receieved to the command being completely processed.
      *  @permissionlevel 0
      * **/
-    command(usePrefix(["ping", "latency"]), false, false, () => {
+    command(usePrefix(["ping", "latency"]), false, cPL("general"), () => {
         reply("V2 command to response time: ", nMsg => textgenerator.ping_callback(msg, nMsg));
     });
 
@@ -341,7 +341,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @description Displays the ping to the connection to the internal api server.
      *  @permissionlevel 5
      * **/
-    command(["iping"], false, false, () => {
+    command(["iping"], false, cPL("general"), () => {
         lolapi.ping().then(times => reply(textgenerator.internal_ping(times))).catch(console.error);
     });
 
@@ -350,7 +350,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @description Displays the ping to the websocket connection to the internal api server.
      *  @permissionlevel 5
      * **/
-    command(["wping"], false, false, () => {
+    command(["wping"], false, cPL("general"), () => {
         wsapi.ping(times => reply(textgenerator.ws_ping(times)));
     });
 
@@ -435,7 +435,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @permissionlevel 0
      *  @param <osu username>
      * **/
-    command(usePrefix(["link "]), true, false, (original, index, parameter) => {
+    command(usePrefix(["link "]), true, cPL("username"), (original, index, parameter) => {
         if (msg.mentions.users.size == 0) {
             lolapi.osuGetUser(parameter, 0, false, CONFIG.API_MAXAGE.LINK).then(user => {
                 if (!UTILS.exists(user)) return reply(":x: The username appears to be invalid.");
@@ -458,7 +458,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @description Use to remove your linked username from your discord account.
      *  @permissionlevel 0
      * **/
-    command(usePrefix(["unlink", "removelink"]), false, false, (original, index) => {
+    command(usePrefix(["unlink", "removelink"]), false, cPL("username"), (original, index) => {
         lolapi.setLink(msg.author.id, "").then(result => {
             result.success ? reply(":white_check_mark: Your discord account is no longer associated with any username. We'll try to use your discord username when you use a username-optional osu stats command.") : reply(":x: Something went wrong.");
         }).catch(console.error);
@@ -482,7 +482,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @description Returns the current osu username linked to your account.
      *  @permissionlevel 0
      * **/
-    command(usePrefix(["gl", "getlink"]), false, false, (original, index) => {
+    command(usePrefix(["gl", "getlink"]), false, cPL("username"), (original, index) => {
         lolapi.getLink(msg.author.id).then(result => {
             if (UTILS.exists(result.username) && result.username != "") reply(":white_check_mark: You're `" + result.username + "`");
             else reply(":x: No records for user id " + msg.author.id);
@@ -507,7 +507,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @description Gives you an invite link to add BoatBot to other servers.
      *  @permissionlevel 0
      * **/
-    command(usePrefix(["invite"]), false, false, (original, index) => {
+    command(usePrefix(["invite"]), false, cPL("general"), (original, index) => {
         reply("This is the link to add BoatBot to other servers: <" + CONFIG.BOT_ADD_LINK + ">\nAdding it requires the \"Manage Server\" permission.");
     });
 
@@ -516,7 +516,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @description Gives you a link to this documentation page.
      *  @permissionlevel 0
      * **/
-    command(usePrefix(["help", "docs", "documentation"]), false, false, (original, index) => {
+    command(usePrefix(["help", "docs", "documentation"]), false, cPL("general"), (original, index) => {
         reply("Please see <https://docs.iaace.gg/> for documentation on how to use BoatBot Lazer, as well as our terms and conditions of service. If you have any questions/issues, feel free to let us know by sending `!ask _your question here_?` wherever BoatBot can be used. We try to answer all questions within 24 hours.");
     });
 
@@ -526,7 +526,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @permissionlevel 0
      *  @param <nickname> <osu username>
      * **/
-    command(usePrefix(["setshortcut ", "ss ", "createshortcut ", "addshortcut "]), true, false, (original, index, parameter) => {
+    command(usePrefix(["setshortcut ", "ss ", "createshortcut ", "addshortcut "]), true, cPL("username"), (original, index, parameter) => {
         if (parameter[0] !== "$") return reply(":x: The shortcut must begin with an `$`. Please try again.");
         else if (parameter.indexOf(" ") === -1) return reply(":x: The shortcut word and the username must be separated by a space. Please try again.");
         else if (parameter.length > 60) return reply(":x: The shortcut name or the username is too long.");
@@ -547,7 +547,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @permissionlevel 0
      *  @param <nickname>
      * **/
-    command(usePrefix(["removeshortcut ", "deleteshortcut ", "ds "]), true, false, (original, index, parameter) => {
+    command(usePrefix(["removeshortcut ", "deleteshortcut ", "ds "]), true, cPL("username"), (original, index, parameter) => {
         if (parameter[0] !== "$") return reply(":x: The shortcut must begin with an `$`. Please try again.");
         const from = parameter.substring(1).toLowerCase();
         if (from.length === 0) return reply(":x: The shortcut name was not specified. Please try again.");
@@ -561,7 +561,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @description Returns a list of all your custom nicknames.
      *  @permissionlevel 0
      * **/
-    command(usePrefix(["shortcuts", "shortcut"]), false, false, (original, index) => {
+    command(usePrefix(["shortcuts", "shortcut"]), false, cPL("username"), (original, index) => {
         lolapi.getShortcuts(msg.author.id).then(result => {
             reply(textgenerator.shortcuts(CONFIG, result));
         }).catch(console.error);
@@ -571,7 +571,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @description Removes all your shortcuts. Use with care.
      *  @permissionlevel 0
      * **/
-    command(usePrefix(["removeallshortcuts"]), false, false, (original, index) => {
+    command(usePrefix(["removeallshortcuts"]), false, cPL("username"), (original, index) => {
         lolapi.removeAllShortcuts(msg.author.id).then(result => {
             reply(":white_check_mark: All shortcuts were removed.")
         }).catch(console.error);
@@ -624,7 +624,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @param [osu username]
      * **/
 
-    commandGuessUsername(usePrefix(["taiko", "sptaiko", "spt", "ctb", "spctb", "spc", "mania", "spmania", "spm", "statsplus", "sp", "osu", "std"]), false, (index, id, user, parameter) => {
+    commandGuessUsername(usePrefix(["taiko", "sptaiko", "spt", "ctb", "spctb", "spc", "mania", "spmania", "spm", "statsplus", "sp", "osu", "std"]), cPL("player"), (index, id, user, parameter) => {
         let mode;
         if (index < 3) mode = 1;
         else if (index < 6) mode = 2;
@@ -681,7 +681,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @param [osu username]
      * **/
 
-    commandGuessUsername(usePrefix(["statsplus-m", "sp-m", "osu-m", "std-m", "taiko-m", "sptaiko-m", "spt-m", "ctb-m", "spctb-m", "spc-m", "mania-m", "spmania-m", "spm-m"]), false, (index, id, user, parameter) => {
+    commandGuessUsername(usePrefix(["statsplus-m", "sp-m", "osu-m", "std-m", "taiko-m", "sptaiko-m", "spt-m", "ctb-m", "spctb-m", "spc-m", "mania-m", "spmania-m", "spm-m"]), cPL("player"), (index, id, user, parameter) => {
         let mode;
         if (index < 4) mode = 0;
         else if (index < 7) mode = 1;
@@ -701,7 +701,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @permissionlevel 0
      *  @param <URL path starting with the user_id>
      * **/
-    command(["https://osu.ppy.sh/u/", "http://osu.ppy.sh/u/", "https://osu.ppy.sh/users/", "http://osu.ppy.sh/users/"], true, false, (original, index, parameter) => {
+    command(["https://osu.ppy.sh/u/", "http://osu.ppy.sh/u/", "https://osu.ppy.sh/users/", "http://osu.ppy.sh/users/"], true, cPL("player"), (original, index, parameter) => {
         const id = UTILS.arbitraryLengthInt(parameter);
         lolapi.osuMostRecentMode(id, true, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER_RECENT).then(mrm => {
             lolapi.osuGetUserTyped(id, mrm, true, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
@@ -719,7 +719,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @description Outputs information about contributors and donators.
      *  @permissionlevel 0
      * **/
-    command(usePrefix(["about", "credits", "acknowledgements", "contributors", "contributions"]), false, false, (original, index) => reply(CONFIG.ACKNOWLEDGEMENTS));
+    command(usePrefix(["about", "credits", "acknowledgements", "contributors", "contributions"]), false, cPL("general"), (original, index) => reply(CONFIG.ACKNOWLEDGEMENTS));
 
     /** @command osusignature
      *  @alias osusignature osusign osusig
@@ -727,7 +727,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @permissionlevel 0
      *  @param [osu username]
      * **/
-    commandGuessUsername(usePrefix(["osusignature", "osusign", "osusig"]), false, (index, id, user, parameter) => {
+    commandGuessUsername(usePrefix(["osusignature", "osusign", "osusig"]), cPL("player"), (index, id, user, parameter) => {
         lolapi.osuMostRecentMode(user, id, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER_RECENT).then(mrm => {
             lolapi.osuGetUserTyped(user, mrm, id, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
                 replyEmbed(embedgenerator.signature(CONFIG, mrm, user_stats));
@@ -744,11 +744,11 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @permissionlevel 0
      *  @param [upper limit]
      * **/
-    command(usePrefix(["roll"]), false, false, (original, index) => {
+    command(usePrefix(["roll"]), false, cPL("general"), (original, index) => {
         reply(textgenerator.roll(100, msg.author));
     });
 
-    command(usePrefix(["roll "]), true, false, (original, index, parameter) => {
+    command(usePrefix(["roll "]), true, cPL("general"), (original, index, parameter) => {
         reply(textgenerator.roll(parameter, msg.author));
     });
 
@@ -756,7 +756,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @description Flips a coin.
      *  @permissionlevel 0
      * **/
-    command(usePrefix(["coinflip", "flipcoin", "coin"]), false, false, (original, index) => {
+    command(usePrefix(["coinflip", "flipcoin", "coin"]), false, cPL("general"), (original, index) => {
         reply(textgenerator.coin());
     });
 
@@ -766,7 +766,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @permissionlevel 0
      *  @param [osu username]
      * **/
-    command(usePrefix(["stats ", "stat "]), true, false, (original, index, parameter) => {
+    command(usePrefix(["stats ", "stat "]), true, cPL("player"), (original, index, parameter) => {
         lolapi.osuMostRecentMode(parameter, false, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER_RECENT).then(mrm => {
             lolapi.osuGetUser(parameter, mrm, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
                 reply(textgenerator.stats(mrm, user_stats));
@@ -783,7 +783,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @permissionlevel 0
      *  @param <osu username>
      * **/
-    command(usePrefix(["where "]), true, false, (original, index, parameter) => {
+    command(usePrefix(["where "]), true, cPL("player"), (original, index, parameter) => {
         lolapi.osuGetUser(parameter, 0, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
             reply(textgenerator.where(user_stats));
         }).catch(console.error);
@@ -793,7 +793,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @description Outputs information about the beatmap contained in the most recent scorecard.
      *  @permissionlevel 0
      * **/
-    command(usePrefix(["oppai"]), true, false, (original, index, parameter) => {
+    command(usePrefix(["oppai"]), true, cPL("beatmap"), (original, index, parameter) => {
         parameter = parameter.trim();
         msg.channel.fetchMessages({limit: 50}).then(msgs => {
             msgs = msgs.array();
@@ -877,7 +877,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @permissionlevel 0
      *  @param [osu username]
      * **/
-    commandGuessUsername(usePrefix(["recent", "r"]), false, (index, id, user, parameter) => {//this doesn't support play #s
+    commandGuessUsername(usePrefix(["recent", "r"]), cPL("score"), (index, id, user, parameter) => {//this doesn't support play #s
         request_profiler.begin("mode_detect");
         lolapi.osuMostRecentMode(user, id, false, CONFIG.API_MAXAGE.RECENT.GET_USER_RECENT).then(mode => {
             request_profiler.end("mode_detect");
@@ -957,7 +957,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
     });
 
     // TODO: This one is weird
-    command(["http://osu.ppy.sh/mp/", "https://osu.ppy.sh/mp/", "https://osu.ppy.sh/community/matches/", "http://osu.ppy.sh/community/matches/"], true, false, (original, index, parameter) => {
+    command(["http://osu.ppy.sh/mp/", "https://osu.ppy.sh/mp/", "https://osu.ppy.sh/community/matches/", "http://osu.ppy.sh/community/matches/"], true, cPL("score"), (original, index, parameter) => {
         const mpID = parameter;
         request_profiler.begin("get_match_info");
         lolapi.osuMatch(mpID, CONFIG.API_MAXAGE.MP.OSU_MATCH).then(robj => {
@@ -985,7 +985,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         }).catch(console.error);
     });
 
-    commandGuessUsernameNumber(usePrefix(["recentstandard", "recentstd", "rstandard", "rstd", "rs", "recenttaiko", "rtaiko", "rt", "recentctb", "rctb", "rc", "recentmania", "rmania", "rm"]), false, (index, id, user, number, guess_method) => {
+    commandGuessUsernameNumber(usePrefix(["recentstandard", "recentstd", "rstandard", "rstd", "rs", "recenttaiko", "rtaiko", "rt", "recentctb", "rctb", "rc", "recentmania", "rmania", "rm"]), cPL("score"), (index, id, user, number, guess_method) => {
         request_profiler.begin("mode_detect");
         let mode;
         if (index < 6) mode = 0;
@@ -1090,7 +1090,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @param [osu username]
      * **/
 
-    commandGuessUsernameNumber(usePrefix(["recentpassstandard", "recentstandardpass", "recentpassstd", "recentstdpass", "rpstandard", "rstandardp", "rpstd", "rstdp", "rps", "rsp", "recenttaikopass", "recentpasstaiko", "rptaiko", "rtaikop", "rpt", "rtp", "recentctbpass", "recentpassctb", "rpctb", "rctbp", "rpc", "rcp", "recentmaniapass", "recentpassmania", "rpmania", "rmaniap", "rmp", "rpm"]), false, (index, id, user, number, guess_method) => {
+    commandGuessUsernameNumber(usePrefix(["recentpassstandard", "recentstandardpass", "recentpassstd", "recentstdpass", "rpstandard", "rstandardp", "rpstd", "rstdp", "rps", "rsp", "recenttaikopass", "recentpasstaiko", "rptaiko", "rtaikop", "rpt", "rtp", "recentctbpass", "recentpassctb", "rpctb", "rctbp", "rpc", "rcp", "recentmaniapass", "recentpassmania", "rpmania", "rmaniap", "rmp", "rpm"]), cPL("score"), (index, id, user, number, guess_method) => {
         request_profiler.begin("mode_detect");
         let mode;
         if (index < 10) mode = 0;
@@ -1196,7 +1196,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @param [osu username]
      * **/
 
-    commandGuessUsernameNumber(usePrefix(["besttaiko", "toptaiko", "btaiko", "ttaiko", "bt", "tt", "bestctb", "topctb", "bctb", "tctb", "bc", "tc", "bestmania", "topmania", "bmania", "tmania", "bm", "tm", "beststandard", "beststd", "best", "top"]), false, (index, id, user, number, guess_method) => {
+    commandGuessUsernameNumber(usePrefix(["besttaiko", "toptaiko", "btaiko", "ttaiko", "bt", "tt", "bestctb", "topctb", "bctb", "tctb", "bc", "tc", "bestmania", "topmania", "bmania", "tmania", "bm", "tm", "beststandard", "beststd", "best", "top"]), cPL("score"), (index, id, user, number, guess_method) => {
         let mode;
         if (index < 6) mode = 1;
         else if (index < 12) mode = 2;
@@ -1293,7 +1293,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @param [osu username]
      * **/
 
-    commandGuessUsernameNumber(usePrefix(["recentbesttaiko", "rbtaiko", "rbt", "recentbestctb", "rbctb", "rbc", "recentbestmania", "rbmania", "rbm", "recentbeststandard", "recentbeststd", "recentbest", "rbstd", "rbs", "rb"]), false, (index, id, user, number, guess_method) => {
+    commandGuessUsernameNumber(usePrefix(["recentbesttaiko", "rbtaiko", "rbt", "recentbestctb", "rbctb", "rbc", "recentbestmania", "rbmania", "rbm", "recentbeststandard", "recentbeststd", "recentbest", "rbstd", "rbs", "rb"]), cPL("score"), (index, id, user, number, guess_method) => {
         let mode;
         if (index < 3) mode = 1;
         else if (index < 6) mode = 2;
@@ -1387,7 +1387,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @param [osu username] +<new pp value>
      * **/
 
-    commandGuessUsername(usePrefix(["whatiftaiko", "whatifctb", "whatifmania", "whatif"]), false, (index, id, username, parameter, ending_parameter) => {
+    commandGuessUsername(usePrefix(["whatiftaiko", "whatifctb", "whatifmania", "whatif"]), cPL("score"), (index, id, username, parameter, ending_parameter) => {
         UTILS.debug("username: " + username);
         UTILS.debug("ending_parameter: " + ending_parameter);
         let mode;
@@ -1458,7 +1458,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
     }, {trigger: "", accepts_opts: CONFIG.CONSTANTS.CGU_OPTS.MANDATORY});
 
     if (preferences.get("compare_mode") > 0) {
-        commandGuessUsername(usePrefix(["scorecompare", "scompare", "compare", "scorevs", "c"]), false, (index, id, user, parameter, ending_parameter) => {
+        commandGuessUsername(usePrefix(["scorecompare", "scompare", "compare", "scorevs", "c"]), cPL("score"), (index, id, user, parameter, ending_parameter) => {
             //UTILS.inspect("username", user);
             //UTILS.inspect("ending_parameter", ending_parameter);
             let beatmap_id, type, beatmap, mode;
@@ -1586,10 +1586,10 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
     if (true) {//scope limiter for beatmap links
         let id, type, mode, mod_string, beatmap;
         if (preferences.get("abi")) {
-            command(["https://osu.ppy.sh/b/", "http://osu.ppy.sh/b/"], true, false, (original, index, parameter) => {//old format beatmap link
+            command(["https://osu.ppy.sh/b/", "http://osu.ppy.sh/b/"], true, cPL("beatmap"), (original, index, parameter) => {//old format beatmap link
                 oldLink(parameter);
             });
-            command(["https://osu.ppy.sh/s/", "http://osu.ppy.sh/s/", "https://osu.ppy.sh/d/", "http://osu.ppy.sh/d/"], true, false, (original, index, parameter) => {//old format set links
+            command(["https://osu.ppy.sh/s/", "http://osu.ppy.sh/s/", "https://osu.ppy.sh/d/", "http://osu.ppy.sh/d/"], true, cPL("beatmap"), (original, index, parameter) => {//old format set links
                 id = UTILS.arbitraryLengthInt(parameter);
                 type = "s";
                 mode = original.indexOf("&m=") != -1 ? parseInt(original[original.indexOf("&m=") + 3]) : null;
@@ -1597,12 +1597,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                 mod_string = mod_string.substring(mod_string.indexOf("+"));//only get the string after the '+'
                 step2();
             });
-            command(["https://osu.ppy.sh/beatmapsets/"], true, false, (original, index, parameter) => {
+            command(["https://osu.ppy.sh/beatmapsets/"], true, cPL("beatmap"), (original, index, parameter) => {
                 let url = original + parameter;
                 newLink(url);
             });
         }
-        command(usePrefix(["beatmapinfo", "binfo"]), true, false, (original, index, parameter) => {
+        command(usePrefix(["beatmapinfo", "binfo"]), true, cPL("beatmap"), (original, index, parameter) => {
             msg.channel.fetchMessages({limit: 50}).then(msgs => {
                 msgs = msgs.array();
                 for (let i = 0; i < msgs.length; ++i) {
@@ -1752,6 +1752,121 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                         break;
                     default:
                         throw new Error(":x: invalid comparison mode specified");
+                }
+                reply(ans);
+            }).catch(reply);
+        });
+
+        /** @command setting comparisons
+         *  @description Adjusts how comparisons work in your server.
+         *  @permissionlevel
+         *  @param <on / off>
+         * **/
+        command(usePrefix(["setting cmdgroup-score off", "setting cmdgroup-score on"]), false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
+            const new_setting = index == 1 ? 0 : -1;
+            preferences.set("score_en", new_setting).then(() => {
+                let ans = ":white_check_mark: Score commands ";
+                switch (new_setting) {
+                    case (-1):
+                        ans += "disabled.";
+                        break;
+                    case (0):
+                        ans += "enabled.";
+                        break;
+                    default:
+                        throw new Error(":x: invalid command mode specified.");
+                }
+                reply(ans);
+            }).catch(reply);
+        });
+
+        /** @command setting comparisons
+         *  @description Adjusts how comparisons work in your server.
+         *  @permissionlevel
+         *  @param <on / off>
+         * **/
+        command(usePrefix(["setting cmdgroup-beatmap off", "setting cmdgroup-beatmap on"]), false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
+            const new_setting = index == 1 ? 0 : -1;
+            preferences.set("beatmap_en", new_setting).then(() => {
+                let ans = ":white_check_mark: Score commands ";
+                switch (new_setting) {
+                    case (-1):
+                        ans += "disabled.";
+                        break;
+                    case (0):
+                        ans += "enabled.";
+                        break;
+                    default:
+                        throw new Error(":x: invalid command mode specified.");
+                }
+                reply(ans);
+            }).catch(reply);
+        });
+
+        /** @command setting comparisons
+         *  @description Adjusts how comparisons work in your server.
+         *  @permissionlevel
+         *  @param <on / off>
+         * **/
+        command(usePrefix(["setting cmdgroup-player off", "setting cmdgroup-player on"]), false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
+            const new_setting = index == 1 ? 0 : -1;
+            preferences.set("player_en", new_setting).then(() => {
+                let ans = ":white_check_mark: Score commands ";
+                switch (new_setting) {
+                    case (-1):
+                        ans += "disabled.";
+                        break;
+                    case (0):
+                        ans += "enabled.";
+                        break;
+                    default:
+                        throw new Error(":x: invalid command mode specified.");
+                }
+                reply(ans);
+            }).catch(reply);
+        });
+
+        /** @command setting comparisons
+         *  @description Adjusts how comparisons work in your server.
+         *  @permissionlevel
+         *  @param <on / off>
+         * **/
+        command(usePrefix(["setting cmdgroup-general off", "setting cmdgroup-general on"]), false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
+            const new_setting = index == 1 ? 0 : -1;
+            preferences.set("general_en", new_setting).then(() => {
+                let ans = ":white_check_mark: Score commands ";
+                switch (new_setting) {
+                    case (-1):
+                        ans += "disabled.";
+                        break;
+                    case (0):
+                        ans += "enabled.";
+                        break;
+                    default:
+                        throw new Error(":x: invalid command mode specified.");
+                }
+                reply(ans);
+            }).catch(reply);
+        });
+
+        /** @command setting comparisons
+         *  @description Adjusts how comparisons work in your server.
+         *  @permissionlevel
+         *  @param <on / off>
+         * **/
+        command(usePrefix(["setting cmdgroup-username off", "setting cmdgroup-username on"]), false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
+            const new_setting = index == 1 ? 0 : -1;
+            preferences.set("username_en", new_setting).then(() => {
+                let ans = ":white_check_mark: Score commands ";
+                switch (new_setting) {
+                    case (-1):
+                        ans += "disabled.";
+                        break;
+                    case (0):
+                        ans += "enabled.";
+                        break;
+                    default:
+                        throw new Error(":x: invalid command mode specified.");
                 }
                 reply(ans);
             }).catch(reply);
@@ -2123,7 +2238,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      **/
     function is(PLEVEL, candidate = msg.author.id, notify = true) {
         if (candidate === msg.author.id) {
-            if (ACCESS_LEVEL >= PLEVEL) return true;
+            if (PLEVEL === CONFIG.CONSTANTS.DISABLED) return false;
+            else if (ACCESS_LEVEL >= PLEVEL) return true;
             else if (notify) {
                 if (PLEVEL === CONFIG.CONSTANTS.BOTOWNERS) ;//do not notify when this permission fails
                 else if (PLEVEL === CONFIG.CONSTANTS.SERVEROWNERS) reply(":x: Server Owner permissions required. You must be the owner of this server to use this command.");
@@ -2428,5 +2544,17 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                 child_process.spawnSync("pm2", ["restart", "all"]);
             }, 5000);
         }
+    }
+
+    /**
+     * commandPermissionLevel
+     * Gets the permission value for a particular command/commandgroup
+     * @param {String} name of the command or commandgroup
+     * @returns {Number} permission level
+     */
+    function cPL(name) {
+        let ans = preferences.get(`${name}_en`);
+        UTILS.assert(UTILS.exists(ans), `${name}_en doesn't exist as a command permissions group`);
+        return ans;
     }
 }

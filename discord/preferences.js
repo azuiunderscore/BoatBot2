@@ -5,6 +5,16 @@ const argv_options = new (require("getopts"))(process.argv.slice(2), {
 	alias: { c: ["config"] },
 	default: { c: "config.json5" }});
 let cache = {};
+let CONFIG;
+const JSON5 = require("json5");
+try {
+	CONFIG = JSON5.parse(fs.readFileSync("../" + argv_options.config, "utf-8"));
+}
+catch (e) {
+	UTILS.output("something's wrong with config.json");
+	console.error(e);
+	process.exit(1);
+}
 const preferencesFormat = {
 	"id": "string",
 	"personalizations": "boolean",
@@ -53,7 +63,12 @@ const preferencesFormat = {
 	"abi": "boolean",
 	"force_prefix": "boolean",
 	"feedback_enabled": "boolean",
-	"compare_mode": "number"
+	"compare_mode": "number",
+	"score_en": "number",
+	"player_en": "number",
+	"beatmap_en": "number",
+	"general_en": "number",
+	"username_en": "number"
 };
 const newPreferences = {//new server defaults
 	"id": "",
@@ -104,18 +119,14 @@ const newPreferences = {//new server defaults
 	"abi": true,
 	"force_prefix": false,
 	"feedback_enabled": true,//allow use of global feedback commands
-	"compare_mode": 3//3 means all comparisons allowed, 2 means old comparisons only, 1 means self comparisons only, 0 means all comparisons off
+	"compare_mode": 3,//3 means all comparisons allowed, 2 means old comparisons only, 1 means self comparisons only, 0 means all comparisons off
+	"score_en": CONFIG.CONSTANTS.NORMALMEMBERS,
+	"player_en": CONFIG.CONSTANTS.NORMALMEMBERS,
+	"beatmap_en": CONFIG.CONSTANTS.NORMALMEMBERS,
+	"general_en": CONFIG.CONSTANTS.NORMALMEMBERS,
+	"username_en": CONFIG.CONSTANTS.NORMALMEMBERS
 };
-let CONFIG;
-const JSON5 = require("json5");
-try {
-	CONFIG = JSON5.parse(fs.readFileSync("../" + argv_options.config, "utf-8"));
-}
-catch (e) {
-	UTILS.output("something's wrong with config.json");
-	console.error(e);
-	process.exit(1);
-}
+
 module.exports = class Preferences {
 	constructor(lolapi, guild, callback) {
 		this.lolapi = lolapi;
