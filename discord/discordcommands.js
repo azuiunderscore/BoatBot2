@@ -1788,7 +1788,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         command(usePrefix(["setting cmdgroup-beatmap off", "setting cmdgroup-beatmap on"]), false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
             const new_setting = index == 1 ? 0 : -1;
             preferences.set("beatmap_en", new_setting).then(() => {
-                let ans = ":white_check_mark: Score commands ";
+                let ans = ":white_check_mark: Beatmap commands ";
                 switch (new_setting) {
                     case (-1):
                         ans += "disabled.";
@@ -1811,7 +1811,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         command(usePrefix(["setting cmdgroup-player off", "setting cmdgroup-player on"]), false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
             const new_setting = index == 1 ? 0 : -1;
             preferences.set("player_en", new_setting).then(() => {
-                let ans = ":white_check_mark: Score commands ";
+                let ans = ":white_check_mark: Player commands ";
                 switch (new_setting) {
                     case (-1):
                         ans += "disabled.";
@@ -1834,7 +1834,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         command(usePrefix(["setting cmdgroup-general off", "setting cmdgroup-general on"]), false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
             const new_setting = index == 1 ? 0 : -1;
             preferences.set("general_en", new_setting).then(() => {
-                let ans = ":white_check_mark: Score commands ";
+                let ans = ":white_check_mark: General commands ";
                 switch (new_setting) {
                     case (-1):
                         ans += "disabled.";
@@ -1857,7 +1857,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         command(usePrefix(["setting cmdgroup-username off", "setting cmdgroup-username on"]), false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
             const new_setting = index == 1 ? 0 : -1;
             preferences.set("username_en", new_setting).then(() => {
-                let ans = ":white_check_mark: Score commands ";
+                let ans = ":white_check_mark: Username commands ";
                 switch (new_setting) {
                     case (-1):
                         ans += "disabled.";
