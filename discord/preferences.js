@@ -147,10 +147,14 @@ module.exports = class Preferences {
 					}
 					catch (e) {
 						console.error(e);
+						writeNew();
 					}
 				}
 				else {//otherwise make a new one
-					UTILS.debug(this.sid + " preferences: preferences file not found");
+					writeNew();
+				}
+				function writeNew() {
+					UTILS.debug(this.sid + " preferences: preferences file not found or corrupted");
 					cache[this.sid] = UTILS.copy(newPreferences);
 					fs.writeFile(this.path, JSON.stringify(cache[this.sid], null, "\t"), e => {
 						if (e) console.error(e);
