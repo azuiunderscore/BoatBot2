@@ -139,6 +139,7 @@ module.exports = class Preferences {
 		if (UTILS.exists(this.sid)) {//server message
 			this.server_message = true;
 			if (!UTILS.exists(cache[this.sid])) {//doesn't exist in cache
+				let that = this;
 				UTILS.debug(this.sid + " preferences: cache miss");
 				if (fs.existsSync(this.path)) {//check if db entry exists
 					try {//read
@@ -154,9 +155,9 @@ module.exports = class Preferences {
 					writeNew();
 				}
 				function writeNew() {
-					UTILS.debug(this.sid + " preferences: preferences file not found or corrupted");
-					cache[this.sid] = UTILS.copy(newPreferences);
-					fs.writeFile(this.path, JSON.stringify(cache[this.sid], null, "\t"), e => {
+					UTILS.debug(that.sid + " preferences: preferences file not found or corrupted");
+					cache[that.sid] = UTILS.copy(newPreferences);
+					fs.writeFile(that.path, JSON.stringify(cache[that.sid], null, "\t"), e => {
 						if (e) console.error(e);
 						else UTILS.output("wrote new preferences file");
 					});
