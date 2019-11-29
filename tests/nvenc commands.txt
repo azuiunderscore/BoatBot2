@@ -1,0 +1,10 @@
+ffmpeg -hwaccel_device 1 -hwaccel cuvid -c:v h264_cuvid -i mvc.mp4 -max_muxing_queue_size 1024 -vf scale_npp=640:360 -threads 4 -movflags +faststart -c:v h264_nvenc -preset slow -b:v 500k -c:a aac -b:a 96k old_nvenc_360.mp4
+
+ffmpeg -hwaccel_device 0 -hwaccel cuvid -c:v h264_cuvid -i mvc.mp4 -max_muxing_queue_size 1024 -vf scale_npp=640:360 -threads 4 -movflags +faststart -c:v h264_nvenc -preset slow -b:v 500k -c:a aac -b:a 96k new_nvenc_360.mp4
+
+
+
+
+ffmpeg -hwaccel_device 1 -hwaccel cuvid -c:v h264_cuvid -i mvc.mp4 -max_muxing_queue_size 1024 -vf scale_npp=640:360 -threads 4 -movflags +faststart -c:v h264_nvenc -preset slow -rc vbr_hq -rc-lookahead 60 -coder cabac -bufsize 1000k -b:v 500k -c:a aac -b:a 96k old_nvenc_360_v.mp4
+
+ffmpeg -hwaccel_device 0 -hwaccel cuvid -c:v h264_cuvid -i mvc.mp4 -max_muxing_queue_size 1024 -vf scale_npp=640:360 -threads 4 -movflags +faststart -c:v h264_nvenc -preset slow -rc vbr_hq -rc-lookahead 60 -coder cabac -bufsize 1000k -b:v 500k -c:a aac -b:a 96k new_nvenc_360_v.mp4
