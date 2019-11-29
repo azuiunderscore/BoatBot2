@@ -363,7 +363,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 	command([preferences.get("prefix") + "invite"], false, false, (original, index) => {
 		reply("This is the link to add BoatBot to other servers: <" + CONFIG.BOT_ADD_LINK + ">\nAdding it requires the \"Manage Server\" permission.");
 	});
-	command(usePrefix(["help", "docs", "documentation"]), false, false, (original, index) => {
+	command(usePrefix(["help", "docs", "documentation", "commands"]), false, false, (original, index) => {
 		reply("Please see <https://docs.iaace.gg/> for documentation on how to use BoatBot Lazer, as well as our terms and conditions of service. If you have any questions/issues, feel free to let us know by sending `!ask _your question here_?` wherever BoatBot can be used. We try to answer all questions within 24 hours. Support staff are able to assist in the following languages:\n" + CONFIG.SUPPORT_LANGUAGES);
 	});
 	command(usePrefix(["setshortcut ", "ss ", "createshortcut ", "addshortcut "]), true, false, (original, index, parameter) => {
