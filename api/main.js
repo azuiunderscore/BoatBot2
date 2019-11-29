@@ -50,12 +50,12 @@ setTimeout(() => {//wait for shards to startup
 function updatesDue() {
 	return new Promise((resolve, reject) => {
 		UTILS.debug("call to updatesDue()");
-		checkTrackedUsers(async () => {
+		checkTrackedUsers(async (trackable) => {
 			let update_order = [];
 			const now = UTILS.now();
 			for (let b in trackable) {
 				for (let c in trackable[b]) {
-					if (trackable[b][c] === 0) continue;
+					if (trackable[b][c] === 0) continue;//nobody is tracking this usermode
 					let docs = await track_stat_model.find({ user_id: b, mode: c }, null, { sort: { _id: -1 }});//sort by _id decending, not next scheduled update (for forced tracking reasons)
 					if (UTILS.exists(docs) && UTILS.exists(docs[0])) {
 						if (now > docs[0].next_scheduled_update.getTime()) update_order.push({ id: b, mode:c, lateness: now - docs[0].next_scheduled_update.getTime() });
@@ -78,12 +78,61 @@ function updatesDue() {
 	});
 }
 function checkForUpdates(id, options) {
-	return new Promise((resolve, reject) => {});
+	return new Promise((resolve, reject) => {
+		track_stat_model.find({ user_id: options.id }, null, { sort: { _id: -1 }}, (err, docs) => {//sorty by _id descending
+			UTILS.debug("checking for updates: " + id);
+			const last_score_time = UTILS.exists(docs[0]) ? docs[0].most_recent_score_date.getTime() : 0;
+			lolapi.osuGetUserRecent(options.id, options.mode, null, true, CONFIG.API_MAXAGE.TRACKING.GET_USER_RECENT).then(recent_plays => {
+				let check_indices = [];
+				for (let i = recent_plays.length - 1; i >= 0; --i) {//iterate through all recent plays, filter plausible scores
+					if (recent_plays[i].date.getTime() > last_score_time && recent_plays[i].rank !== "F") check_indices.push(i);
+				}
+				lolapi.osuBeatmap(recent_plays[0].beatmap_id, "b", mode, CONFIG.API_MAXAGE.TRACKING.GET_BEATMAP).then(beatmap => {
+					beatmap = beatmap[0];
+					beatmap.mode = mode;//force assigning mode (autoconvert)
+					request_profiler.end("beatmap");
+					request_profiler.begin("dynamic");
+					let jobs = [];
+					let jobtype = [];
+					jobs.push(lolapi.osuBeatmapFile(beatmap.beatmap_id, beatmap.last_update.getTime(), CONFIG.API_MAXAGE.TRACKING.OSU_FILE));//just ensures that a copy of the beatmap file is present in the cache directory
+					jobtype.push(CONFIG.CONSTANTS.OSU_FILE);
+					//UTILS.inspect("beatmap.approved", beatmap.approved);
+					if (recent_plays[0].rank !== "F" && (beatmap.approved === 1 || beatmap.approved === 2)) {//ranked or approved (possible top pp change)
+						jobs.push(lolapi.osuGetUserBest(options.id, mode, 100, true, CONFIG.API_MAXAGE.TRACKING.GET_USER_BEST));//get user best
+						jobtype.push(CONFIG.CONSTANTS.USER_BEST);
+					}
+					if (beatmap.approved > 0) {//leaderboarded score (check beatmap leaderboards)
+						jobs.push(lolapi.osuScore(mode, recent_plays[0].beatmap_id, CONFIG.API_MAXAGE.TRACKING.GET_SCORE));
+						jobtype.push(CONFIG.CONSTANTS.SCORE);//leaderboard
+						jobs.push(lolapi.osuScoreUser(options.id, true, mode, recent_plays[0].beatmap_id, CONFIG.API_MAXAGE.TRACKING.GET_SCORE_USER));
+						jobtype.push(CONFIG.CONSTANTS.SCORE_USER);
+					}
+					jobs.push(lolapi.osuGetUserTyped(options.id, mode, true, CONFIG.API_MAXAGE.TRACKING.GET_USER));
+					jobtype.push(CONFIG.CONSTANTS.USER);
+					Promise.all(jobs).then(jra => {//job result array
+						request_profiler.end("dynamic");
+						UTILS.debug("\n" + ctable.getTable(request_profiler.endAllCtable()));
+						let user_best = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER_BEST)];
+						let leaderboard = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE)].map(v => { v.beatmap_id = beatmap.beatmap_id; return v; });
+						let user_scores = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE_USER)].map(v => { v.beatmap_id = beatmap.beatmap_id; return v; });
+						let user_stats = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER)];
+						embedgenerator.recent(CONFIG, mode, 0, recent_plays, beatmap, leaderboard, user_scores, user_best, user_stats).then(embeds => {
+							let s = `Try #${UTILS.tryCount(recent_plays, 0)}`;//try count string, let shards determine whether to send this information or not
+							resolve({ full: embeds.full, compact: embeds.compact, s });
+						}).catch(reject);
+					}).catch(reject);
+				}).catch(reject);
+				//set last score date here (write new document)
+				//set priority and next scheduled update
+			}).catch(reject);
+		});
+	});
 }
 function checkReadyForUpdate(id) {
 	return new Promise((resolve, reject) => {});
 }
 function justUpdated(id, results, error) {
+
 }
 function stalled() {
 	console.error("Score Tracking Stalled");
@@ -101,16 +150,16 @@ function checkTrackedUsers() {//usermodes
 			//id_map is now populated
 			let trackable = {};
 			track_setting_model.find({ type: "i" }).on("data", doc => {
-				if (UTILS.exists(id_map[doc.sid]) && UTILS.exists(id_map[doc.sid][doc.cid])) {//valid server and channel
+				if (UTILS.exists(id_map[doc.sid]) && UTILS.exists(id_map[doc.sid][doc.cid]) && id_map[doc.sid][doc.cid]) {//valid server and channel
 					if (!UTILS.exists(trackable[doc.id])) {
 						trackable[doc.id]["0"] = 0;
 						trackable[doc.id]["1"] = 0;
 						trackable[doc.id]["2"] = 0;
 						trackable[doc.id]["3"] = 0;
 					}
-					++trackable[doc.id];
+					++trackable[doc.id][doc.mode];
 				}
-			}).on("error", reject).on("end", async () => {
+			}).on("error", reject).on("end", () => {
 				resolve(trackable);
 			});
 		}).catch(reject);

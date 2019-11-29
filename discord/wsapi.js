@@ -277,6 +277,7 @@ module.exports = class WSAPI {
 						ans[g.id] = {};
 						g.channels.forEach(c => {
 							if (c.type === "text" && c.permissionsFor(this.client.user).has(["EMBED_LINKS", "VIEW_CHANNEL", "SEND_MESSAGES"])) ans[g.id][c.id] = true;
+							else ans[g.id][c.id] = false;
 						});
 					});
 					data.id_map = ans;
