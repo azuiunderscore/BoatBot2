@@ -2029,7 +2029,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                             } else {
                                 ending_parameter = "";
                             }
-                            callback(index, false, username, parameter, ending_parameter.trim());
+                            callback(index, false, username.sanitizeMentions(), parameter, ending_parameter.trim());
                         }).catch(console.error);
                     } else if (parameter.substring(0, 2) === " $") {//shortcut
                         lolapi.getShortcut(msg.author.id, parameter.toLowerCase().substring(2)).then(result => {
@@ -2041,7 +2041,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                             } else {
                                 ending_parameter = "";
                             }
-                            callback(index, false, result[parameter.toLowerCase().substring(2)], parameter, ending_parameter.trim());
+                            callback(index, false, result[parameter.toLowerCase().substring(2)].sanitizeMentions(), parameter, ending_parameter.trim());
                         }).catch(e => {
                             if (e) reply(":x: An error has occurred. The shortcut may not exist.");
                         });
@@ -2075,7 +2075,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                                 } else {
                                     ending_parameter = "";
                                 }
-                                callback(index, true, user_id, parameter, ending_parameter.trim());
+                                callback(index, true, user_id.sanitizeMentions(), parameter, ending_parameter.trim());
                             }
                         }).catch(e => {
                             console.error(e);
@@ -2103,9 +2103,9 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                             lolapi.getLink(msg.author.id).then(result => {
                                 let username = msg.author.username;//suppose the link doesn't exist in the database
                                 if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
-                                callback(index, false, username, parameter, ending_parameter.trim());
+                                callback(index, false, username.sanitizeMentions(), parameter, ending_parameter.trim());
                             }).catch(console.error);
-                        } else callback(index, false, explicit_username, parameter, ending_parameter.trim());//explicit
+                        } else callback(index, false, explicit_username.sanitizeMentions(), parameter, ending_parameter.trim());//explicit
                     }
                     return true;
                 } else return false;
@@ -2114,7 +2114,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                 lolapi.getLink(msg.author.id).then(result => {
                     let username = msg.author.username;//suppose the link doesn't exist in the database
                     if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
-                    callback(index, false, username, parameter, "");
+                    callback(index, false, username.sanitizeMentions(), parameter, "");
                 }).catch(console.error);
                 return true;
             }
@@ -2179,11 +2179,11 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                         lolapi.getLink(msg.mentions.users.first().id).then(result => {
                             let username = msg.mentions.users.first().username;//suppose the link doesn't exist in the database
                             if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
-                            callback(index, false, username, number, 4);
+                            callback(index, false, username.sanitizeMentions(), number, 4);
                         }).catch(console.error);
                     } else if (parameter.substring(0, 2) == " $") {//shortcut
                         lolapi.getShortcut(msg.author.id, parameter.toLowerCase().substring(2)).then(result => {
-                            callback(index, false, result[parameter.toLowerCase().substring(2)], number, 1);
+                            callback(index, false, result[parameter.toLowerCase().substring(2)].sanitizeMentions(), number, 1);
                         }).catch(e => {
                             if (e) reply(":x: An error has occurred. The shortcut may not exist.");
                         });
@@ -2208,12 +2208,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                                 }
                             }
                             if (!UTILS.exists(user_id)) reply(":x: Could not find a recent username queried.");
-                            else callback(index, true, user_id, number, 5);
+                            else callback(index, true, user_id.sanitizeMentions(), number, 5);
                         }).catch(e => {
                             console.error(e);
                             reply(":x: Could not find a recent username queried.");
                         });
-                    } else if (parameter[0] == " ") callback(index, false, parameter.substring(1).trim(), number, 0);//explicit (required trailing space after command trigger)
+                    } else if (parameter[0] == " ") callback(index, false, parameter.substring(1).trim().sanitizeMentions(), number, 0);//explicit (required trailing space after command trigger)
                     else return false;
                 }
             } else {//username not provided
@@ -2222,8 +2222,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                     let username = msg.author.username;//suppose the link doesn't exist in the database
                     if (UTILS.exists(result.username) && result.username != "") {
                         username = result.username;//link exists
-                        callback(index, false, username, number, 2);
-                    } else callback(index, false, username, number, 3);
+                        callback(index, false, username.sanitizeMentions(), number, 2);
+                    } else callback(index, false, username.sanitizeMentions(), number, 3);
                 }).catch(console.error);
                 return true;
             }

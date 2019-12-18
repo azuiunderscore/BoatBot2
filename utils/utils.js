@@ -36,7 +36,9 @@ String.prototype.limit = function (size) {
 	if (ans.length === 0) return this.substring(0, size);
 	else return ans;
 }
-
+String.prototype.sanitizeMentions = function() {
+	return this.replaceAll("@", "");
+}
 Number.prototype.pad = function(size) {
 	let s = String(this);
 	while (s.length < (size || 2)) { s = "0" + s; }
