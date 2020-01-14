@@ -1411,6 +1411,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                             if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url)) {
                                 if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") !== -1) return newLink(msgs[i].embeds[0].url);
                                 else if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21));
+                                else if (msgs[i].embeds[0].url.indexOf("https://old.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21));
                             }
                         }
                         reply(":x: Could not find a recent scorecard or beatmap.");
@@ -1468,6 +1469,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                     if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url)) {
                         if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") !== -1) return newLink(msgs[i].embeds[0].url);
                         else if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21));
+                        else if (msgs[i].embeds[0].url.indexOf("https://old.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21));
                     }
                 }
                 reply(":x: Could not find a recent scorecard or beatmap.");
@@ -1586,10 +1588,10 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
     if (true) {//scope limiter for beatmap links
         let id, type, mode, mod_string, beatmap;
         if (preferences.get("abi")) {
-            command(["https://osu.ppy.sh/b/", "http://osu.ppy.sh/b/"], true, cPL("beatmap"), (original, index, parameter) => {//old format beatmap link
+            command(["https://osu.ppy.sh/b/", "http://osu.ppy.sh/b/", "https://old.ppy.sh/b/", "http://old.ppy.sh/b/"], true, cPL("beatmap"), (original, index, parameter) => {//old format beatmap link
                 oldLink(parameter);
             });
-            command(["https://osu.ppy.sh/s/", "http://osu.ppy.sh/s/", "https://osu.ppy.sh/d/", "http://osu.ppy.sh/d/"], true, cPL("beatmap"), (original, index, parameter) => {//old format set links
+            command(["https://osu.ppy.sh/s/", "http://osu.ppy.sh/s/", "https://old.ppy.sh/s/", "http://old.ppy.sh/s/", "https://osu.ppy.sh/d/", "http://osu.ppy.sh/d/"], true, cPL("beatmap"), (original, index, parameter) => {//old format set links
                 id = UTILS.arbitraryLengthInt(parameter);
                 type = "s";
                 mode = original.indexOf("&m=") != -1 ? parseInt(original[original.indexOf("&m=") + 3]) : null;
@@ -1609,6 +1611,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                     if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url)) {
                         if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") !== -1) return newLink(msgs[i].embeds[0].url + parameter);
                         else if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21) + parameter);
+                        else if (msgs[i].embeds[0].url.indexOf("https://old.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21) + parameter);
                     }
                 }
                 reply(":x: Could not find a recent scorecard or beatmap.");
