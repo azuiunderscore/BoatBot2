@@ -988,9 +988,9 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
     commandGuessUsernameNumber(usePrefix(["recentstandard", "recentstd", "rstandard", "rstd", "rs", "recenttaiko", "rtaiko", "rt", "recentctb", "rctb", "rc", "recentmania", "rmania", "rm"]), cPL("score"), (index, id, user, number, guess_method) => {
         request_profiler.begin("mode_detect");
         let mode;
-        if (index < 6) mode = 0;
-        else if (index < 9) mode = 1;
-        else if (index < 12) mode = 2;
+        if (index < 5) mode = 0;
+        else if (index < 7) mode = 1;
+        else if (index < 10) mode = 2;
         else mode = 3;
         UTILS.output("mode is " + mode);
         if (number > 50 || number < 1) return reply(":x: Number out of range 1-50.");
