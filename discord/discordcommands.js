@@ -1671,6 +1671,50 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
     }
 
     if (UTILS.exists(msg.guild)) {//respondable server message only
+        if (preferences.get("personalizations")) {
+            command(["<@" + client.user.id + "> ", "<@!" + client.user.id + "> "], true, false, (original, index, parameter) => {
+                if (parameter.toLowerCase() == "reset") {
+                    preferences.set("ccid", "").then(() => {
+                        reply(":white_check_mark: Conversation reset.");
+                    }).catch(reply);
+                }
+                else {
+                    if (!client.user.typingIn(msg.channel)) {
+                        setTimeout(() => {
+                            msg.channel.startTyping();
+                        }, 1000);
+                        lolapi.cleverbot(UTILS.cleanContent(parameter, msg), preferences.get("ccid")).then(answer => {
+                            setTimeout(() => {
+                                msg.channel.stopTyping();
+                                reply(answer.output);
+                                preferences.set("ccid", answer.ccid).then(() => {}).catch(console.error);
+                            }, 4000);
+                        }).catch(e => {
+                            console.error(e);
+                            preferences.set("ccid", "");
+                            msg.channel.stopTyping(true);
+                        });
+                    }
+                    else if (client.user.typingDurationIn(msg.channel) > 10000) {
+                        msg.channel.stopTyping(true);
+                    }
+                }
+            }).catch();
+        }
+        command(usePrefix(["personalizations off", "personalizations on"]), false, CONFIG.CONSTANTS.MODERATORS, (original, index) => {
+            preferences.set("personalizations", index == 1).then(() => {
+                switch (index) {
+                    case 1:
+                        reply(":white_check_mark: Personalizations have been turned on.");
+                        break;
+                    case 0:
+                        reply(":white_check_mark: Personalizations have been turned off. (default)");
+                        break;
+                    default:
+                        reply(":x: An error has occurred while configuring the personalization setting.");
+                }
+            }).catch(reply);
+        });
         command(usePrefix(["scm compact", "scm reduced", "scm full"]), false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
             const new_setting = index;
             preferences.set("scorecardmode", new_setting).then(() => {
