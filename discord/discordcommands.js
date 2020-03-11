@@ -1699,7 +1699,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                         msg.channel.stopTyping(true);
                     }
                 }
-            }).catch();
+            });
         }
         command(usePrefix(["personalizations off", "personalizations on"]), false, CONFIG.CONSTANTS.MODERATORS, (original, index) => {
             preferences.set("personalizations", index == 1).then(() => {

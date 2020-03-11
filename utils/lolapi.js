@@ -597,7 +597,7 @@ module.exports = class LOLAPI {
 		if (ccid == "") ccid = undefined;
 		let that = this;
 		return new Promise((resolve, reject) => {
-			that.getOffAPI("https://www.cleverbot.com/getreply" + b, { key: that.CONFIG.CLEVERBOT_KEY, input, cs: ccid }, 0, 0).then(data => {
+			that.getOffAPI("https://www.cleverbot.com/getreply", { key: that.CONFIG.CLEVERBOT_KEY, input, cs: ccid }, 0, 0).then(data => {
 				data = JSON.parse(data);
 				resolve({
 					output: data.output,
