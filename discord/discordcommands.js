@@ -1673,7 +1673,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
     if (UTILS.exists(msg.guild)) {//respondable server message only
         if (preferences.get("personalizations")) {
             command(["<@" + client.user.id + "> ", "<@!" + client.user.id + "> "], true, false, (original, index, parameter) => {
-                if (parameter.toLowerCase() == "reset") {
+                if (parameter.toLowerCase().trim() == "reset") {
                     preferences.set("ccid", "").then(() => {
                         reply(":white_check_mark: Conversation reset.");
                     }).catch(reply);
@@ -1699,6 +1699,45 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                         msg.channel.stopTyping(true);
                     }
                 }
+            });
+            command(["<@" + client.user.id + ">", "<@!" + client.user.id + ">"], false, false, (original, index) => {
+                let longest;
+                msg.channel.startTyping();
+                msg.channel.fetchMessages().then(function (msgs) {
+                    if (!exists(longest) || isNaN(longest) || longest < 1 || longest > 200) {
+                        longest = parseInt(msgs.array().map(function (aMsg) { return aMsg.cleanContent.length; }).sort(function (a, b) {
+                            return b - a;
+                        })[0] * 0.6) + "";
+                        if (longest > 200) {
+                            longest = 200;
+                        }
+                    }
+                    const text = msgs.array().map(function (aMsg) { return aMsg.cleanContent; }).join(" ");
+                    fs.writeFile("../data/words/" + msg.channel.id + ".txt", text, function (e) {
+                        if (e) return console.error(e);
+                        output(longest);
+                        child_process.execFile("../wordfrequency", ["../data/words/" + msg.channel.id + ".txt", longest], function (e, stdout, stderr) {
+                            msg.channel.stopTyping(true);
+                            if (exists(e)) {//error
+                                console.error(e);
+                            }
+                            else {
+                                if (stderr.length > 0) {//error
+                                    console.error(stderr);
+                                }
+                                else {//no error
+                                    reply(stdout);
+                                }
+                            }
+                            fs.unlink("../data/words/" + msg.channel.id + ".txt", (e) => {
+                                if (e) console.error(e);
+                            });
+                        });
+                    });
+                }).catch(() => {
+                    reply("I don't know what to say...");
+                    msg.channel.stopTyping();
+                });
             });
         }
         command(usePrefix(["personalizations off", "personalizations on"]), false, CONFIG.CONSTANTS.MODERATORS, (original, index) => {
