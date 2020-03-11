@@ -76,7 +76,7 @@ module.exports = class TextGenerator {
 			const text = msgs.array().map(aMsg => aMsg.cleanContent).join(" ");
 			fs.writeFile("../data/words/" + msg.channel.id + ".txt", text, e => {
 				if (e) return reject(e);
-				output(longest);
+				//UTILS.output(longest);
 				child_process.execFile("../wordfrequency", ["../data/words/" + msg.channel.id + ".txt", longest], (e, stdout, stderr) => {
 					msg.channel.stopTyping(true);
 					if (UTILS.exists(e)) {//error
