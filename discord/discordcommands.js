@@ -1701,39 +1701,9 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                 }
             });
             command(["<@" + client.user.id + ">", "<@!" + client.user.id + ">"], false, false, (original, index) => {
-                let longest;
                 msg.channel.startTyping();
                 msg.channel.fetchMessages().then((msgs) => {
-                    if (!UTILS.exists(longest) || isNaN(longest) || longest < 1 || longest > 200) {
-                        longest = parseInt(msgs.array().map(aMsg => aMsg.cleanContent.length).sort((a, b) => {
-                            return b - a;
-                        })[0] * 0.6) + "";
-                        if (longest > 200) {
-                            longest = 200;
-                        }
-                    }
-                    const text = msgs.array().map(aMsg => aMsg.cleanContent).join(" ");
-                    fs.writeFile("../data/words/" + msg.channel.id + ".txt", text, e => {
-                        if (e) return console.error(e);
-                        output(longest);
-                        child_process.execFile("../wordfrequency", ["../data/words/" + msg.channel.id + ".txt", longest], (e, stdout, stderr) => {
-                            msg.channel.stopTyping(true);
-                            if (UTILS.exists(e)) {//error
-                                console.error(e);
-                            }
-                            else {
-                                if (stderr.length > 0) {//error
-                                    console.error(stderr);
-                                }
-                                else {//no error
-                                    reply(stdout);
-                                }
-                            }
-                            fs.unlink("../data/words/" + msg.channel.id + ".txt", (e) => {
-                                if (e) console.error(e);
-                            });
-                        });
-                    });
+                    textgenerator(msgs, msg).then(reply).catch(console.error);
                 }).catch(e => {
                     console.error(e);
                     reply("I don't know what to say...");

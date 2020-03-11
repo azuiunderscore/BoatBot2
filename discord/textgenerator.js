@@ -1,6 +1,7 @@
 "use strict";
 const child_process = require("child_process");
 const UTILS = new (require("../utils/utils.js"))();
+const fs = require("fs");
 module.exports = class TextGenerator {
 	constructor() { }
 	ping_callback(msg, nMsg) {
@@ -58,6 +59,41 @@ module.exports = class TextGenerator {
 				if (err) console.error(err);
 				if (UTILS.exists(stderr) && stderr != "") reject(stderr);
 				else resolve(stdout);
+			});
+		});
+	}
+	markov(msgs, msg) {
+		return new Promise((resolve, reject) => {
+			let longest;
+			if (!UTILS.exists(longest) || isNaN(longest) || longest < 1 || longest > 200) {
+				longest = parseInt(msgs.array().map(aMsg => aMsg.cleanContent.length).sort((a, b) => {
+					return b - a;
+				})[0] * 0.6) + "";
+				if (longest > 200) {
+					longest = 200;
+				}
+			}
+			const text = msgs.array().map(aMsg => aMsg.cleanContent).join(" ");
+			fs.writeFile("../data/words/" + msg.channel.id + ".txt", text, e => {
+				if (e) return reject(e);
+				output(longest);
+				child_process.execFile("../wordfrequency", ["../data/words/" + msg.channel.id + ".txt", longest], (e, stdout, stderr) => {
+					msg.channel.stopTyping(true);
+					if (UTILS.exists(e)) {//error
+						reject(e);
+					}
+					else {
+						if (stderr.length > 0) {//error
+							reject(stderr);
+						}
+						else {//no error
+							resolve(stdout);
+						}
+					}
+					fs.unlink("../data/words/" + msg.channel.id + ".txt", (e) => {
+						if (e) reject(e);
+					});
+				});
 			});
 		});
 	}
