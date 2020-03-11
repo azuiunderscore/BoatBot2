@@ -1734,7 +1734,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                             });
                         });
                     });
-                }).catch(() => {
+                }).catch(e => {
+                    console.error(e);
                     reply("I don't know what to say...");
                     msg.channel.stopTyping();
                 });
