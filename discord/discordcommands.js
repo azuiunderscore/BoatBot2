@@ -1703,7 +1703,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
             command(["<@" + client.user.id + ">", "<@!" + client.user.id + ">"], false, false, (original, index) => {
                 msg.channel.startTyping();
                 msg.channel.fetchMessages().then((msgs) => {
-                    textgenerator(msgs, msg).then(reply).catch(console.error);
+                    textgenerator.markov(msgs, msg).then(reply).catch(console.error);
                 }).catch(e => {
                     console.error(e);
                     reply("I don't know what to say...");
