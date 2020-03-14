@@ -61,7 +61,7 @@ function updatesDue() {
 						if (now > docs[0].next_scheduled_update.getTime()) update_order.push({
 							id: b,
 							mode:c,
-							lateness: now - docs[0].next_scheduled_update.getTime()
+							lateness: now - docs[0].next_scheduled_update.getTime()//in milliseconds
 						});
 					}
 					else {//create a blank track_stat_doc
@@ -72,7 +72,9 @@ function updatesDue() {
 							mode: c,
 							expireAt: new Date(now + (7 * 24 * 60 * 60 * 1000))
 						});
-						new_doc.save(console.error);
+						new_doc.save(e => {
+							if (e) console.error(e);
+						});
 					}
 				}
 			}
