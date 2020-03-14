@@ -1,4 +1,4 @@
-# BoatBot Lazer v2.1.0b
+# BoatBot Lazer v2.2.0b
 osu! statistics for discord
 forked from supportbot @ iaace-NA/SupportBot
 (c) 2018; source available, all rights reserved
