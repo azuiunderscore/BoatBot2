@@ -88,6 +88,9 @@ module.exports = class WSAPI {
 
 		44: IAPI wants shard to report eligible channels for tracking
 		45: shard responds with { cid: true } if server exists
+
+		46: IAPI wants to send tracking score embed to a channel
+		47: unimplemented
 	*/
 	constructor(INIT_CONFIG, discord_client, INIT_STATUS) {
 		this.client = discord_client;
