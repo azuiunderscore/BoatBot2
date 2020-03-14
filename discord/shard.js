@@ -78,7 +78,7 @@ client.on("message", function (msg) {
 
 client.on("guildCreate", function (guild) {
     LOLAPI.checkPreferences(guild.id).then(ans => {
-        if (ans.new) {
+        if (false) {
             UTILS.output("Server Joined: " + guild.id + " :: " + guild.name + " :: " + guild.region + " :: Population=" + guild.memberCount + " :: " + guild.owner.user.tag);
             sendToChannel(CONFIG.LOG_CHANNEL_ID, ":white_check_mark:`$" + process.env.SHARD_ID + "`Server Joined: `" + guild.id + "` :: " + guild.region + " :: " + guild.name + " :: :busts_in_silhouette:" + guild.memberCount + " :: " + guild.owner.user.tag);
             guild.owner.send("BoatBot has joined your server: " + guild.name + "\nUse `" + CONFIG.DISCORD_COMMAND_PREFIX + "help` for information on how to use BoatBot.\nAdd BoatBot to other servers using this link: <" + CONFIG.BOT_ADD_LINK + ">\nBoatBot is a work in progress! Help us improve BoatBot by sending us your feedback at " + CONFIG.HELP_SERVER_INVITE_LINK + "\nBoatBot is made free and possible by the work of many. See `" + CONFIG.DISCORD_COMMAND_PREFIX + "credits` for special acknowledgements.").catch(e => console.error(e));

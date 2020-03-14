@@ -1039,9 +1039,9 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
     commandGuessUsernameNumber(usePrefix(["recentstandard", "recentstd", "rstandard", "rstd", "rs", "recenttaiko", "rtaiko", "rt", "recentctb", "rctb", "rc", "recentmania", "rmania", "rm"]), cPL("score"), (index, id, user, number, guess_method) => {
         request_profiler.begin("mode_detect");
         let mode;
-        if (index < 6) mode = 0;
-        else if (index < 9) mode = 1;
-        else if (index < 12) mode = 2;
+        if (index < 5) mode = 0;
+        else if (index < 7) mode = 1;
+        else if (index < 10) mode = 2;
         else mode = 3;
         UTILS.output("mode is " + mode);
         if (number > 50 || number < 1) return reply(":x: Number out of range 1-50.");
@@ -1462,6 +1462,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                             if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url)) {
                                 if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") !== -1) return newLink(msgs[i].embeds[0].url);
                                 else if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21));
+                                else if (msgs[i].embeds[0].url.indexOf("https://old.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21));
                             }
                         }
                         reply(":x: Could not find a recent scorecard or beatmap.");
@@ -1519,6 +1520,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                     if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url)) {
                         if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") !== -1) return newLink(msgs[i].embeds[0].url);
                         else if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21));
+                        else if (msgs[i].embeds[0].url.indexOf("https://old.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21));
                     }
                 }
                 reply(":x: Could not find a recent scorecard or beatmap.");
@@ -1637,10 +1639,10 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
     if (true) {//scope limiter for beatmap links
         let id, type, mode, mod_string, beatmap;
         if (preferences.get("abi")) {
-            command(["https://osu.ppy.sh/b/", "http://osu.ppy.sh/b/"], true, cPL("beatmap"), (original, index, parameter) => {//old format beatmap link
+            command(["https://osu.ppy.sh/b/", "http://osu.ppy.sh/b/", "https://old.ppy.sh/b/", "http://old.ppy.sh/b/"], true, cPL("beatmap"), (original, index, parameter) => {//old format beatmap link
                 oldLink(parameter);
             });
-            command(["https://osu.ppy.sh/s/", "http://osu.ppy.sh/s/", "https://osu.ppy.sh/d/", "http://osu.ppy.sh/d/"], true, cPL("beatmap"), (original, index, parameter) => {//old format set links
+            command(["https://osu.ppy.sh/s/", "http://osu.ppy.sh/s/", "https://old.ppy.sh/s/", "http://old.ppy.sh/s/", "https://osu.ppy.sh/d/", "http://osu.ppy.sh/d/"], true, cPL("beatmap"), (original, index, parameter) => {//old format set links
                 id = UTILS.arbitraryLengthInt(parameter);
                 type = "s";
                 mode = original.indexOf("&m=") != -1 ? parseInt(original[original.indexOf("&m=") + 3]) : null;
@@ -1660,6 +1662,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                     if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url)) {
                         if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/beatmapsets/") !== -1) return newLink(msgs[i].embeds[0].url + parameter);
                         else if (msgs[i].embeds[0].url.indexOf("https://osu.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21) + parameter);
+                        else if (msgs[i].embeds[0].url.indexOf("https://old.ppy.sh/b/") !== -1) return oldLink(msgs[i].embeds[0].url.substring(21) + parameter);
                     }
                 }
                 reply(":x: Could not find a recent scorecard or beatmap.");
@@ -1719,6 +1722,60 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
     }
 
     if (UTILS.exists(msg.guild)) {//respondable server message only
+        if (preferences.get("personalizations")) {
+            command(["<@" + client.user.id + "> ", "<@!" + client.user.id + "> "], true, false, (original, index, parameter) => {
+                if (parameter.toLowerCase().trim() == "reset") {
+                    preferences.set("ccid", "").then(() => {
+                        reply(":white_check_mark: Conversation reset.");
+                    }).catch(reply);
+                }
+                else {
+                    if (!client.user.typingIn(msg.channel)) {
+                        setTimeout(() => {
+                            msg.channel.startTyping();
+                        }, 1000);
+                        lolapi.cleverbot(UTILS.cleanContent(parameter, msg), preferences.get("ccid")).then(answer => {
+                            setTimeout(() => {
+                                msg.channel.stopTyping();
+                                reply(answer.output);
+                                preferences.set("ccid", answer.ccid).then(() => {}).catch(console.error);
+                            }, 4000);
+                        }).catch(e => {
+                            console.error(e);
+                            preferences.set("ccid", "");
+                            msg.channel.stopTyping(true);
+                        });
+                    }
+                    else if (client.user.typingDurationIn(msg.channel) > 10000) {
+                        msg.channel.stopTyping(true);
+                    }
+                }
+            });
+            command(["<@" + client.user.id + ">", "<@!" + client.user.id + ">"], false, false, (original, index) => {
+                msg.channel.startTyping();
+                msg.channel.fetchMessages().then((msgs) => {
+                    textgenerator.markov(msgs, msg).then(reply).catch(console.error);
+                }).catch(e => {
+                    console.error(e);
+                    reply("I don't know what to say...");
+                    msg.channel.stopTyping();
+                });
+            });
+        }
+        command(usePrefix(["personalizations off", "personalizations on"]), false, CONFIG.CONSTANTS.MODERATORS, (original, index) => {
+            preferences.set("personalizations", index == 1).then(() => {
+                switch (index) {
+                    case 1:
+                        reply(":white_check_mark: Personalizations have been turned on.");
+                        break;
+                    case 0:
+                        reply(":white_check_mark: Personalizations have been turned off. (default)");
+                        break;
+                    default:
+                        reply(":x: An error has occurred while configuring the personalization setting.");
+                }
+            }).catch(reply);
+        });
         command(usePrefix(["scm compact", "scm reduced", "scm full"]), false, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index) => {
             const new_setting = index;
             preferences.set("scorecardmode", new_setting).then(() => {
@@ -2154,7 +2211,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                             } else {
                                 ending_parameter = "";
                             }
-                            callback(index, false, username, parameter, ending_parameter.trim());
+                            callback(index, false, username.sanitizeMentions(), parameter, ending_parameter.trim());
                         }).catch(console.error);
                     } else if (parameter.substring(0, 2) === " $") {//shortcut
                         lolapi.getShortcut(msg.author.id, parameter.toLowerCase().substring(2)).then(result => {
@@ -2166,7 +2223,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                             } else {
                                 ending_parameter = "";
                             }
-                            callback(index, false, result[parameter.toLowerCase().substring(2)], parameter, ending_parameter.trim());
+                            callback(index, false, result[parameter.toLowerCase().substring(2)].sanitizeMentions(), parameter, ending_parameter.trim());
                         }).catch(e => {
                             if (e) reply(":x: An error has occurred. The shortcut may not exist.");
                         });
@@ -2200,7 +2257,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                                 } else {
                                     ending_parameter = "";
                                 }
-                                callback(index, true, user_id, parameter, ending_parameter.trim());
+                                callback(index, true, user_id.sanitizeMentions(), parameter, ending_parameter.trim());
                             }
                         }).catch(e => {
                             console.error(e);
@@ -2228,9 +2285,9 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                             lolapi.getLink(msg.author.id).then(result => {
                                 let username = msg.author.username;//suppose the link doesn't exist in the database
                                 if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
-                                callback(index, false, username, parameter, ending_parameter.trim());
+                                callback(index, false, username.sanitizeMentions(), parameter, ending_parameter.trim());
                             }).catch(console.error);
-                        } else callback(index, false, explicit_username, parameter, ending_parameter.trim());//explicit
+                        } else callback(index, false, explicit_username.sanitizeMentions(), parameter, ending_parameter.trim());//explicit
                     }
                     return true;
                 } else return false;
@@ -2239,7 +2296,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                 lolapi.getLink(msg.author.id).then(result => {
                     let username = msg.author.username;//suppose the link doesn't exist in the database
                     if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
-                    callback(index, false, username, parameter, "");
+                    callback(index, false, username.sanitizeMentions(), parameter, "");
                 }).catch(console.error);
                 return true;
             }
@@ -2304,11 +2361,11 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                         lolapi.getLink(msg.mentions.users.first().id).then(result => {
                             let username = msg.mentions.users.first().username;//suppose the link doesn't exist in the database
                             if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
-                            callback(index, false, username, number, 4);
+                            callback(index, false, username.sanitizeMentions(), number, 4);
                         }).catch(console.error);
                     } else if (parameter.substring(0, 2) == " $") {//shortcut
                         lolapi.getShortcut(msg.author.id, parameter.toLowerCase().substring(2)).then(result => {
-                            callback(index, false, result[parameter.toLowerCase().substring(2)], number, 1);
+                            callback(index, false, result[parameter.toLowerCase().substring(2)].sanitizeMentions(), number, 1);
                         }).catch(e => {
                             if (e) reply(":x: An error has occurred. The shortcut may not exist.");
                         });
@@ -2333,12 +2390,12 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                                 }
                             }
                             if (!UTILS.exists(user_id)) reply(":x: Could not find a recent username queried.");
-                            else callback(index, true, user_id, number, 5);
+                            else callback(index, true, user_id.sanitizeMentions(), number, 5);
                         }).catch(e => {
                             console.error(e);
                             reply(":x: Could not find a recent username queried.");
                         });
-                    } else if (parameter[0] == " ") callback(index, false, parameter.substring(1).trim(), number, 0);//explicit (required trailing space after command trigger)
+                    } else if (parameter[0] == " ") callback(index, false, parameter.substring(1).trim().sanitizeMentions(), number, 0);//explicit (required trailing space after command trigger)
                     else return false;
                 }
             } else {//username not provided
@@ -2347,8 +2404,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                     let username = msg.author.username;//suppose the link doesn't exist in the database
                     if (UTILS.exists(result.username) && result.username != "") {
                         username = result.username;//link exists
-                        callback(index, false, username, number, 2);
-                    } else callback(index, false, username, number, 3);
+                        callback(index, false, username.sanitizeMentions(), number, 2);
+                    } else callback(index, false, username.sanitizeMentions(), number, 3);
                 }).catch(console.error);
                 return true;
             }
