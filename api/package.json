@@ -9,13 +9,13 @@
   "author": "iaace",
   "license": "MIT",
   "dependencies": {
-    "bottleneck": "^2.19.1",
-    "express": "^4.16.4",
+    "bottleneck": "^2.19.5",
+    "express": "^4.17.1",
     "express-ws": "^4.0.0",
-    "getopts": "^2.2.4",
-    "json5": "^2.1.0",
-    "mathjs": "^5.9.0",
-    "mongoose": "^5.5.5",
-    "request": "^2.88.0"
+    "getopts": "^2.2.5",
+    "json5": "^2.1.1",
+    "mathjs": "^5.10.3",
+    "mongoose": "^5.9.4",
+    "request": "^2.88.2"
   }
 }
