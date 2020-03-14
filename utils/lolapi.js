@@ -593,6 +593,19 @@ module.exports = class LOLAPI {
 	osuMatch(mp, maxage) {
 		return this.get("get_match", { mp }, this.CONFIG.API_CACHETIME.OSU_MATCH, maxage);
 	}
+	cleverbot(input, ccid) {
+		if (ccid == "") ccid = undefined;
+		let that = this;
+		return new Promise((resolve, reject) => {
+			that.getOffAPI("https://www.cleverbot.com/getreply", { key: that.CONFIG.CLEVERBOT_KEY, input, cs: ccid }, 0, 0).then(data => {
+				data = JSON.parse(data);
+				resolve({
+					output: data.output,
+					ccid: data.cs
+				});
+			}).catch(reject);
+		});
+	}
 	getPreferences(sid) {
 		return this.getIAPI("getpreferences", { id: sid });
 	}
