@@ -6,6 +6,7 @@ module.exports = function(CONFIG, ws, shard_ws, data, shardBroadcast, sendToShar
 		case 1:
 			break;
 		case 3:
+			break;
 		case 5://received emojis
 			for (let b in data.emojis) champ_emojis[data.emojis[b].name] = data.emojis[b].code;
 			if (allShardsConnected()) {
@@ -65,6 +66,12 @@ module.exports = function(CONFIG, ws, shard_ws, data, shardBroadcast, sendToShar
 					sendToShard({ type: 38, code: err.status, response: err.response.res.text, wsm_ID: data.wsm_ID }, data.id);
 				}
 			});
+			break;
+		case 41:
+			break;
+		case 43:
+			break;
+		case 45:
 			break;
 		default:
 			UTILS.output("ws encountered unexpected message type: " + data.type + "\ncontents: " + JSON.stringify(data, null, "\t"));

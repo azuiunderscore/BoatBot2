@@ -50,18 +50,28 @@ setTimeout(() => {//wait for shards to startup
 function updatesDue() {
 	return new Promise((resolve, reject) => {
 		UTILS.debug("call to updatesDue()");
-		checkTrackedUsers(async (trackable) => {
+		checkTrackedUsers().then(async (trackable) => {
 			let update_order = [];
 			const now = UTILS.now();
-			for (let b in trackable) {
-				for (let c in trackable[b]) {
+			for (let b in trackable) {//each user_id
+				for (let c in trackable[b]) {//each mode
 					if (trackable[b][c] === 0) continue;//nobody is tracking this usermode
 					let docs = await track_stat_model.find({ user_id: b, mode: c }, null, { sort: { _id: -1 }});//sort by _id decending, not next scheduled update (for forced tracking reasons)
 					if (UTILS.exists(docs) && UTILS.exists(docs[0])) {
-						if (now > docs[0].next_scheduled_update.getTime()) update_order.push({ id: b, mode:c, lateness: now - docs[0].next_scheduled_update.getTime() });
+						if (now > docs[0].next_scheduled_update.getTime()) update_order.push({
+							id: b,
+							mode:c,
+							lateness: now - docs[0].next_scheduled_update.getTime()
+						});
 					}
 					else {//create a blank track_stat_doc
-						let new_doc = new track_stat_model({ user_id: b, next_scheduled_update: new Date(), most_recent_score_date: new Date(0), mode: c, expireAt: new Date(now + (7 * 24 * 60 * 60 * 1000))});
+						let new_doc = new track_stat_model({
+							user_id: b,
+							next_scheduled_update: new Date(),
+							most_recent_score_date: new Date(0),
+							mode: c,
+							expireAt: new Date(now + (7 * 24 * 60 * 60 * 1000))
+						});
 						new_doc.save(console.error);
 					}
 				}
@@ -74,9 +84,11 @@ function updatesDue() {
 					mode: v.mode
 				}};
 			}));
-		}).then(console.error);
+		}).catch(console.error);
 	});
 }
+
+/** */
 function checkForUpdates(id, options) {
 	return new Promise((resolve, reject) => {
 		track_stat_model.find({ user_id: options.id }, null, { sort: { _id: -1 }}, (err, docs) => {//sorty by _id descending
@@ -128,8 +140,17 @@ function checkForUpdates(id, options) {
 		});
 	});
 }
+
+/**
+ *
+ * @param {String} id
+ * @description Checks if an id (usermode) is ready to be updated
+ * @returns {Promise}
+ */
 function checkReadyForUpdate(id) {
-	return new Promise((resolve, reject) => {});
+	return new Promise((resolve, reject) => {
+		//
+	});
 }
 function justUpdated(id, results, error) {
 
