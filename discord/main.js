@@ -1,6 +1,10 @@
 "use strict";
+
+// Ascii art!
 console.log("                              __\r\n                     \/\\    .-\" \/\r\n                    \/  ; .\'  .\' \r\n                   :   :\/  .\'   \r\n                    \\  ;-.\'     \r\n       .--\"\"\"\"--..__\/     `.    \r\n     .\'           .\'    `o  \\   \r\n    \/                    `   ;  \r\n   :                  \\      :  \r\n .-;        -.         `.__.-\'  \r\n:  ;          \\     ,   ;       \r\n\'._:           ;   :   (        \r\n    \\\/  .__    ;    \\   `-.     \r\n    ;     \"-,\/_..--\"`-..__)    \r\n     \'\"\"--.._:");
+
 const fs = require("fs");
+
 const argv_options = new (require("getopts"))(process.argv.slice(2), {
 	alias: { c: ["config"] },
 	default: { c: "config.json5" }
@@ -13,8 +17,7 @@ let CONFIG;
 const JSON5 = require("json5");
 try {
 	CONFIG = JSON5.parse(fs.readFileSync("../" + argv_options.config, "utf-8"));
-}
-catch (e) {
+}catch (e) {
 	UTILS.output("something's wrong with config.json");
 	console.error(e);
 	process.exit(1);
@@ -35,5 +38,6 @@ manager.on("launch", shard => {
 		}, 5000);
 	});
 });
+
 manager.spawn(undefined, 2000);
 UTILS.output("Sharding Manager started");

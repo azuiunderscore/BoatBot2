@@ -262,8 +262,7 @@ module.exports = function (CONFIG, apicache, serveWebRequest, response_type, loa
 							}
 						}
 					}).catch(console.error);
-					else shardBroadcast({
-						type: 18,
+					else shardBroadcast({ type: 26,
 						sid: req.query.id,
 						reason: req.query.reason,
 						issuer_tag: req.query.issuer_tag,
