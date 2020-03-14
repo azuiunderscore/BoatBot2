@@ -173,6 +173,7 @@ function checkTrackedUsers() {//usermodes
 			track_setting_model.find({ type: "i" }).cursor().on("data", doc => {
 				if (UTILS.exists(id_map[doc.sid]) && UTILS.exists(id_map[doc.sid][doc.cid]) && id_map[doc.sid][doc.cid]) {//valid server and channel
 					if (!UTILS.exists(trackable[doc.id])) {
+						trackable[doc.id] = {};
 						trackable[doc.id]["0"] = 0;
 						trackable[doc.id]["1"] = 0;
 						trackable[doc.id]["2"] = 0;
@@ -204,6 +205,7 @@ function checkTrackedUsersInServer(sid) {//usermodes
 			track_setting_model.find({ type: "i", id: sid }).cursor().on("data", doc => {
 				if (UTILS.exists(id_map[doc.cid])) {//valid server and channel
 					if (!UTILS.exists(trackable[doc.id])) {
+						trackable[doc.id] = {};
 						trackable[doc.id]["0"] = 0;
 						trackable[doc.id]["1"] = 0;
 						trackable[doc.id]["2"] = 0;
