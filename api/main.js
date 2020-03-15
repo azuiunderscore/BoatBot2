@@ -171,6 +171,7 @@ function checkTrackedUsers() {//usermodes
 				}
 			}
 			//id_map is now populated
+			//the point of id_map is to have a quick reference for valid server and channel IDs. it does not need to be resolved by the promise
 			let trackable = {};
 			track_setting_model.find({ type: "i" }).cursor().on("data", doc => {
 				if (UTILS.exists(id_map[doc.sid]) && UTILS.exists(id_map[doc.sid][doc.cid]) && id_map[doc.sid][doc.cid]) {//valid server and channel
@@ -203,6 +204,7 @@ function checkTrackedUsersInServer(sid) {//usermodes
 				}
 			}
 			//id_map is now populated
+			//the point of id_map is to have a quick reference for valid server and channel IDs. it does not need to be resolved by the promise
 			let trackable = {};
 			track_setting_model.find({ type: "i", id: sid }).cursor().on("data", doc => {
 				if (UTILS.exists(id_map[doc.cid])) {//valid server and channel

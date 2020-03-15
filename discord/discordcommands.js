@@ -1836,10 +1836,10 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
             preferences.set("feedback_enabled", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will allow the use of global feedback commands in this server." : "BoatBot will not allow the use of global feedback commands in this server."))).catch(reply);
         });
 
-        /** @command
+        /** @command track
          *  @description
          *  @permissionlevel
-         *  @param
+         *  @param <osu/taiko/ctb/mania> "<username>" [pp=<pp threshold>] [top=<top threshold>] [rank=<rank threshold>]
          * **/
         command(usePrefix(["track osu ", "track taiko ", "track ctb ", "track mania "]), true, CONFIG.CONSTANTS.BOTCOMMANDERS, (original, index, parameter) => {
             let username = parameter.substring(1, parameter.indexOf("\"", 1));
