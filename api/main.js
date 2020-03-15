@@ -68,7 +68,7 @@ function updatesDue() {
 						let new_doc = new track_stat_model({
 							user_id: b,
 							next_scheduled_update: new Date(),
-							most_recent_score_date: new Date(0),
+							most_recent_score_date: new Date(),
 							mode: c,
 							expireAt: new Date(now + (7 * 24 * 60 * 60 * 1000))
 						});
@@ -298,13 +298,13 @@ let msg_audit_model = apicache.model("msg_audit_model", msg_audit_doc);
 
 
 let track_stat_doc = new apicache.Schema({
-	user_id: { type: String, required: true },
+	user_id: { type: String, required: true },//osu user_id
 	username: { type: String, required: isString },
 	next_scheduled_update: { type: Date, required: true },
 	most_recent_score_date: { type: Date, required: true },
 	pp: { type: Number, default: 0, required: true },
-	rank: { type: Number, default: 0, required: true },
-	mode: { type: Number, required: true },
+	rank: { type: Number, default: 0, required: true },//current global rank
+	mode: { type: Number, required: true },//osu mode number
 	expireAt: { type: Date, required: true }
 });
 track_stat_doc.index({ user_id: 1 });
@@ -318,8 +318,8 @@ let track_stat_model = apicache.model("track_stat_model", track_stat_doc);
 let track_setting_doc = new apicache.Schema({
 	type: { type: String, required: true },//r = role, l = link, i = include, e = exclude, c = country, v = server voluntary enabled, o = user opt in, d = server/channel default
 	mode: { type: Number, required: true },//osu mode
-	id: { type: String, required: isString },//r = role id, l = empty string, i = osu id, e = osu id, c = country id, v = empty string, opt-in = uid, d = sid
-	cid: { type: String, required: true },//channel to report to
+	id: { type: String, required: isString },//r = role id, l = empty string, i = osu id, e = osu id, c = country id, v = empty string, opt-in = uid, d = empty string
+	cid: { type: String, required: isString },//channel to report to
 	sid: { type: String, required: isString },//server this setting belongs to
 	pp_threshold: { type: Number, required: false },
 	top_threshold: { type: Number, required: false },
