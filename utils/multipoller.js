@@ -45,24 +45,38 @@ module.exports = class MultiPoller {
 		this.recursiveStartNext();
 		//setTimeout(this.recursiveStartNext, 0);
 	}
+
+	//public
 	setUpdateIntervalAuto() {
 		this.update_interval_mode = 0;
 	}
+
+	//public
 	setUpdateIntervalFast() {
 		this.update_interval_mode = -1;
 	}
+
+	//public
 	setUpdateIntervalSlow() {
 		this.update_interval_mode = -2;
 	}
+
+	//public
 	setUpdateIntervalCustom(x) {
 		this.update_interval_mode = x;
 	}
+
+	//public
 	setUpdateIntervalStop() {
 		this.update_interval_mode = -3;
 	}
+
+	//internal/private
 	checkUpdate(id, options) {//check conditions are right for updating
 		return this.checkReadyForUpdate(id, options);
 	}
+
+	//internal/private
 	checkUpdatesDue() {
 		return new Promise((resolve, reject) => {
 			this.updatesDue().then(ud => {
@@ -73,6 +87,8 @@ module.exports = class MultiPoller {
 			});//updates due
 		});
 	}
+
+	//public
 	add(id, options) {//force update in next update cycle. returns 0-indexed place in queue
 		const iiq = this.update_queue.findIndex(e => e.id === id);
 		if (iiq !== -1) {
@@ -84,12 +100,18 @@ module.exports = class MultiPoller {
 			return this.update_queue.length - 1;
 		}
 	}
-	forceUpdateASAP(id, options) {//add to front of queue. public access
+
+	//public
+	forceUpdateASAP(id, options) {//add to front of queue.
 		this.update_queue.unshift({ id, options });//adds to front of queue
 	}
+
+	//internal/private
 	updateNow(id, options) {//force no matter what, right now.
 		return this.checkForUpdates(id, options);
 	}
+
+	//public
 	remove(id) {//remove from polling queue if it is in the queue. returns true if in queue, returns false if not in queue.
 		const iiq = this.update_queue.findIndex(e => e.id === id);//index in question
 		if (iiq !== -1) {
@@ -98,12 +120,18 @@ module.exports = class MultiPoller {
 		}
 		else return false;
 	}
+
+	//public
 	queueLength() {
 		return this.update_queue.length;
 	}
+
+	//public
 	getQueue() {
 		return UTILS.copy(this.update_queue);
 	}
+
+	//public
 	getUpdateInterval() {//returns the live update interval in ms
 		let that = this;
 		function internal() {
@@ -124,12 +152,16 @@ module.exports = class MultiPoller {
 		UTILS.debug("Update Interval: " + ans);
 		return ans;
 	}
+
+	//internal/private
 	softUpdate() {//internal function that checks if conditions are right for updating
 		++this.soft_update_counter;
 		if (this.soft_update_counter % this.options.soft_update_interval === 0) {
 			this.checkUpdatesDue().then(() => { });
 		}
 	}
+
+	//internal/private
 	recursiveStartNext(that = this) {
 		//let that = this;
 		that.last_job_time = new Date().getTime();
