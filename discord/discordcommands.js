@@ -1882,6 +1882,47 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
             });
         });
 
+        /** @command track
+         *  @description
+         *  @permissionlevel
+         *  @param <osu/taiko/ctb/mania> "<username>" [pp=<pp threshold>] [top=<top threshold>] [rank=<rank threshold>]
+         * **/
+        command(usePrefix(["setting tracking server default ", "setting tracking channel default "]), true, CONFIG.CONSTANTS.ADMINISTRATORS, (original, index, parameter) => {
+            let ppt = undefined;
+            let tt = undefined;
+            let rt = undefined;
+            if (parameter.indexOf("pp=") != -1) {
+                ppt = UTILS.arbitraryLengthInt(parameter.substring(parameter.indexOf("pp=") + 3));
+                if (ppt <= 0 || (isNaN(ppt) && ppt != undefined)) {
+                    return reply(":x: pp must be a value greater than 0");
+                }
+            }
+            if (parameter.indexOf("top=") != -1) {
+                tt = UTILS.arbitraryLengthInt(parameter.substring(parameter.indexOf("top=") + 4));
+                if (tt < 1 || tt > 100 || (isNaN(tt) && tt != undefined)) {
+                    return reply(":x: personal best must be between 1-100");
+                }
+            }
+            if (parameter.indexOf("rank=") != -1) {
+                rt = UTILS.arbitraryLengthInt(parameter.substring(parameter.indexOf("rank=") + 5));
+                if (rt < 1 || rt > 100 || (isNaN(rt) && rt != undefined)) {
+                    return reply(":x: beatmap rank must be between 1-100");
+                }
+            }
+            if (!UTILS.exists(ppt) && !UTILS.exists(tt) && !UTILS.exists(rt)) {
+                return reply(":x: You must set at least 1 reporting criteria to set the default server or channel tracking criteria.");
+            }
+            if (!msg.channel.permissionsFor(client.user).has(["SEND_MESSAGES", "EMBED_LINKS"])) {
+                return reply(":x: Cannot track users without send messages and embed links permission in this channel.");
+            }
+            lolapi.upsertTracking("d", index, "", index == 0 ? "" : msg.channel.id, msg.guild.id, ppt, tt, rt).then(() => {
+                reply(`:white_check_mark: ${index == 0 ? "Server" : "Channel"} default threshold set : min pp= \`${ppt}\`, beatmap rank= \`${rt}\`, personal best= \`${tt}\`.`);
+            }).catch(e => {
+                console.error(e);
+                reply(":x: Internal error. Contact BoatBot staff for assistance.");
+            });
+        });
+
         /** @command
          *  @description
          *  @permissionlevel
