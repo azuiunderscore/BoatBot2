@@ -76,7 +76,7 @@ module.exports = class LOLAPI {
 			}
 			else {
 				this.customGet(url, this.request_id, maxage, cachetime).then(body => {
-					const parseJSON = false;
+					const parseJSON = true;
 					if (parseJSON) {
 						const answer = JSON.parse(body);
 						if (UTILS.exists(answer.status)) UTILS.output(iurl + " : " + body);
