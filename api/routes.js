@@ -495,7 +495,11 @@ module.exports = function (CONFIG, apicache, serveWebRequest, response_type, loa
 		});
 	}, true);
 	serveWebRequest("/resettracking", (req, res, next) => {
-		track_setting_model.deleteMany({ sid: req.query.sid }, err => {
+		let opts = { sid: req.query.sid, cid: req.query.cid };
+		for (let b in opts) {
+			if (!UTILS.exists(opts[b])) delete opts[b];
+		}
+		track_setting_model.deleteMany(opts, err => {
 			if (!err) res.json({ success: true });
 			else {
 				console.error(err);
