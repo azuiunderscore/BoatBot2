@@ -44,7 +44,7 @@ setTimeout(() => {//wait for shards to startup
 		slow_update_interval: 1200,
 		fast_update_interval: 500,
 		status_check_interval: 10000,
-		soft_update_interval: 25
+		soft_update_interval: 10//
 	});
 }, 30000);
 function updatesDue() {
