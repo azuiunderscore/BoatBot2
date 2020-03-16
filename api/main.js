@@ -60,7 +60,7 @@ function updatesDue() {
 					if (UTILS.exists(docs) && UTILS.exists(docs[0])) {
 						if (now > docs[0].next_scheduled_update.getTime()) update_order.push({
 							id: b,
-							mode:c,
+							mode: c,
 							lateness: now - docs[0].next_scheduled_update.getTime()//in milliseconds
 						});
 					}
@@ -161,9 +161,14 @@ function checkForUpdates(id, options) {
  * @description Checks if an id (usermode) is ready to be updated
  * @returns {Promise}
  */
-function checkReadyForUpdate(id) {
+function checkReadyForUpdate(id, options) {
 	return new Promise((resolve, reject) => {
-		//
+		track_stat_model.find({ user_id: options.id, mode: options.mode }, null, { sort: { _id: -1 }}).then(docs => {
+			if (UTILS.exists(docs) && UTILS.exists(docs[0])) {
+				resolve(docs[0].next_scheduled_update <= UTILS.now());
+			}
+			else resolve(false);
+		}).catch(reject);
 	});
 }
 function justUpdated(id, results, error) {
