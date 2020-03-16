@@ -70,7 +70,7 @@ function updatesDue() {
 							next_scheduled_update: new Date(),
 							most_recent_score_date: new Date(),
 							mode: c,
-							expireAt: new Date(now + (7 * 24 * 60 * 60 * 1000))
+							expireAt: new Date(now + (30 * 24 * 60 * 60 * 1000))
 						});
 						new_doc.save(e => {
 							if (e) console.error(e);
@@ -101,43 +101,55 @@ function checkForUpdates(id, options) {
 				for (let i = recent_plays.length - 1; i >= 0; --i) {//iterate through all recent plays, filter plausible scores
 					if (recent_plays[i].date.getTime() > last_score_time && recent_plays[i].rank !== "F") check_indices.push(i);
 				}
-				lolapi.osuBeatmap(recent_plays[0].beatmap_id, "b", mode, CONFIG.API_MAXAGE.TRACKING.GET_BEATMAP).then(beatmap => {
-					beatmap = beatmap[0];
-					beatmap.mode = mode;//force assigning mode (autoconvert)
-					request_profiler.end("beatmap");
-					request_profiler.begin("dynamic");
-					let jobs = [];
-					let jobtype = [];
-					jobs.push(lolapi.osuBeatmapFile(beatmap.beatmap_id, beatmap.last_update.getTime(), CONFIG.API_MAXAGE.TRACKING.OSU_FILE));//just ensures that a copy of the beatmap file is present in the cache directory
-					jobtype.push(CONFIG.CONSTANTS.OSU_FILE);
-					//UTILS.inspect("beatmap.approved", beatmap.approved);
-					if (recent_plays[0].rank !== "F" && (beatmap.approved === 1 || beatmap.approved === 2)) {//ranked or approved (possible top pp change)
-						jobs.push(lolapi.osuGetUserBest(options.id, mode, 100, true, CONFIG.API_MAXAGE.TRACKING.GET_USER_BEST));//get user best
-						jobtype.push(CONFIG.CONSTANTS.USER_BEST);
-					}
-					if (beatmap.approved > 0) {//leaderboarded score (check beatmap leaderboards)
-						jobs.push(lolapi.osuScore(mode, recent_plays[0].beatmap_id, CONFIG.API_MAXAGE.TRACKING.GET_SCORE));
-						jobtype.push(CONFIG.CONSTANTS.SCORE);//leaderboard
-						jobs.push(lolapi.osuScoreUser(options.id, true, mode, recent_plays[0].beatmap_id, CONFIG.API_MAXAGE.TRACKING.GET_SCORE_USER));
-						jobtype.push(CONFIG.CONSTANTS.SCORE_USER);
-					}
-					jobs.push(lolapi.osuGetUserTyped(options.id, mode, true, CONFIG.API_MAXAGE.TRACKING.GET_USER));
-					jobtype.push(CONFIG.CONSTANTS.USER);
-					Promise.all(jobs).then(jra => {//job result array
-						request_profiler.end("dynamic");
-						UTILS.debug("\n" + ctable.getTable(request_profiler.endAllCtable()));
-						let user_best = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER_BEST)];
-						let leaderboard = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE)].map(v => { v.beatmap_id = beatmap.beatmap_id; return v; });
-						let user_scores = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE_USER)].map(v => { v.beatmap_id = beatmap.beatmap_id; return v; });
-						let user_stats = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER)];
-						embedgenerator.recent(CONFIG, mode, 0, recent_plays, beatmap, leaderboard, user_scores, user_best, user_stats).then(embeds => {
-							let s = `Try #${UTILS.tryCount(recent_plays, 0)}`;//try count string, let shards determine whether to send this information or not
-							resolve({ full: embeds.full, compact: embeds.compact, s });
+				//TODO: check all valid recent plays
+				Promise.all(check_indices.map(play_index => {
+					return new Promise((resolve, reject) => {
+						lolapi.osuBeatmap(recent_plays[play_index].beatmap_id, "b", mode, CONFIG.API_MAXAGE.TRACKING.GET_BEATMAP).then(beatmap => {
+							beatmap = beatmap[0];
+							beatmap.mode = mode;//force assigning mode (autoconvert)
+							request_profiler.end("beatmap");
+							request_profiler.begin("dynamic");
+							let jobs = [];
+							let jobtype = [];
+							jobs.push(lolapi.osuBeatmapFile(beatmap.beatmap_id, beatmap.last_update.getTime(), CONFIG.API_MAXAGE.TRACKING.OSU_FILE));//just ensures that a copy of the beatmap file is present in the cache directory
+							jobtype.push(CONFIG.CONSTANTS.OSU_FILE);
+							//UTILS.inspect("beatmap.approved", beatmap.approved);
+							if (recent_plays[play_index].rank !== "F" && (beatmap.approved === 1 || beatmap.approved === 2)) {//ranked or approved (possible top pp change)
+								jobs.push(lolapi.osuGetUserBest(options.id, mode, 100, true, CONFIG.API_MAXAGE.TRACKING.GET_USER_BEST));//get user best
+								jobtype.push(CONFIG.CONSTANTS.USER_BEST);
+							}
+							if (beatmap.approved > 0) {//leaderboarded score (check beatmap leaderboards)
+								jobs.push(lolapi.osuScore(mode, recent_plays[play_index].beatmap_id, CONFIG.API_MAXAGE.TRACKING.GET_SCORE));
+								jobtype.push(CONFIG.CONSTANTS.SCORE);//leaderboard
+								jobs.push(lolapi.osuScoreUser(options.id, true, mode, recent_plays[play_index].beatmap_id, CONFIG.API_MAXAGE.TRACKING.GET_SCORE_USER));
+								jobtype.push(CONFIG.CONSTANTS.SCORE_USER);
+							}
+							jobs.push(lolapi.osuGetUserTyped(options.id, mode, true, CONFIG.API_MAXAGE.TRACKING.GET_USER));
+							jobtype.push(CONFIG.CONSTANTS.USER);
+							Promise.all(jobs).then(jra => {//job result array
+								request_profiler.end("dynamic");
+								UTILS.debug("\n" + ctable.getTable(request_profiler.endAllCtable()));
+								let user_best = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER_BEST)];
+								let leaderboard = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE)].map(v => { v.beatmap_id = beatmap.beatmap_id; return v; });
+								let user_scores = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE_USER)].map(v => { v.beatmap_id = beatmap.beatmap_id; return v; });
+								let user_stats = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER)];
+								embedgenerator.recent(CONFIG, mode, play_index, recent_plays, beatmap, leaderboard, user_scores, user_best, user_stats).then(embeds => {
+									let s = `Try #${UTILS.tryCount(recent_plays, play_index)}`;//try count string, let shards determine whether to send this information or not
+									resolve({ full: embeds.full, compact: embeds.compact, s });
+								}).catch(reject);
+							}).catch(reject);
 						}).catch(reject);
-					}).catch(reject);
-				}).catch(reject);
-				//set last score date here (write new document)
-				//set priority and next scheduled update
+					});
+				})).then(scorecards => {
+					//set last score date here (write new document)
+					//set priority and next scheduled update
+					resolve(scorecards);
+				}).catch(error => {
+					console.error(error);
+					//set last score date here (write new document)
+					//set priority and next scheduled update
+					reject(error);
+				});
 			}).catch(reject);
 		});
 	});

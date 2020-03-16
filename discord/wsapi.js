@@ -274,6 +274,8 @@ module.exports = class WSAPI {
 				case 38:
 					this.wsmm.wsMessageCallback(data);
 					break;
+				case 40:
+					break;
 				case 42:
 					let ans = {};
 					this.client.guilds.forEach(g => {

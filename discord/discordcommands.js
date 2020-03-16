@@ -1887,9 +1887,24 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
          *  @permissionlevel
          *  @param
          * **/
-        command(usePrefix(["tracking"]), false, CONFIG.CONSTANTS.BOTCOMMANDERS, (original, index) => {
+        command(usePrefix(["setting tracking", "tracking"]), false, CONFIG.CONSTANTS.BOTCOMMANDERS, (original, index) => {
             lolapi.getServerTrackingSettings(msg.guild.id).then(settings => {
-                replyEmbed(embedgenerator.tracking(CONFIG, settings));
+                Promise.all(settings.map(setting => {
+                    return new Promise((resolve, reject) => {
+                        if (setting.type !== "i") resolve(setting);
+                        else {
+                            if (!UTILS.exists(setting.username)) lolapi.osuGetUserTyped(setting.id, 0, true, CONFIG.API_MAXAGE.TRACK_SETTING.GET_USER).then(user => {
+                                setting.username = user.username;
+                                resolve(setting);
+                            }).catch(e => {
+                                console.error(e);
+                                resolve(setting);
+                            });
+                        }
+                    });
+                })).then(settings => {
+                    replyEmbed(embedgenerator.tracking(CONFIG, settings));
+                }).catch(console.error);
             }).catch(e => {
                 console.error(e);
                 reply(":x: Internal error. Contact BoatBot staff for assistance.");
