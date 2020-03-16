@@ -172,7 +172,7 @@ function checkReadyForUpdate(id, options) {
 	});
 }
 function justUpdated(id, results, error) {
-
+	return new Promise((resolve, reject) => {});
 }
 function stalled() {
 	console.error("Score Tracking Stalled");
