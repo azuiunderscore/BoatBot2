@@ -15,7 +15,7 @@ catch (e) {
 	console.error(e);
 	process.exit(1);
 }
-const lolapi = new (require("../utils/lolapi.js"))(CONFIG, "0", true, rawAPIRequest);
+const lolapi = new (require("../utils/lolapi.js"))(CONFIG, "0", null, true, rawAPIRequest);
 
 let https = require('https');
 const UTILS = new (require("../utils/utils.js"))();
@@ -572,21 +572,11 @@ function serveWebRequest(branch, callback, validate = false) {
 		}
 	}
 }
-function rawAPIRequest(region, tag, endpoint, maxage, cachetime) {
+function rawAPIRequest(url, request_id, maxage, cachetime) {
 	return new Promise((resolve, reject) => {
-		riotRequest.request(region, tag, endpoint, { maxage, cachetime }, (err, data) => {
-			if (err) {
-				if (!err.riotInternal || !UTILS.exists(err.response)) {//real error
-					reject(500);
-				}
-				else {
-					const oldFormat = endpointToURL(region, endpoint);
-					if (cachetime != 0) addCache(oldFormat.url, err.response.res.text, cachetime);
-					reject(err);
-				}
-			}
-			else resolve(data);
-		});
+		if (!UTILS.exists(irs[request_id])) irs[request_id] = [0, 0, 0, 0, 0, new Date().getTime()];
+		++irs[request_id][0];
+		get("OSU", url, parseInt(cachetime), parseInt(maxage), request_id).then(resolve).catch(reject);
 	});
 }
 function checkCache(url, maxage, request_id) {

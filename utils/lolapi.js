@@ -75,7 +75,8 @@ module.exports = class LOLAPI {
 				});
 			}
 			else {
-				this.customGet(region, tag, endpoint, maxage, cachetime).then(body => {
+				this.customGet(url, this.request_id, maxage, cachetime).then(body => {
+					const parseJSON = false;
 					if (parseJSON) {
 						const answer = JSON.parse(body);
 						if (UTILS.exists(answer.status)) UTILS.output(iurl + " : " + body);
