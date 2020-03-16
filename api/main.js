@@ -94,17 +94,21 @@ function updatesDue() {
 function checkForUpdates(id, options) {
 	return new Promise((resolve, reject) => {
 		track_stat_model.find({ user_id: options.id }, null, { sort: { _id: -1 }}, (err, docs) => {//sorty by _id descending
+			if (err) return reject(err);
 			UTILS.debug("checking for updates: " + id);
 			const last_score_time = UTILS.exists(docs[0]) ? docs[0].most_recent_score_date.getTime() : 0;
 			lolapi.osuGetUserRecent(options.id, options.mode, null, true, CONFIG.API_MAXAGE.TRACKING.GET_USER_RECENT).then(recent_plays => {
+				UTILS.debug(`cFU 1`);
 				let check_indices = [];
 				for (let i = recent_plays.length - 1; i >= 0; --i) {//iterate through all recent plays, filter plausible scores
 					if (recent_plays[i].date.getTime() > last_score_time && recent_plays[i].rank !== "F") check_indices.push(i);
 				}
 				//TODO: check all valid recent plays
 				Promise.all(check_indices.map(play_index => {
+					UTILS.debug(`cFU 2-${play_index}`);
 					return new Promise((resolve, reject) => {
 						lolapi.osuBeatmap(recent_plays[play_index].beatmap_id, "b", mode, CONFIG.API_MAXAGE.TRACKING.GET_BEATMAP).then(beatmap => {
+							UTILS.debug(`cFU 3-${play_index}`);
 							beatmap = beatmap[0];
 							beatmap.mode = mode;//force assigning mode (autoconvert)
 							request_profiler.end("beatmap");
@@ -127,6 +131,7 @@ function checkForUpdates(id, options) {
 							jobs.push(lolapi.osuGetUserTyped(options.id, mode, true, CONFIG.API_MAXAGE.TRACKING.GET_USER));
 							jobtype.push(CONFIG.CONSTANTS.USER);
 							Promise.all(jobs).then(jra => {//job result array
+								UTILS.debug(`cFU 4-${play_index}`);
 								request_profiler.end("dynamic");
 								UTILS.debug("\n" + ctable.getTable(request_profiler.endAllCtable()));
 								let user_best = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER_BEST)];
@@ -134,6 +139,7 @@ function checkForUpdates(id, options) {
 								let user_scores = jra[jobtype.indexOf(CONFIG.CONSTANTS.SCORE_USER)].map(v => { v.beatmap_id = beatmap.beatmap_id; return v; });
 								let user_stats = jra[jobtype.indexOf(CONFIG.CONSTANTS.USER)];
 								embedgenerator.recent(CONFIG, mode, play_index, recent_plays, beatmap, leaderboard, user_scores, user_best, user_stats).then(embeds => {
+									UTILS.debug(`cFU 5-${play_index}`);
 									let s = `Try #${UTILS.tryCount(recent_plays, play_index)}`;//try count string, let shards determine whether to send this information or not
 									resolve({ full: embeds.full, compact: embeds.compact, s });
 								}).catch(reject);
@@ -143,6 +149,7 @@ function checkForUpdates(id, options) {
 				})).then(scorecards => {
 					//set last score date here (write new document)
 					//set priority and next scheduled update
+					UTILS.debug(`cFU 6`);
 					resolve(scorecards);
 				}).catch(error => {
 					console.error(error);
