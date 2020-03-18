@@ -12,7 +12,7 @@
 				"NODE_ENV": "production",
 				"DEBUG": false
 			},
-			"node_args": "--trace-deprecation",
+			"node_args": "--trace-deprecation --max-old-space-size=2048",
 			"args": "--config=config.json5"
 		},
 		{
@@ -27,7 +27,7 @@
 				"NODE_ENV": "production",
 				"DEBUG": false
 			},
-			"node_args": "--trace-deprecation",
+			"node_args": "--trace-deprecation --max-old-space-size=2048",
 			"args": "--config=config.json5"
 		}
 	]
