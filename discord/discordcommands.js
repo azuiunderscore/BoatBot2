@@ -1040,8 +1040,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         request_profiler.begin("mode_detect");
         let mode;
         if (index < 5) mode = 0;
-        else if (index < 7) mode = 1;
-        else if (index < 10) mode = 2;
+        else if (index < 8) mode = 1;
+        else if (index < 11) mode = 2;
         else mode = 3;
         UTILS.output("mode is " + mode);
         if (number > 50 || number < 1) return reply(":x: Number out of range 1-50.");
