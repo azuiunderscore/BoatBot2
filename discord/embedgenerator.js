@@ -989,11 +989,11 @@ module.exports = class EmbedGenerator {
 		});
 	}
 
-	slsd(CONFIG, user, beatmaps, scores, end_index) {
+	slsd(CONFIG, user, mode, beatmaps, scores, start_index, end_index) {//[start_index, end_index)
 		let newEmbed = new Discord.RichEmbed();
 		UTILS.assert(beatmaps.length === scores.length);
 		UTILS.assert(end_index <= scores.length);
-		newEmbed.setTitle(`Top ${end_index} scores`);
+		newEmbed.setTitle(`Top ${start_index + 1}-${end_index} scores`);
 		newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, `https://a.ppy.sh/${user.user_id}?${UTILS.now()}`, `https://osu.ppy.sh/u/${user.user_id}`);
 		let sl_scores = [];//single line scores
 		for (let i = 0; i < end_index; ++i) {
@@ -1002,7 +1002,7 @@ module.exports = class EmbedGenerator {
 		for (let i = 0; i < Math.ceil(sl_scores.length / 5); ++i) {
 			const fd = sl_scores.slice(i * 5, (i + 1) * 5).join("\n");
 			UTILS.debug("field length: " + fd.length);
-			newEmbed.addField("#" + ((i * 5) + 1) + " - #" + ((i + 1) * 5), fd);
+			newEmbed.addField(`#${(i * 5) + 1 + start_index} - #${((i + 1) * 5) + start_index}`, fd);
 		}
 		newEmbed.setFooter("Beatmap artist, title, and difficulty names have been truncated.");
 		return newEmbed;

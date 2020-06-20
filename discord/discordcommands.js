@@ -588,11 +588,20 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 
     /** @command d2
      *  @protected
-     *  @description Ask iaace
+     *  @description Debugs command arguments and username guessing
      *  @permissionlevel 5
      * **/
     commandGuessUsernameNumber(usePrefix(["d2"]), CONFIG.CONSTANTS.BOTOWNERS, (index, id, user, number, guess_method) => {
         reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + "` number: `" + number + "` guess_method: `" + guess_method + "`");
+    });
+
+    /** @command d3
+     *  @protected
+     *  @description Debugs command arguments and username guessing
+     *  @permissionlevel 5
+     * **/
+    commandGuessUsernameNumberRange(usePrefix(["d3"]), CONFIG.CONSTANTS.BOTOWNERS, {}, (index, id, user, number, guess_method) => {
+        reply(":white_check_mark: i: `" + index + "` id: `" + id + "` user: `" + user + "` number.min: `" + number.min + "` number.max: `" + number.max + "` guess_method: `" + guess_method + "`");
     });
 
     // I'm splitting this command into multiple documentation entries so its easier for users to understand
@@ -830,19 +839,20 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @param [osu username]
      * **/
     commandGuessUsername(usePrefix(["alltop"]), CONFIG.CONSTANTS.BOTOWNERS, (index, id, user, parameter) => {
-        lolapi.osuGetUserTyped(user, 0, id, CONFIG.API_MAXAGE.ALL_TOP.GET_USER).then(user_stats => {
-            lolapi.osuGetUserBest(user_stats.user_id, 0, 30, true, CONFIG.API_MAXAGE.ALL_TOP.GET_USER_BEST).then(user_best => {
+        let mode = 0;
+        lolapi.osuGetUserTyped(user, mode, id, CONFIG.API_MAXAGE.ALL_TOP.GET_USER).then(user_stats => {
+            lolapi.osuGetUserBest(user_stats.user_id, mode, 30, true, CONFIG.API_MAXAGE.ALL_TOP.GET_USER_BEST).then(user_best => {
                 user_best.map(s => {
                     s.pp_valid = true;
                     return s;
                 });
                 let jobs = [];
                 for (let i = 0; i < user_best.length; ++i) {
-                    jobs.push(lolapi.osuBeatmap(user_best[i].beatmap_id, "b", 0, CONFIG.API_MAXAGE.ALL_TOP.GET_BEATMAP));
+                    jobs.push(lolapi.osuBeatmap(user_best[i].beatmap_id, "b", mode, CONFIG.API_MAXAGE.ALL_TOP.GET_BEATMAP));
                 }
                 Promise.all(jobs).then(beatmaps => {
                     beatmaps = beatmaps.map(bs => bs[0]);
-                    replyEmbed(embedgenerator.slsd(CONFIG, user_stats, beatmaps, user_best, 30));
+                    replyEmbed(embedgenerator.slsd(CONFIG, user_stats, mode, beatmaps, user_best, 0, 30));
                 }).catch(console.error);
             }).catch(console.error);
         }).catch(console.error);
@@ -2179,7 +2189,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
     }
 
     /** A command that tries to infer an osu username from the command executor. The command also takes in an optional number directly after the command. Refer to comments in the function to understand how this works.
-     *  @function commandGuessUsername
+     *  @function commandGuessUsernameNumber
      *  @param trigger_array        {Array}     Array of command aliases, prefix not included.
      *  @param elevated_permissions {Boolean}   A representation of the permissions it requires. False is NORMALMEMBERs and true is BOTOWNERS. The rest of the levels are in the config.
      *  @param callback             {Function}  Optional callback.
@@ -2285,6 +2295,179 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                 return true;
             }
         }, {external: false});
+    }
+
+    /** A command that tries to infer an osu username from the command executor. The command also takes in an optional number directly after the command. Refer to comments in the function to understand how this works.
+     *  @function commandGuessUsernameNumberRange
+     *  @param trigger_array        {Array}     Array of command aliases, prefix not included.
+     *  @param elevated_permissions {Boolean}   A representation of the permissions it requires. False is NORMALMEMBERs and true is BOTOWNERS. The rest of the levels are in the config.
+     *  @param callback             {Function}  Optional callback.
+     *  @return                     {index, boolean: user_id = true / username = false, user_id or username, number}
+     * **/
+    function commandGuessUsernameNumberRange(trigger_array,
+        elevated_permissions,
+        options = {},
+        callback) {
+        //returns (index, boolean: user_id = true / username = false, user_id or username, number)
+        //this command does not validate the existance of a username on the server
+        /*
+        username guess method 0: username provided
+        username guess method 1: shortcut provided
+        username guess method 2: link
+        username guess method 3: implicit discord username
+        username guess method 4: explicit discord mention
+        username guess method 5: recently used command
+        */
+        UTILS.defaultObjectValues({ optional: true,
+            default_min: 1, default_max: 10,
+            min: 1, max: 100,
+            min_count: 1, max_count: 100 },
+        options);
+        command(trigger_array, true, elevated_permissions, (original, index, parameter) => {
+            /*
+            valid: number explicitly specified
+            valid: number implicit (#1, index 0)
+
+            valid: no username specified
+            valid: username explicit
+            valid: discord mention
+            valid: $shortcut
+            valid: ^
+            */
+            /*all cases:
+            !c: valid
+            !c user: valid
+            !c1: valid (min default, max explicit)
+            !c1 user: valid (min default, max explicit, user explicit)
+            !c123: valid (min default, max explicit)
+            !c123 user: valid (min default, max explicit, user explicit)
+            !c1-100: valid (min explicit, max explicit)
+            !c1-100 user: valid (min explicit, max explicit, user explicit)
+            */
+            let number = { min: options.default_min, max: options.default_max };
+            let c_number = { n1: null, n2: null };
+            const space_index = parameter.indexOf(" ");
+            const dash_index = parameter.indexOf("-");
+            if (parameter === "") {//no number specified, no username specified
+                //"!c"
+            }
+            else if (space_index === -1) {//there is no space (no username provided)
+                if (dash_index === -1) {//there is no dash
+                    c_number.n2 = UTILS.strictParseInt(parameter);//either "!c123"
+                }
+                else if (dash_index > 0 && dash_index < parameter.length - 1) {//there is a dash and there is a number before the dash
+                    c_number.n1 = parseInt(UTILS.arbitraryLengthInt(parameter));//either "!c1-" or "!c1-100"
+                    if (dash_index < parameter.length - 2) {//there is a number after the dash too
+                        c_number.n2 = parseInt(UTILS.arbitraryLengthInt(parameter.substring(dash_index + 1)));
+                    }
+                }
+                else if (dash_index === 0 && dash_index < parameter.length - 2) {//there is a dash but no number before the dash
+                    c_number.n2 = parseInt(UTILS.arbitraryLengthInt(parameter.substring(dash_index + 1)));//either "!c-100"
+                }
+                else {//something like "!c-" or "!c--"
+                    c_number.n1 = NaN;
+                    c_number.n2 = NaN;
+                }
+                parameter = "";
+            } else if (space_index === 0) {}//"!c user" with params " user"
+            else {//there is a space and something before the space
+                if (dash_index === -1 || dash_index > space_index) {//there is no dash or the dash is after the space
+                    c_number.n2 = UTILS.strictParseInt(parameter);//either or "!c123 user" "!c123 username-with-dashes"
+                }
+                else if (dash_index > 0 && dash_index < space_index) {//there is a dash and there is a number before the dash
+                    c_number.n1 = parseInt(UTILS.arbitraryLengthInt(parameter));//either "!c1-" or "!c1-100"
+                    if (dash_index < space_index - 1) {//there is a number after the dash too
+                        c_number.n2 = parseInt(UTILS.arbitraryLengthInt(parameter.substring(dash_index + 1)));
+                    }
+                }
+                else if (dash_index === 0 && dash_index < space_index - 1) {//there is a dash but no number before the dash
+                    c_number.n2 = parseInt(UTILS.arbitraryLengthInt(parameter.substring(dash_index + 1)));//either "!c-100"
+                }
+                else {//something like "!c- user" or "!c-- user"
+                    c_number.n1 = NaN;
+                    c_number.n2 = NaN;
+                }
+                parameter = parameter.substring(space_index);
+            }
+            if (isNaN(c_number.n1) || isNaN(c_number.n2)) return false;
+            if (UTILS.exists(c_number.n1) && UTILS.exists(c_number.n2)) {//second number is larger than first number
+                if (c_number.n2 < c_number.n1) {
+                    let temp = n1;
+                    c_number.n1 = c_number.n2;
+                    c_number.n2 = temp;
+                }
+                number.min = c_number.n1;
+                number.max = c_number.n2;
+            }
+            else if (UTILS.exists(c_number.n1) && !UTILS.exists(c_number.n2)) {//only n1 exists (default min)
+                number.min = c_number.n1;
+                number.max = Math.min(options.max, c_number.n1 + (options.max_count - 1));
+            }
+            else if (!UTILS.exists(c_number.n1) && UTILS.exists(c_number.n2)) {//only n2 exists (default max)
+                number.min = Math.max(options.min, c_number.n2 - (options.max_count - 1));
+                number.max = c_number.n2;
+            }
+            if (number.min > number.max) return false;
+            const count = number.max - number.min + 1;
+            if (number.max > options.max) return false;
+            if (number.min < options.min) return false;
+            if (count > max_count || count < min_count) return false;
+            if (parameter.length != 0) {//username explicitly provided
+                if (parameter.length < 70) {//longest query should be less than 70 characters
+                    if (!processRateLimit()) return false;
+                    if (msg.mentions.users.size == 1) {
+                        lolapi.getLink(msg.mentions.users.first().id).then(result => {
+                            let username = msg.mentions.users.first().username;//suppose the link doesn't exist in the database
+                            if (UTILS.exists(result.username) && result.username != "") username = result.username;//link exists
+                            callback(index, false, username.sanitizeMentions(), number, 4);
+                        }).catch(console.error);
+                    } else if (parameter.substring(0, 2) == " $") {//shortcut
+                        lolapi.getShortcut(msg.author.id, parameter.toLowerCase().substring(2)).then(result => {
+                            callback(index, false, result[parameter.toLowerCase().substring(2)].sanitizeMentions(), number, 1);
+                        }).catch(e => {
+                            if (e) reply(":x: An error has occurred. The shortcut may not exist.");
+                        });
+                    } else if (parameter.substring(parameter.indexOf(" ") + 1) == "^") {//pull from recent command
+                        msg.channel.fetchMessages({ before: msg.id, limit: 30 }).then(msgs => {
+                            msgs = msgs.array();
+                            let user_id;
+                            for (let i = 0; i < msgs.length; ++i) {
+                                if (msgs[i].author.id == client.user.id && //message was sent by bot
+                                    msgs[i].embeds.length == 1 && //embedded response
+                                    UTILS.exists(msgs[i].embeds[0].author) && //author present
+                                    UTILS.exists(msgs[i].embeds[0].author.url)) {//url present
+                                    if (msgs[i].embeds[0].author.url.substring(0, 25) === "https://osu.ppy.sh/users/") {//https://osu.ppy.sh/users/4374286
+                                        const candidate = UTILS.arbitraryLengthInt(msgs[i].embeds[0].author.url.substring(25));
+                                        if (candidate !== "") user_id = parseInt(candidate);
+                                        break;
+                                    } else if (msgs[i].embeds[0].author.url.substring(0, 21) === "https://osu.ppy.sh/u/") {//https://osu.ppy.sh/u/4374286
+                                        const candidate = UTILS.arbitraryLengthInt(msgs[i].embeds[0].author.url.substring(21));
+                                        if (candidate !== "") user_id = parseInt(candidate);
+                                        break;
+                                    }
+                                }
+                            }
+                            if (!UTILS.exists(user_id)) reply(":x: Could not find a recent username queried.");
+                            else callback(index, true, user_id.sanitizeMentions(), number, 5);
+                        }).catch(e => {
+                            console.error(e);
+                            reply(":x: Could not find a recent username queried.");
+                        });
+                    } else if (parameter[0] == " ") callback(index, false, parameter.substring(1).trim().sanitizeMentions(), number, 0);//explicit (required trailing space after command trigger)
+                    else return false;
+                }
+            } else {//username not provided
+                if (!processRateLimit()) return false;
+                lolapi.getLink(msg.author.id).then(result => {
+                    let username = msg.author.username;//suppose the link doesn't exist in the database
+                    if (UTILS.exists(result.username) && result.username != "") {
+                        username = result.username;//link exists
+                        callback(index, false, username.sanitizeMentions(), number, 2);
+                    } else callback(index, false, username.sanitizeMentions(), number, 3);
+                }).catch(console.error);
+                return true;
+            }
+        }, { external: false });
     }
 
     /** Determines if a user has the given permission level.
