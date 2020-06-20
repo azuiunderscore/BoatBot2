@@ -42,6 +42,9 @@ var timeago = function() {
         }
         else {
           if (v === "month") return number + "M";
+          else if (v === "day") return number + "D";
+          else if (v === "week") return number + "W";
+          else if (v === "year") return number + "Y";
           else return number + v.substring(0, 1);
         }
       },
