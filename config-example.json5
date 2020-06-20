@@ -194,12 +194,13 @@
 		},
 		"STATS": 60,
 		"BEATMAP_AUTO": {
-			"GET_BEATMAP": 86400,
+			"GET_BEATMAP": 43200,//12h
 			"OSU_FILE": 604800,//1 week
+			"GET_USER": 86400
 		},
 		"RECENT": {
 			"GET_USER_RECENT": 20,
-			"GET_BEATMAP": 86400,
+			"GET_BEATMAP": 43200,
 			"GET_SCORE_USER": 20,
 			"GET_SCORE": 20,
 			"GET_USER": 20,
@@ -208,13 +209,13 @@
 		},
 		"MP": {
 			"OSU_MATCH": 45,
-			"GET_BEATMAP": 86400,
+			"GET_BEATMAP": 43200,
 			"GET_USER": 300,//5 mins
 		},
 		"WHAT_IF": {
 			"GET_USER": 120,
 			"GET_USER_BEST": 120,
-			"GET_BEATMAP": 86400
+			"GET_BEATMAP": 43200
 		},
 		"COMPARE": {
 			"GET_USER": 120,
