@@ -1000,7 +1000,7 @@ module.exports = class EmbedGenerator {
 		newEmbed.setTitle(`Top ${start_index + 1}-${end_index} scores`);
 		newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, `https://a.ppy.sh/${user.user_id}?${UTILS.now()}`, `https://osu.ppy.sh/u/${user.user_id}`);
 		let sl_scores = [];//single line scores
-		for (let i = 0; i < end_index; ++i) {
+		for (let i = 0; i < end_index - start_index; ++i) {
 			sl_scores.push(this.slsdRaw(CONFIG, beatmaps[i], scores[i + start_index]));
 		}
 		for (let i = 0; i < Math.ceil(sl_scores.length / 5); ++i) {
@@ -1008,7 +1008,7 @@ module.exports = class EmbedGenerator {
 			const fd = score_chunk.join("\n");
 			UTILS.debug("field length: " + fd.length);
 			const start_number = (i * 5) + 1 + start_index;
-			newEmbed.addField(`#${start_number} - #${start_number + score_chunk.length}`, fd);
+			newEmbed.addField(`#${start_number} - #${start_number + score_chunk.length - 1}`, fd);
 		}
 		newEmbed.setFooter("Beatmap artist, title, and difficulty names have been truncated.");
 		return newEmbed;
