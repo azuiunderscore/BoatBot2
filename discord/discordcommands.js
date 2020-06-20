@@ -2389,7 +2389,10 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                 }
                 parameter = parameter.substring(space_index);
             }
-            if (isNaN(c_number.n1) || isNaN(c_number.n2)) return false;
+            if (isNaN(c_number.n1) || isNaN(c_number.n2)) {
+                reply(":x: Numbers not valid.");
+                return false;
+            }
             if (UTILS.exists(c_number.n1) && UTILS.exists(c_number.n2)) {//second number is larger than first number
                 if (c_number.n2 < c_number.n1) {
                     let temp = n1;
@@ -2407,11 +2410,27 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                 number.min = Math.max(options.min, c_number.n2 - (options.max_count - 1));
                 number.max = c_number.n2;
             }
-            if (number.min > number.max) return false;
+            if (number.min > number.max) {
+                reply(":x: Minimum number greater than maximum.");
+                return false;
+            }
             const count = number.max - number.min + 1;
-            if (number.max > options.max) return false;
-            if (number.min < options.min) return false;
-            if (count > options.max_count || count < options.min_count) return false;
+            if (number.max > options.max) {
+                reply(`:x: ${number.max} exceeds the maximum, ${options.max}.`);
+                return false;
+            }
+            if (number.min < options.min) {
+                reply(`:x: ${number.min} exceeds the minimum, ${options.min}.`);
+                return false;
+            }
+            if (count > options.max_count) {
+                reply(`:x: The range ${number.min}-${number.max} is too large (max ${options.max_count}).`);
+                return false;
+            }
+            if (count < options.min_count) {
+                reply(`:x: The range ${number.min}-${number.max} is too small (min ${options.min_count}).`);
+                return false;
+            }
             if (parameter.length != 0) {//username explicitly provided
                 if (parameter.length < 70) {//longest query should be less than 70 characters
                     if (!processRateLimit()) return false;
