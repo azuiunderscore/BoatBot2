@@ -11,7 +11,7 @@ const VERIFIED_ICON = "✅";
 const TAB = " ";
 const HALF_TAB = " ";
 const MANIA_KEY_COLOR = [0, 13421823, 13421823, 13421823, 10066431, 6711039, 3289855, 255, 204, 204, 204];
-const MODE_COLOR = ["#ffffff", "#ff0000", "#00ff00", "#0000ff"];
+const MODE_COLOR = ["#fefefe", "#ff0000", "#00ff00", "#0000ff"];
 
 /** Returns the emoji for the star value provided.
  *  @param CONFIG
@@ -506,10 +506,10 @@ module.exports = class EmbedGenerator {
 		let cpp = (totalHits + misses) / parseInt(user_stats.playcount);
 		aim_acc.pfm = aim_acc.pfm + "\tbonus: >`" + UTILS.round(bonusPP, 1) + "`pp";
 		aim_acc.pfmp = aim_acc.pfmp + "\tbonus: >`" + UTILS.round(bonusPP * 100 / user_stats.pp_raw, 1) + "%`";
-		if (mode == 0) newEmbed.setColor(16777215);
-		else if (mode == 1) newEmbed.setColor(16711680);
-		else if (mode == 2) newEmbed.setColor(65280);
-		else if (mode == 3) newEmbed.setColor(255);
+		if (mode == 0) newEmbed.setColor("#fefefe");
+		else if (mode == 1) newEmbed.setColor("#ff0000");
+		else if (mode == 2) newEmbed.setColor("#00ff00");
+		else if (mode == 3) newEmbed.setColor("#0000ff");
 		let accs = [];
 		while (php_profile_leader.indexOf("</b> (") != -1) {
 			if (php_profile_leader.indexOf("%)", php_profile_leader.indexOf("</b> (") + "</b> (".length) < php_profile_leader.indexOf("<", php_profile_leader.indexOf("</b> (") + "</b> (".length)) {
@@ -549,22 +549,22 @@ module.exports = class EmbedGenerator {
 		if (mode == 0) {
 			wordMode = "Standard";
 			modeCommand = CONFIG.DISCORD_COMMAND_PREFIX + "sp";
-			newEmbed.setColor(16777215);
+			newEmbed.setColor("#fefefe");
 		}
 		else if (mode == 1) {
 			wordMode = "Taiko";
 			modeCommand = CONFIG.DISCORD_COMMAND_PREFIX + "spt";
-			newEmbed.setColor(16711680);
+			newEmbed.setColor("#ff0000");
 		}
 		else if (mode == 2) {
 			wordMode = "CtB";
 			modeCommand = CONFIG.DISCORD_COMMAND_PREFIX + "spc";
-			newEmbed.setColor(65280);
+			newEmbed.setColor("#00ff00");
 		}
 		else if (mode == 3) {
 			wordMode = "Mania";
 			modeCommand = CONFIG.DISCORD_COMMAND_PREFIX + "spm";
-			newEmbed.setColor(255);
+			newEmbed.setColor("#0000ff");
 		}
 		newEmbed.setAuthor(user_stats.username, "", "https://osu.ppy.sh/users/" + user_stats.user_id);
 		//newEmbed.setImage("https://lemmmy.pw/osusig/sig.php?colour=pink&uname=" + user_stats.user_id + "&pp=2&countryrank&removeavmargin&darktriangles&onlineindicator=undefined&xpbar&xpbarhex&mode=" + mode + "&random=" + UTILS.now());
@@ -582,10 +582,10 @@ module.exports = class EmbedGenerator {
 		let misses = (totalHits / aim_acc.aimAccuracy) - totalHits;
 		aim_acc.pfm = aim_acc.pfm + "\tbonus: >`" + UTILS.round(bonusPP, 1) + "`pp";
 		aim_acc.pfmp = aim_acc.pfmp + "\tbonus: >`" + UTILS.round(bonusPP * 100 / user_stats.pp_raw, 1) + "%`";
-		if (mode == 0) newEmbed.setColor(16777215);
-		else if (mode == 1) newEmbed.setColor(16711680);
-		else if (mode == 2) newEmbed.setColor(65280);
-		else if (mode == 3) newEmbed.setColor(255);
+		if (mode == 0) newEmbed.setColor("#fefefe");
+		else if (mode == 1) newEmbed.setColor("#ff0000");
+		else if (mode == 2) newEmbed.setColor("#00ff00");
+		else if (mode == 3) newEmbed.setColor("#0000ff");
 		newEmbed.setAuthor("Stats for " + user_stats.username, "", "https://osu.ppy.sh/u/" + user_stats.user_id);
 		newEmbed.setThumbnail("https://a.ppy.sh/" + user_stats.user_id);
 		newEmbed.setTitle("Performance: " + user_stats.pp_raw + "pp    (#" + UTILS.numberWithCommas(user_stats.pp_rank) + ")    :flag_" + user_stats.country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_stats.pp_country_rank));
@@ -970,7 +970,7 @@ module.exports = class EmbedGenerator {
 					newEmbed.setColor([255 * ((99 - score.best_play_index) / 99), 255 * ((99 - score.best_play_index) / 99), 0]);
 					newEmbed.setDescription(`**__Personal Best #${score.best_play_index + 1}!__**`);//personal best indicator
 				}
-				else newEmbed.setColor(["#ffffff", "#ff0000", "#00ff00", "#0000ff"][beatmap.mode]);//otherwise, set color based on mode
+				else newEmbed.setColor(MODE_COLOR[beatmap.mode]);//otherwise, set color based on mode
 				const pcl_str = `**${score.pp_valid ? `${score.pp.round(2)}pp` : `~~${score.pp.round(2)}pp~~`}**${score.max_pp_valid ? `/${score.max_pp.round(2)}PP` : `${score.max_pp === 0 ? TAB : `~~/${score.max_pp.round(2)}PP~~`}`}${HALF_TAB}**${score.maxcombo}x**${beatmap.max_combo !== 0 ? `/${beatmap.max_combo}X` : ""}${TAB}{${beatmap.mode === 3 ? ` ${score.countgeki}/${score.count300}/${score.countkatu}/${score.count100}/${score.count50}/${score.countmiss} ` : ` ${score.count300} / ${score.count100} / ${score.count50} / ${score.countmiss} `}}`;//pp combo line string
 
 				//compact scorecard
@@ -993,7 +993,7 @@ module.exports = class EmbedGenerator {
 		let newEmbed = new Discord.RichEmbed();
 		UTILS.assert(beatmaps.length === (end_index - start_index));
 		UTILS.assert(end_index <= scores.length);
-		if (mode == 0) newEmbed.setColor("#ffffff");
+		if (mode == 0) newEmbed.setColor("#fefefe");
 		else if (mode == 1) newEmbed.setColor("#ff0000");
 		else if (mode == 2) newEmbed.setColor("#00ff00");
 		else if (mode == 3) newEmbed.setColor("#0000ff");
