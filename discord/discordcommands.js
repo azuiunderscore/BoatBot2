@@ -838,21 +838,23 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @permissionlevel 5
      *  @param [osu username]
      * **/
-    commandGuessUsername(usePrefix(["alltop"]), CONFIG.CONSTANTS.BOTOWNERS, (index, id, user, parameter) => {
+    commandGuessUsernameNumberRange(usePrefix(["alltop"]), CONFIG.CONSTANTS.BOTOWNERS,
+        { default_max: 30, default_count: 10, max_count: 30 },
+        (index, id, user, number, guess_method) => {
         let mode = 0;
         lolapi.osuGetUserTyped(user, mode, id, CONFIG.API_MAXAGE.ALL_TOP.GET_USER).then(user_stats => {
-            lolapi.osuGetUserBest(user_stats.user_id, mode, 30, true, CONFIG.API_MAXAGE.ALL_TOP.GET_USER_BEST).then(user_best => {
+            lolapi.osuGetUserBest(user_stats.user_id, mode, 100, true, CONFIG.API_MAXAGE.ALL_TOP.GET_USER_BEST).then(user_best => {
                 user_best.map(s => {
                     s.pp_valid = true;
                     return s;
                 });
                 let jobs = [];
-                for (let i = 0; i < user_best.length; ++i) {
+                for (let i = number.min - 1; i < number.max; ++i) {
                     jobs.push(lolapi.osuBeatmap(user_best[i].beatmap_id, "b", mode, CONFIG.API_MAXAGE.ALL_TOP.GET_BEATMAP));
                 }
                 Promise.all(jobs).then(beatmaps => {
                     beatmaps = beatmaps.map(bs => bs[0]);
-                    replyEmbed(embedgenerator.slsd(CONFIG, user_stats, mode, beatmaps, user_best, 0, 30));
+                    replyEmbed(embedgenerator.slsd(CONFIG, user_stats, mode, beatmaps, user_best, number.min - 1, number.max));
                 }).catch(console.error);
             }).catch(console.error);
         }).catch(console.error);

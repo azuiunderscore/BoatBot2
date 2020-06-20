@@ -991,13 +991,17 @@ module.exports = class EmbedGenerator {
 
 	slsd(CONFIG, user, mode, beatmaps, scores, start_index, end_index) {//[start_index, end_index)
 		let newEmbed = new Discord.RichEmbed();
-		UTILS.assert(beatmaps.length === scores.length);
+		UTILS.assert(beatmaps.length === (end_index - start_index));
 		UTILS.assert(end_index <= scores.length);
+		if (mode == 0) newEmbed.setColor(16777215);
+		else if (mode == 1) newEmbed.setColor(16711680);
+		else if (mode == 2) newEmbed.setColor(65280);
+		else if (mode == 3) newEmbed.setColor(255);
 		newEmbed.setTitle(`Top ${start_index + 1}-${end_index} scores`);
 		newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, `https://a.ppy.sh/${user.user_id}?${UTILS.now()}`, `https://osu.ppy.sh/u/${user.user_id}`);
 		let sl_scores = [];//single line scores
 		for (let i = 0; i < end_index; ++i) {
-			sl_scores.push(this.slsdRaw(CONFIG, beatmaps[i], scores[i]));
+			sl_scores.push(this.slsdRaw(CONFIG, beatmaps[i], scores[i + start_index]));
 		}
 		for (let i = 0; i < Math.ceil(sl_scores.length / 5); ++i) {
 			const score_chunk = sl_scores.slice(i * 5, (i + 1) * 5);
