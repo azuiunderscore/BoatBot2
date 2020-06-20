@@ -2321,7 +2321,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         UTILS.defaultObjectValues({ optional: true,
             default_min: 1, default_max: 10,
             min: 1, max: 100,
-            min_count: 1, max_count: 100 },
+            min_count: 1, max_count: 100,
+            default_count: 10 },
         options);
         command(trigger_array, true, elevated_permissions, (original, index, parameter) => {
             /*
@@ -2355,7 +2356,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                 if (dash_index === -1) {//there is no dash
                     c_number.n2 = UTILS.strictParseInt(parameter);//either "!c123"
                 }
-                else if (dash_index > 0 && dash_index < parameter.length - 1) {//there is a dash and there is a number before the dash
+                else if (dash_index > 1) {//there is a dash and there is a number before the dash
                     c_number.n1 = parseInt(UTILS.arbitraryLengthInt(parameter));//either "!c1-" or "!c1-100"
                     if (dash_index < parameter.length - 2) {//there is a number after the dash too
                         c_number.n2 = parseInt(UTILS.arbitraryLengthInt(parameter.substring(dash_index + 1)));
@@ -2404,10 +2405,10 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
             }
             else if (UTILS.exists(c_number.n1) && !UTILS.exists(c_number.n2)) {//only n1 exists (default min)
                 number.min = c_number.n1;
-                number.max = Math.min(options.max, c_number.n1 + (options.max_count - 1));
+                number.max = Math.min(options.max, c_number.n1 + (options.default_count - 1));
             }
             else if (!UTILS.exists(c_number.n1) && UTILS.exists(c_number.n2)) {//only n2 exists (default max)
-                number.min = Math.max(options.min, c_number.n2 - (options.max_count - 1));
+                number.min = Math.max(options.min, c_number.n2 - (options.default_count - 1));
                 number.max = c_number.n2;
             }
             if (number.min > number.max) {
