@@ -1000,9 +1000,11 @@ module.exports = class EmbedGenerator {
 			sl_scores.push(this.slsdRaw(CONFIG, beatmaps[i], scores[i]));
 		}
 		for (let i = 0; i < Math.ceil(sl_scores.length / 5); ++i) {
-			const fd = sl_scores.slice(i * 5, (i + 1) * 5).join("\n");
+			const score_chunk = sl_scores.slice(i * 5, (i + 1) * 5);
+			const fd = score_chunk.join("\n");
 			UTILS.debug("field length: " + fd.length);
-			newEmbed.addField(`#${(i * 5) + 1 + start_index} - #${((i + 1) * 5) + start_index}`, fd);
+			const start_number = (i * 5) + 1 + start_index;
+			newEmbed.addField(`#${start_number} - #${start_number + score_chunk.length}`, fd);
 		}
 		newEmbed.setFooter("Beatmap artist, title, and difficulty names have been truncated.");
 		return newEmbed;

@@ -2400,7 +2400,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
             }
             if (UTILS.exists(c_number.n1) && UTILS.exists(c_number.n2)) {//second number is larger than first number
                 if (c_number.n2 < c_number.n1) {
-                    let temp = n1;
+                    let temp = c_number.n1;
                     c_number.n1 = c_number.n2;
                     c_number.n2 = temp;
                 }
