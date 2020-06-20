@@ -838,10 +838,10 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @permissionlevel 5
      *  @param [osu username]
      * **/
-    commandGuessUsernameNumberRange(usePrefix(["alltop"]), CONFIG.CONSTANTS.BOTOWNERS,
+    commandGuessUsernameNumberRange(usePrefix(["alltopmania", "alltopctb", "alltoptaiko", "alltop"]), CONFIG.CONSTANTS.BOTOWNERS,
         { default_max: 30, default_count: 10, max_count: 30 },
         (index, id, user, number, guess_method) => {
-        let mode = 0;
+        let mode = 3 - index;
         lolapi.osuGetUserTyped(user, mode, id, CONFIG.API_MAXAGE.ALL_TOP.GET_USER).then(user_stats => {
             lolapi.osuGetUserBest(user_stats.user_id, mode, 100, true, CONFIG.API_MAXAGE.ALL_TOP.GET_USER_BEST).then(user_best => {
                 user_best.map(s => {

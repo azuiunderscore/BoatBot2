@@ -997,7 +997,7 @@ module.exports = class EmbedGenerator {
 		else if (mode == 1) newEmbed.setColor("#ff0000");
 		else if (mode == 2) newEmbed.setColor("#00ff00");
 		else if (mode == 3) newEmbed.setColor("#0000ff");
-		newEmbed.setTitle(`Top ${start_index + 1}-${end_index} scores`);
+		newEmbed.setTitle(`Top ${start_index + 1}-${end_index} ${["Standard", "Taiko", "Catch the Beat", "Mania"][parseInt(mode)]} scores`);
 		newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, `https://a.ppy.sh/${user.user_id}?${UTILS.now()}`, `https://osu.ppy.sh/u/${user.user_id}`);
 		let sl_scores = [];//single line scores
 		for (let i = 0; i < end_index - start_index; ++i) {
