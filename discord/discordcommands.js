@@ -2411,7 +2411,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
             const count = number.max - number.min + 1;
             if (number.max > options.max) return false;
             if (number.min < options.min) return false;
-            if (count > max_count || count < min_count) return false;
+            if (count > options.max_count || count < options.min_count) return false;
             if (parameter.length != 0) {//username explicitly provided
                 if (parameter.length < 70) {//longest query should be less than 70 characters
                     if (!processRateLimit()) return false;
