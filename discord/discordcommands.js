@@ -2356,16 +2356,20 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                 if (dash_index === -1) {//there is no dash
                     c_number.n2 = UTILS.strictParseInt(parameter);//either "!c123"
                 }
-                else if (dash_index > 1) {//there is a dash and there is a number before the dash
+                else if (dash_index > 0) {//there is a dash and there is a number before the dash
+                    //UTILS.output("dash w/ number before");
                     c_number.n1 = parseInt(UTILS.arbitraryLengthInt(parameter));//either "!c1-" or "!c1-100"
                     if (dash_index < parameter.length - 2) {//there is a number after the dash too
+                        //UTILS.output("also has number after");
                         c_number.n2 = parseInt(UTILS.arbitraryLengthInt(parameter.substring(dash_index + 1)));
                     }
                 }
                 else if (dash_index === 0 && dash_index < parameter.length - 2) {//there is a dash but no number before the dash
+                    //UTILS.output("dash w/ no number before and number after");
                     c_number.n2 = parseInt(UTILS.arbitraryLengthInt(parameter.substring(dash_index + 1)));//either "!c-100"
                 }
                 else {//something like "!c-" or "!c--"
+                    //UTILS.output("dash w/ invalid syntax");
                     c_number.n1 = NaN;
                     c_number.n2 = NaN;
                 }
