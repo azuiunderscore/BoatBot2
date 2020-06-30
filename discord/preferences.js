@@ -69,7 +69,8 @@ const preferencesFormat = {
 	"player_en": "number",
 	"beatmap_en": "number",
 	"general_en": "number",
-	"username_en": "number"
+	"username_en": "number",
+	"slsd_max": "number"
 };
 const newPreferences = {//new server defaults
 	"id": "",
@@ -125,7 +126,8 @@ const newPreferences = {//new server defaults
 	"player_en": CONFIG.CONSTANTS.NORMALMEMBERS,
 	"beatmap_en": CONFIG.CONSTANTS.NORMALMEMBERS,
 	"general_en": CONFIG.CONSTANTS.NORMALMEMBERS,
-	"username_en": CONFIG.CONSTANTS.NORMALMEMBERS
+	"username_en": CONFIG.CONSTANTS.NORMALMEMBERS,
+	"slsd_max": 30
 };
 
 module.exports = class Preferences {

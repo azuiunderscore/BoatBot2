@@ -839,7 +839,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @param [osu username]
      * **/
     commandGuessUsernameNumberRange(usePrefix(["alltopmania", "alltopctb", "alltoptaiko", "alltop"]), CONFIG.CONSTANTS.BOTOWNERS,
-        { default_max: 30, default_count: 10, max_count: 30 },
+        { default_max: 30, default_count: 10, max_count: preferences.get("slsd_max") },
         (index, id, user, number, guess_method) => {
         let mode = 3 - index;
         lolapi.osuGetUserTyped(user, mode, id, CONFIG.API_MAXAGE.ALL_TOP.GET_USER).then(user_stats => {
@@ -1795,6 +1795,19 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         command(usePrefix(["setting global-feedback on", "setting global-feedback off"]), false, CONFIG.CONSTANTS.MODERATORS, (original, index) => {
             const new_setting = index === 0;
             preferences.set("feedback_enabled", new_setting).then(() => reply(":white_check_mark: " + (new_setting ? "BoatBot will allow the use of global feedback commands in this server." : "BoatBot will not allow the use of global feedback commands in this server."))).catch(reply);
+        });
+
+        /** @command setting multi-score-max
+         *  @description Sets the maximum amount of scores to display.
+         *  @permissionlevel 2
+         *  @param <number of scores between 0-30>
+         * **/
+        command(usePrefix(["setting multi-score-max "]), true, CONFIG.CONSTANTS.MODERATORS, (original, index, parameter) => {
+            const new_setting = parseInt(parameter);
+            if (isNaN(new_setting) || new_setting < 0 || new_setting > 30) {
+                reply(":x: This value is out of range (0-30).");
+            }
+            else preferences.set("slsd_max", new_setting).then(() => reply(`:white_check_mark: BoatBot will allow up to ${new_setting} scores to be displayed in a single command.`)).catch(reply);
         });
 
         /** @command setting comparisons
