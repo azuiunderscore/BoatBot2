@@ -2356,6 +2356,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
             }
             else if (space_index === -1) {//there is no space (no username provided)
                 if (dash_index === -1) {//there is no dash
+                    c_number.n1 = options.default_min;
                     c_number.n2 = UTILS.strictParseInt(parameter);//either "!c123"
                 }
                 else if (dash_index > 0) {//there is a dash and there is a number before the dash
@@ -2379,6 +2380,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
             } else if (space_index === 0) {}//"!c user" with params " user"
             else {//there is a space and something before the space
                 if (dash_index === -1 || dash_index > space_index) {//there is no dash or the dash is after the space
+                    c_number.n1 = options.default_min;
                     c_number.n2 = UTILS.strictParseInt(parameter);//either or "!c123 user" "!c123 username-with-dashes"
                 }
                 else if (dash_index > 0 && dash_index < space_index) {//there is a dash and there is a number before the dash
