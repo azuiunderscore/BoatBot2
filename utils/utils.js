@@ -953,4 +953,11 @@ module.exports = class UTILS {
 	generateBeatmapLink(beatmap) {
 		return `https://osu.ppy.sh/beatmapsets/${beatmap.beatmapset_id}#${["osu", "taiko", "fruits", "mania"][parseInt(beatmap.mode)]}/${beatmap.beatmap_id}`
 	}
+	zeroArray(length) {
+		let ans = [];
+		for (let i = 0; i < length; ++i) {
+			ans.push(0);
+		}
+		return ans;
+	}
 }

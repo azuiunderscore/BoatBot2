@@ -734,14 +734,15 @@ module.exports = class EmbedGenerator {
 			UTILS.debug("mod_string is \"" + mod_string + "\"");
 			if (UTILS.exists(mode)) beatmap.mode = mode;
 			const mods = getModObject(mod_string.substring(1));
-			let other_diffs = [[0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0]];//1 sub array for each mode
+			const MAX_STAR = 9;//emoji star value - 1
+			let other_diffs = [UTILS.zeroArray(MAX_STAR), UTILS.zeroArray(MAX_STAR), UTILS.zeroArray(MAX_STAR), UTILS.zeroArray(MAX_STAR)];//1 sub array for each mode
 			const diff_count = beatmapset.length;
 			for (let b in beatmapset) {
 				++other_diffs[beatmapset[b].mode][wholeStarValue(beatmapset[b].difficultyrating, beatmapset[b].diff_aim)];
 			}
 			let diffstring = "";
 			for (let i = 0; i < 4; ++i) {//mode
-				for (let j = 0; j < 8; ++j) {//star value
+				for (let j = 0; j < MAX_STAR; ++j) {//star value
 					if (other_diffs[i][j] > 0) diffstring += getStars(CONFIG, i, j) + other_diffs[i][j] + TAB;
 				}
 			}
