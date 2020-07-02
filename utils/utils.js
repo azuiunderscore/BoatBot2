@@ -474,15 +474,22 @@ module.exports = class UTILS {
 		return acc;
 	}
 	getModNumber(mod_string) {
-		let answer = 0;
+		let answer = 0;//mod number
 		let answer_object = {};
 		for (let b in short_mod_values) {
 			answer_object[b] = false;
 		}
 		for (let i = 0; i < mod_string.length; i += 2) {
-			if (this.exists(short_mod_values[mod_string.substring(i, i + 2).toUpperCase()])) {
-				answer += short_mod_values[mod_string.substring(i, i + 2).toUpperCase()];
-				answer_object[mod_string.substring(i, i + 2).toUpperCase()] = true;
+			const candidate = mod_string.substring(i, i + 2).toUpperCase();
+			if (this.exists(short_mod_values[candidate])) {
+				answer += short_mod_values[candidate];
+				answer_object[candidate] = true;
+				for (b in doublemods) {
+					if (doublemods[b][0] === candidate) {
+						answer += short_mod_values[doublemods[b][1]];
+						answer_object[doublemods[b][1]] = true;
+					}
+				}
 			}
 		}
 		let answerstring = this.getMods(answer);
