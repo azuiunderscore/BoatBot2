@@ -940,4 +940,7 @@ module.exports = class UTILS {
 			return input;
 		});
 	}
+	generateBeatmapLink(beatmap) {
+		return `https://osu.ppy.sh/beatmapsets/${beatmap.beatmapset_id}#${["osu", "taiko", "fruits", "mania"][parseInt(beatmap.mode)]}/${beatmap.beatmap_id}`
+	}
 }
