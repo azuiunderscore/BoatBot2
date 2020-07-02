@@ -484,7 +484,7 @@ module.exports = class UTILS {
 			if (this.exists(short_mod_values[candidate])) {
 				answer += short_mod_values[candidate];
 				answer_object[candidate] = true;
-				for (b in doublemods) {
+				for (let b in doublemods) {
 					if (doublemods[b][0] === candidate) {
 						answer += short_mod_values[doublemods[b][1]];
 						answer_object[doublemods[b][1]] = true;
