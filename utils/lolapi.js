@@ -547,6 +547,7 @@ module.exports = class LOLAPI {
 					result[b].playcount = parseInt(result[b].playcount);
 					result[b].passcount = parseInt(result[b].passcount);
 					result[b].max_combo = parseInt(result[b].max_combo);
+					result[b].version = result[b].version.sanitizeBeatmapName();
 				}
 				resolve(result);
 			}).catch(reject);
