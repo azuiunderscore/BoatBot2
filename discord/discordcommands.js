@@ -2158,7 +2158,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                                 } else {
                                     ending_parameter = "";
                                 }
-                                callback(index, true, user_id.sanitizeMentions(), parameter, ending_parameter.trim());
+                                callback(index, true, UTILS.sanitizeMentions(user_id), parameter, ending_parameter.trim());
                             }
                         }).catch(e => {
                             console.error(e);
@@ -2291,7 +2291,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                                 }
                             }
                             if (!UTILS.exists(user_id)) reply(":x: Could not find a recent username queried.");
-                            else callback(index, true, user_id.sanitizeMentions(), number, 5);
+                            else callback(index, true, UTILS.sanitizeMentions(user_id), number, 5);
                         }).catch(e => {
                             console.error(e);
                             reply(":x: Could not find a recent username queried.");
@@ -2490,7 +2490,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                                 }
                             }
                             if (!UTILS.exists(user_id)) reply(":x: Could not find a recent username queried.");
-                            else callback(index, true, user_id.sanitizeMentions(), number, 5);
+                            else callback(index, true, UTILS.sanitizeMentions(user_id), number, 5);
                         }).catch(e => {
                             console.error(e);
                             reply(":x: Could not find a recent username queried.");
