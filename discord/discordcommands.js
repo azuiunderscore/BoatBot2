@@ -2139,11 +2139,11 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                                     UTILS.output(`testing embed author url: ${msgs[i].embeds[0].author.url}`);
                                     if (msgs[i].embeds[0].author.url.substring(0, 25) === "https://osu.ppy.sh/users/") {//https://osu.ppy.sh/users/4374286
                                         const candidate = UTILS.arbitraryLengthInt(msgs[i].embeds[0].author.url.substring(25));
-                                        if (candidate !== "") user_id = parseInt(candidate);
+                                        if (candidate !== "") user_id = parseInt(candidate) + "";
                                         break;
                                     } else if (msgs[i].embeds[0].author.url.substring(0, 21) === "https://osu.ppy.sh/u/") {//https://osu.ppy.sh/u/4374286
                                         const candidate = UTILS.arbitraryLengthInt(msgs[i].embeds[0].author.url.substring(21));
-                                        if (candidate !== "") user_id = parseInt(candidate);
+                                        if (candidate !== "") user_id = parseInt(candidate) + "";
                                         break;
                                     }
                                 }
@@ -2281,11 +2281,11 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                                     UTILS.exists(msgs[i].embeds[0].author.url)) {//url present
                                     if (msgs[i].embeds[0].author.url.substring(0, 25) === "https://osu.ppy.sh/users/") {//https://osu.ppy.sh/users/4374286
                                         const candidate = UTILS.arbitraryLengthInt(msgs[i].embeds[0].author.url.substring(25));
-                                        if (candidate !== "") user_id = parseInt(candidate);
+                                        if (candidate !== "") user_id = parseInt(candidate) + "";
                                         break;
                                     } else if (msgs[i].embeds[0].author.url.substring(0, 21) === "https://osu.ppy.sh/u/") {//https://osu.ppy.sh/u/4374286
                                         const candidate = UTILS.arbitraryLengthInt(msgs[i].embeds[0].author.url.substring(21));
-                                        if (candidate !== "") user_id = parseInt(candidate);
+                                        if (candidate !== "") user_id = parseInt(candidate) + "";
                                         break;
                                     }
                                 }
@@ -2480,11 +2480,11 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                                     UTILS.exists(msgs[i].embeds[0].author.url)) {//url present
                                     if (msgs[i].embeds[0].author.url.substring(0, 25) === "https://osu.ppy.sh/users/") {//https://osu.ppy.sh/users/4374286
                                         const candidate = UTILS.arbitraryLengthInt(msgs[i].embeds[0].author.url.substring(25));
-                                        if (candidate !== "") user_id = parseInt(candidate);
+                                        if (candidate !== "") user_id = parseInt(candidate) + "";
                                         break;
                                     } else if (msgs[i].embeds[0].author.url.substring(0, 21) === "https://osu.ppy.sh/u/") {//https://osu.ppy.sh/u/4374286
                                         const candidate = UTILS.arbitraryLengthInt(msgs[i].embeds[0].author.url.substring(21));
-                                        if (candidate !== "") user_id = parseInt(candidate);
+                                        if (candidate !== "") user_id = parseInt(candidate) + "";
                                         break;
                                     }
                                 }
