@@ -586,7 +586,7 @@ module.exports = class EmbedGenerator {
 		else if (mode == 1) newEmbed.setColor("#ff0000");
 		else if (mode == 2) newEmbed.setColor("#00ff00");
 		else if (mode == 3) newEmbed.setColor("#0000ff");
-		newEmbed.setAuthor("Stats for " + user_stats.username, "", "https://osu.ppy.sh/u/" + user_stats.user_id);
+		newEmbed.setAuthor("Stats for " + user_stats.username, "", "https://osu.ppy.sh/users/" + user_stats.user_id);
 		newEmbed.setThumbnail("https://a.ppy.sh/" + user_stats.user_id);
 		newEmbed.setTitle("Performance: " + user_stats.pp_raw + "pp    (#" + UTILS.numberWithCommas(user_stats.pp_rank) + ")    :flag_" + user_stats.country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_stats.pp_country_rank));
 		newEmbed.addField("Favorite Mods, combined", aim_acc.fms);
@@ -963,7 +963,7 @@ module.exports = class EmbedGenerator {
 					if (user.pp_delta >= 0) dpp = ` +${user.pp_delta.round(2)}`;
 					else dpp = ` ${user.pp_delta.round(2)}`;
 				}
-				newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}${dpp}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, `https://a.ppy.sh/${user.user_id}?${UTILS.now()}`, `https://osu.ppy.sh/u/${user.user_id}`);
+				newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}${dpp}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, `https://a.ppy.sh/${user.user_id}?${UTILS.now()}`, `https://osu.ppy.sh/users/${user.user_id}`);
 				newEmbed.setTitle(`${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)} ${beatmap_embed.title} [${beatmap.version}]`);
 
 				if (score.best_play_index !== -1) {//if is best play, set embed color and description
@@ -998,7 +998,7 @@ module.exports = class EmbedGenerator {
 		else if (mode == 2) newEmbed.setColor("#00ff00");
 		else if (mode == 3) newEmbed.setColor("#0000ff");
 		newEmbed.setTitle(`Top ${start_index + 1}-${end_index} ${["Standard", "Taiko", "Catch the Beat", "Mania"][parseInt(mode)]} scores`);
-		newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, `https://a.ppy.sh/${user.user_id}?${UTILS.now()}`, `https://osu.ppy.sh/u/${user.user_id}`);
+		newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, `https://a.ppy.sh/${user.user_id}?${UTILS.now()}`, `https://osu.ppy.sh/users/${user.user_id}`);
 		let sl_scores = [];//single line scores
 		for (let i = 0; i < end_index - start_index; ++i) {
 			sl_scores.push(this.slsdRaw(CONFIG, beatmaps[i], scores[i + start_index]));
@@ -1084,10 +1084,10 @@ module.exports = class EmbedGenerator {
 			newEmbed.setDescription(user_object[players[0].user_id].username + " wins");//add time ago
 			newEmbed.addField("Players", players.map(function (value, index, array) {
 				if (value.pass == "1") {
-					return "`" + UTILS.numberWithCommas(value.score) + "` by [" + user_object[value.user_id].username + "](https://osu.ppy.sh/u/" + value.user_id + ") " + UTILS.numberWithCommas(UTILS.round(user_object[value.user_id].pp_raw, 0)) + "pp (#" + UTILS.numberWithCommas(user_object[value.user_id].pp_rank) + ") :flag_" + user_object[value.user_id].country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_object[value.user_id].pp_country_rank);
+					return "`" + UTILS.numberWithCommas(value.score) + "` by [" + user_object[value.user_id].username + "](https://osu.ppy.sh/users/" + value.user_id + ") " + UTILS.numberWithCommas(UTILS.round(user_object[value.user_id].pp_raw, 0)) + "pp (#" + UTILS.numberWithCommas(user_object[value.user_id].pp_rank) + ") :flag_" + user_object[value.user_id].country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_object[value.user_id].pp_country_rank);
 				}
 				else {
-					return "F" + "`" + UTILS.numberWithCommas(value.score) + "` by [" + user_object[value.user_id].username + "](https://osu.ppy.sh/u/" + value.user_id + ") " + UTILS.numberWithCommas(UTILS.round(user_object[value.user_id].pp_raw, 0)) + "pp (#" + UTILS.numberWithCommas(user_object[value.user_id].pp_rank) + ") :flag_" + user_object[value.user_id].country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_object[value.user_id].pp_country_rank);
+					return "F" + "`" + UTILS.numberWithCommas(value.score) + "` by [" + user_object[value.user_id].username + "](https://osu.ppy.sh/users/" + value.user_id + ") " + UTILS.numberWithCommas(UTILS.round(user_object[value.user_id].pp_raw, 0)) + "pp (#" + UTILS.numberWithCommas(user_object[value.user_id].pp_rank) + ") :flag_" + user_object[value.user_id].country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_object[value.user_id].pp_country_rank);
 				}
 			}).join("\n"));
 			return newEmbed;
@@ -1128,18 +1128,18 @@ module.exports = class EmbedGenerator {
 			}
 			newEmbed.addField(UTILS.numberWithCommas(red_score) + " Red", red_team.map(function (value, index, array) {
 				if (value.pass == "1") {
-					return "`" + UTILS.numberWithCommas(value.score) + "` by [" + user_object[value.user_id].username + "](https://osu.ppy.sh/u/" + value.user_id + ") " + UTILS.numberWithCommas(UTILS.round(user_object[value.user_id].pp_raw, 0)) + "pp (#" + UTILS.numberWithCommas(user_object[value.user_id].pp_rank) + ") :flag_" + user_object[value.user_id].country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_object[value.user_id].pp_country_rank);
+					return "`" + UTILS.numberWithCommas(value.score) + "` by [" + user_object[value.user_id].username + "](https://osu.ppy.sh/users/" + value.user_id + ") " + UTILS.numberWithCommas(UTILS.round(user_object[value.user_id].pp_raw, 0)) + "pp (#" + UTILS.numberWithCommas(user_object[value.user_id].pp_rank) + ") :flag_" + user_object[value.user_id].country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_object[value.user_id].pp_country_rank);
 				}
 				else {
-					return "F" + "`" + UTILS.numberWithCommas(value.score) + "` by [" + user_object[value.user_id].username + "](https://osu.ppy.sh/u/" + value.user_id + ") " + UTILS.numberWithCommas(UTILS.round(user_object[value.user_id].pp_raw, 0)) + "pp (#" + UTILS.numberWithCommas(user_object[value.user_id].pp_rank) + ") :flag_" + user_object[value.user_id].country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_object[value.user_id].pp_country_rank);
+					return "F" + "`" + UTILS.numberWithCommas(value.score) + "` by [" + user_object[value.user_id].username + "](https://osu.ppy.sh/users/" + value.user_id + ") " + UTILS.numberWithCommas(UTILS.round(user_object[value.user_id].pp_raw, 0)) + "pp (#" + UTILS.numberWithCommas(user_object[value.user_id].pp_rank) + ") :flag_" + user_object[value.user_id].country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_object[value.user_id].pp_country_rank);
 				}
 			}).join("\n"));
 			newEmbed.addField(UTILS.numberWithCommas(blue_score) + " Blue", blue_team.map(function (value, index, array) {
 				if (value.pass == "1") {
-					return "`" + UTILS.numberWithCommas(value.score) + "` by [" + user_object[value.user_id].username + "](https://osu.ppy.sh/u/" + value.user_id + ") " + UTILS.numberWithCommas(UTILS.round(user_object[value.user_id].pp_raw, 0)) + "pp (#" + UTILS.numberWithCommas(user_object[value.user_id].pp_rank) + ") :flag_" + user_object[value.user_id].country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_object[value.user_id].pp_country_rank);
+					return "`" + UTILS.numberWithCommas(value.score) + "` by [" + user_object[value.user_id].username + "](https://osu.ppy.sh/users/" + value.user_id + ") " + UTILS.numberWithCommas(UTILS.round(user_object[value.user_id].pp_raw, 0)) + "pp (#" + UTILS.numberWithCommas(user_object[value.user_id].pp_rank) + ") :flag_" + user_object[value.user_id].country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_object[value.user_id].pp_country_rank);
 				}
 				else {
-					return "F" + "`" + UTILS.numberWithCommas(value.score) + "` by [" + user_object[value.user_id].username + "](https://osu.ppy.sh/u/" + value.user_id + ") " + UTILS.numberWithCommas(UTILS.round(user_object[value.user_id].pp_raw, 0)) + "pp (#" + UTILS.numberWithCommas(user_object[value.user_id].pp_rank) + ") :flag_" + user_object[value.user_id].country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_object[value.user_id].pp_country_rank);
+					return "F" + "`" + UTILS.numberWithCommas(value.score) + "` by [" + user_object[value.user_id].username + "](https://osu.ppy.sh/users/" + value.user_id + ") " + UTILS.numberWithCommas(UTILS.round(user_object[value.user_id].pp_raw, 0)) + "pp (#" + UTILS.numberWithCommas(user_object[value.user_id].pp_rank) + ") :flag_" + user_object[value.user_id].country.toLowerCase() + ": #" + UTILS.numberWithCommas(user_object[value.user_id].pp_country_rank);
 				}
 			}).join("\n"));
 			return newEmbed;
@@ -1151,7 +1151,7 @@ module.exports = class EmbedGenerator {
 
 	whatif(CONFIG, user, mode, top, new_score, new_pp, beatmap) {//new_score (is this a new score?) new_pp (what is the new pp value?)
 		let newEmbed = new Discord.RichEmbed();
-		newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, null, `https://osu.ppy.sh/u/${user.user_id}`);
+		newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, null, `https://osu.ppy.sh/users/${user.user_id}`);
 		newEmbed.setThumbnail(`https://a.ppy.sh/${user.user_id}?${UTILS.now()}`);
 		newEmbed.setFooter(["standard mode", "taiko", "catch the beat", "mania"][mode]);
 		const INSERT = 1;
