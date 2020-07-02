@@ -2136,6 +2136,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                                     msgs[i].embeds.length == 1 && //embedded response
                                     UTILS.exists(msgs[i].embeds[0].author) && //author present
                                     UTILS.exists(msgs[i].embeds[0].author.url)) {//url present
+                                    UTILS.output(`testing embed author url: ${msgs[i].embeds[0].author.url}`);
                                     if (msgs[i].embeds[0].author.url.substring(0, 25) === "https://osu.ppy.sh/users/") {//https://osu.ppy.sh/users/4374286
                                         const candidate = UTILS.arbitraryLengthInt(msgs[i].embeds[0].author.url.substring(25));
                                         if (candidate !== "") user_id = parseInt(candidate);
