@@ -2758,7 +2758,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         let valid = 0;//bitwise
         if (!msg.PM) {
             if (!server_RL.check()) {
-                sendToChannel(CONFIG.RATE_LIMIT.CHANNEL_ID, ":no_entry::busts_in_silhouette: Server exceeded rate limit. uID: `" + msg.author.id + "` sID: `" + msg.guild.id + "`\n" + msg.author.tag + " on " + msg.guild.name + " attempted to use: " + msg.cleanContent.substring(0, 50));
+                sendToChannel(CONFIG.RATE_LIMIT.CHANNEL_ID, ":no_entry::busts_in_silhouette: Server (pop. " + msg.guild.memberCount + ") exceeded rate limit. uID: `" + msg.author.id + "` sID: `" + msg.guild.id + "`\n" + msg.author.tag + " on " + msg.guild.name + " attempted to use: " + msg.cleanContent.substring(0, 50));
                 valid += 1;//bit 0
             }
         }
