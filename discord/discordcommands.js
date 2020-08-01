@@ -848,6 +848,9 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                     s.pp_valid = true;
                     return s;
                 });
+                if (number.min > user_best.length) {
+                    return reply(`:x: This user does not have enough top plays to start displaying at #${number.min}.`);
+                }
                 let jobs = [];
                 for (let i = number.min - 1; i < number.max && i < user_best.length; ++i) {
                     jobs.push(lolapi.osuBeatmap(user_best[i].beatmap_id, "b", mode, CONFIG.API_MAXAGE.ALL_TOP.GET_BEATMAP));
