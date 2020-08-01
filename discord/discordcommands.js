@@ -849,7 +849,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                     return s;
                 });
                 let jobs = [];
-                for (let i = number.min - 1; i < number.max; ++i) {
+                for (let i = number.min - 1; i < number.max && i < user_best.length; ++i) {
                     jobs.push(lolapi.osuBeatmap(user_best[i].beatmap_id, "b", mode, CONFIG.API_MAXAGE.ALL_TOP.GET_BEATMAP));
                 }
                 Promise.all(jobs).then(beatmaps => {
