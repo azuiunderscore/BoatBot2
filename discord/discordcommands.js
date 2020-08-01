@@ -1127,7 +1127,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                     jobs.push(lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.RECENT.GET_USER_BEST));//get user best
                     jobtype.push(CONFIG.CONSTANTS.USER_BEST);
                 }
-                if (true) //beatmap.approved > 0) {//leaderboarded score (check beatmap leaderboards)
+                if (true) {//beatmap.approved > 0) {//leaderboarded score (check beatmap leaderboards)
                     jobs.push(lolapi.osuScore(mode, recent_plays[number].beatmap_id, CONFIG.API_MAXAGE.RECENT.GET_SCORE));
                     jobtype.push(CONFIG.CONSTANTS.SCORE);//leaderboard
                     jobs.push(lolapi.osuScoreUser(user, id, mode, recent_plays[number].beatmap_id, CONFIG.API_MAXAGE.RECENT.GET_SCORE_USER));
