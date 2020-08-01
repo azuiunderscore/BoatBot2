@@ -911,7 +911,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                         jobs.push(lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.RECENT.GET_USER_BEST));//get user best
                         jobtype.push(CONFIG.CONSTANTS.USER_BEST);
                     }
-                    if (beatmap.approved > 0) {//leaderboarded score (check beatmap leaderboards)
+                    if (true) {//beatmap.approved > 0) {//leaderboarded score (check beatmap leaderboards)
                         jobs.push(lolapi.osuScore(mode, recent_plays[0].beatmap_id, CONFIG.API_MAXAGE.RECENT.GET_SCORE));
                         jobtype.push(CONFIG.CONSTANTS.SCORE);//leaderboard
                         jobs.push(lolapi.osuScoreUser(user, id, mode, recent_plays[0].beatmap_id, CONFIG.API_MAXAGE.RECENT.GET_SCORE_USER));
@@ -1021,7 +1021,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                     jobs.push(lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.RECENT.GET_USER_BEST));//get user best
                     jobtype.push(CONFIG.CONSTANTS.USER_BEST);
                 }
-                if (beatmap.approved > 0) {//leaderboarded score (check beatmap leaderboards)
+                if (true) {//beatmap.approved > 0) {//leaderboarded score (check beatmap leaderboards)
                     jobs.push(lolapi.osuScore(mode, recent_plays[number].beatmap_id, CONFIG.API_MAXAGE.RECENT.GET_SCORE));
                     jobtype.push(CONFIG.CONSTANTS.SCORE);//leaderboard
                     jobs.push(lolapi.osuScoreUser(user, id, mode, recent_plays[number].beatmap_id, CONFIG.API_MAXAGE.RECENT.GET_SCORE_USER));
@@ -1127,7 +1127,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                     jobs.push(lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.RECENT.GET_USER_BEST));//get user best
                     jobtype.push(CONFIG.CONSTANTS.USER_BEST);
                 }
-                if (beatmap.approved > 0) {//leaderboarded score (check beatmap leaderboards)
+                if (true) //beatmap.approved > 0) {//leaderboarded score (check beatmap leaderboards)
                     jobs.push(lolapi.osuScore(mode, recent_plays[number].beatmap_id, CONFIG.API_MAXAGE.RECENT.GET_SCORE));
                     jobtype.push(CONFIG.CONSTANTS.SCORE);//leaderboard
                     jobs.push(lolapi.osuScoreUser(user, id, mode, recent_plays[number].beatmap_id, CONFIG.API_MAXAGE.RECENT.GET_SCORE_USER));
@@ -1523,7 +1523,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
             }
 
             function step2() {
-                if (beatmap.approved > 0) {//has to be a leaderboarded map for this to work
+                if (true) {//beatmap.approved > 0) {//has to be a leaderboarded map for this to work
                     lolapi.osuGetUserTyped(user, mode, id, CONFIG.API_MAXAGE.COMPARE.GET_USER).then(user_stats => {
                         lolapi.osuScoreUser(user_stats.user_id, true, mode, beatmap_id, CONFIG.API_MAXAGE.COMPARE.GET_SCORE_USER).then(user_scores => {
                             //UTILS.inspect("osuScoreUser", user_scores);
@@ -1549,7 +1549,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                                 jobs.push(lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.COMPARE.GET_USER_BEST));//get user best
                                 jobtype.push(CONFIG.CONSTANTS.USER_BEST);
                             }
-                            if (beatmap.approved > 0) {//leaderboarded score (check beatmap leaderboards)
+                            if (true) {//beatmap.approved > 0) {//leaderboarded score (check beatmap leaderboards)
                                 jobs.push(lolapi.osuScore(mode, beatmap_id, CONFIG.API_MAXAGE.COMPARE.GET_SCORE));
                                 jobtype.push(CONFIG.CONSTANTS.SCORE);//leaderboard
                             }
