@@ -1530,7 +1530,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                             //filter by correct mods
                             user_scores.map((v, i) => {
                                 v.beatmap_id = beatmap_id;
-                                v.pp_valid = (i === 0);
+                                v.pp_valid = (i === 0 && (beatmap.approved == 1 || beatmap.approved == 2));
                                 return v;
                             });
                             let user_score_mod_index = 0;
