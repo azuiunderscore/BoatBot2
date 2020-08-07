@@ -435,9 +435,9 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @permissionlevel 0
      *  @param <osu username>
      * **/
-    command(usePrefix(["link "]), true, cPL("username"), (original, index, parameter) => {
+    command(usePrefix(["link ", "osuset user "]), true, cPL("username"), (original, index, parameter) => {
         if (msg.mentions.users.size == 0) {
-            lolapi.osuGetUser(parameter, 0, false, CONFIG.API_MAXAGE.LINK).then(user => {
+            lolapi.osuGetUser(parameter.replaceAll("\"", ""), 0, false, CONFIG.API_MAXAGE.LINK).then(user => {
                 if (!UTILS.exists(user)) return reply(":x: The username appears to be invalid.");
                 lolapi.setLink(msg.author.id, user.username).then(result => {
                     result.success ? reply(":white_check_mark: Your discord account is now linked to osu!:" + user.username) : reply(":x: Something went wrong.");
