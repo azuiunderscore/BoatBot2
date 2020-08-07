@@ -33,7 +33,7 @@
 		"109894307070083072": {
 			"name": "iaace",//common name
 			"active": true,//account is active
-			"flags": "<:5star:365190043821932544> 🇺🇸",//language flags appended at end of Lmail support messages
+			"flags": "<:5star:365190043821932544> 🇺🇸"//language flags appended at end of Lmail support messages
 		},
 		"137664238046019585": {
 			"name": "Dab",
@@ -43,7 +43,7 @@
 		"338489538320269323": {
 			"name": "Caleb",
 			"active": true,
-			"flags": "<:5star:365190043821932544><:4starm:365413133931511810> 🇺🇸"
+			"flags": "<:6star:365191487769804820><:4starm:365413133931511810> 🇺🇸"
 		},
 		"170613427893567488": {
 			"name": "dracrosinos",
@@ -63,7 +63,7 @@
 		"121626156720979968": {
 			"name": "Cyceph",
 			"active": true,
-			"flags": "<:7starc:365412220571746305> 🇳🇴🇺🇸🇸🇪🇩🇰"
+			"flags": "<:7starc:365412220571746305><:4star:365190003162218506> 🇳🇴🇺🇸🇸🇪🇩🇰"
 		},
 		"141203532148768768": {
 			"name": "Josh Baker from Ohio",
@@ -84,6 +84,16 @@
 			"name": "Shadow",
 			"active": true,
 			"flags": "<:4starm:365413133931511810> 🇨🇦"
+		},
+		"587201615744729098": {
+			"name": "Suspect",
+			"active": true,
+			"flags": "<:5star:365190043821932544> 🇲🇽🇺🇸"
+		},
+		"217398607504998401": {
+			"name": "pentadyne",
+			"active": true,
+			"flags": "<:5star:365190043821932544> 🇺🇸"
 		}
 	},
 	"DISCORD_COMMAND_PREFIX": "!",
