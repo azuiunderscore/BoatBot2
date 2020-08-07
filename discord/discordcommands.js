@@ -442,7 +442,10 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                 lolapi.setLink(msg.author.id, user.username).then(result => {
                     result.success ? reply(":white_check_mark: Your discord account is now linked to osu!:" + user.username) : reply(":x: Something went wrong.");
                 }).catch(console.error);
-            }).catch(console.error);
+            }).catch(e => {
+                console.error(e);
+                reply(":x: The username appears to be invalid.");
+            });
         } else if (msg.mentions.users.size == 1 && isOwner()) {
             lolapi.osuGetUser(parameter.substring(0, parameter.indexOf(" <")), 0, false, CONFIG.API_MAXAGE.LINK).then(user => {
                 if (!UTILS.exists(user)) return reply(":x: The username appears to be invalid. Follow the format: `" + CONFIG.DISCORD_COMMAND_PREFIX + "link <username> <@mention>`");
