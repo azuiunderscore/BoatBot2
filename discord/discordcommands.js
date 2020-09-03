@@ -520,7 +520,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @permissionlevel 0
      * **/
     command(usePrefix(["help", "docs", "documentation"]), false, cPL("general"), (original, index) => {
-        reply("Please see <https://docs.iaace.gg/> for documentation on how to use BoatBot Lazer, as well as our terms and conditions of service. If you have any questions/issues, feel free to let us know by sending `!ask _your question here_?` wherever BoatBot can be used. We try to answer all questions within 24 hours.");
+        reply("Please see <https://docs.iaace.gg/> for documentation on how to use BoatBot Lazer, as well as our terms and conditions of service. If you have any BoatBot related questions/issues, feel free to let us know by sending `!ask _your question here_?` wherever BoatBot can be used. We try to answer all questions within 24 hours.");
     });
 
     /** @command setshortcut
