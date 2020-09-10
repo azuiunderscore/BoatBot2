@@ -863,7 +863,9 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                     replyEmbed(embedgenerator.slsd(CONFIG, user_stats, mode, beatmaps, user_best, number.min - 1, Math.min(user_best.length, number.max)));
                 }).catch(console.error);
             }).catch(console.error);
-        }).catch(console.error);
+        }).catch(() => {
+            reply(":x: The user `" + user + "` doesn't seem to exist.");
+        });
     });
 
     // You know the drill...
