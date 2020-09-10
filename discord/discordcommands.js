@@ -416,6 +416,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @description Migrates links from v1 to v2 database. Will overwrite.
      *  @permissionlevel 5
      * **/
+    /*
     command(usePrefix(["migratelinks"]), false, CONFIG.CONSTANTS.BOTOWNERS, (original, index) => {
         const fs = require("fs");
         const prev_links = JSON.parse(fs.readFileSync("/home/iaace/bbs/data/local/userlinks.json"));
@@ -428,7 +429,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
             for (let b in results) results[b] ? ++successes : ++errors;
             reply("There were " + successes + " successes and " + errors + " failures.");
         }).catch(console.error);
-    });
+    });*/
 
     /** @command link
      *  @description Sets a username to use for commands that infer your osu username if your osu username is different than your discord username.
