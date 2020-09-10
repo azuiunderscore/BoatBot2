@@ -216,7 +216,9 @@ module.exports = class UTILS {
 	}
 	duration(now, date) {
 		now = now.getTime();
-		let answer = ta.ago(now - (date.getTime() - now));
+		date = date.getTime();
+		const diff = Math.abs(now - date);
+		let answer = ta.ago(new Date().getTime() - diff);
 		answer = answer.substring(0, answer.length - 4);
 		return answer;
 	}
