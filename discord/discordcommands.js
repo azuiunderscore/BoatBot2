@@ -799,7 +799,9 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
     command(usePrefix(["where "]), true, cPL("player"), (original, index, parameter) => {
         lolapi.osuGetUser(parameter, 0, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
             reply(textgenerator.where(user_stats));
-        }).catch(console.error);
+        }).catch(() => {
+            reply(":x: The user `" + parameter + "` doesn't seem to exist.");
+        });
     });
 
     /** @command oppai
