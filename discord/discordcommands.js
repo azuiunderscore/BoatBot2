@@ -746,11 +746,15 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         lolapi.osuMostRecentMode(user, id, false, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER_RECENT).then(mrm => {
             lolapi.osuGetUserTyped(user, mrm, id, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
                 replyEmbed(embedgenerator.signature(CONFIG, mrm, user_stats));
-            }).catch(console.error);
+            }).catch(() => {
+                reply(":x: The user `" + user + "` doesn't seem to exist.");
+            });
         }).catch(e => {
             lolapi.osuGetUserTyped(user, 0, id, CONFIG.API_MAXAGE.SIGNATURE_AUTO.GET_USER).then(user_stats => {
                 replyEmbed(embedgenerator.signature(CONFIG, 0, user_stats));
-            }).catch(console.error);
+            }).catch(() => {
+                reply(":x: The user `" + user + "` doesn't seem to exist.");
+            });
         });
     });
 
