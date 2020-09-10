@@ -705,7 +705,9 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
             lolapi.osuGetUserBest(user, mode, 100, id, CONFIG.API_MAXAGE.SPM.GET_USER_BEST).then(user_best => {
                 replyEmbed(embedgenerator.statsPlusMods(CONFIG, mode, user_stats, user_best));
             }).catch(console.error);
-        }).catch(console.error);
+        }).catch(() => {
+            reply(":x: The user `" + user + "` doesn't seem to exist.");
+        });
     });
 
     /** @command osu signature
