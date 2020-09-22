@@ -1059,7 +1059,7 @@ module.exports = class EmbedGenerator {
 			else choke = score.countmiss + CONFIG.EMOJIS.miss;//default display (just misses)
 		}
 		else choke = score.countmiss + CONFIG.EMOJIS.miss;//default display (just misses)
-		const beatmap_title = `[${beatmap.artist.limit(12)} - ${beatmap.title.limit(18)} \\[${beatmap.version.limit(12)}\\]](${UTILS.generateBeatmapLink(beatmap)})`;
+		const beatmap_title = `[${beatmap.artist.limit(12)} - ${beatmap.title.limit(16)} \\[${beatmap.version.limit(12)}\\]](${UTILS.generateBeatmapLink(beatmap)})`;
 		if (title) {//title must be displayed
 			return `${CONFIG.EMOJIS[score.rank]}${getStars(CONFIG, beatmap.mode, beatmap.difficultyrating, beatmap.diff_aim)}**${score.pp_valid ? `${score.pp.round(0)}pp` : `~~${score.pp.round(0)}pp~~`} ${UTILS.calcAcc(beatmap.mode, score).toFixed(2)}% ${choke}${score.enabled_mods !== 0 ? getMods(score.enabled_mods) + " " : ""}**${beatmap_title} \\🕙*${UTILS.shortAgo(score.date)}*`;
 		}
