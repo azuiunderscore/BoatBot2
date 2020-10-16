@@ -132,7 +132,7 @@ module.exports = class WSAPI {
 				case 10://send message to user
 				case 12:
 					const notification = embedgenerator.notify(this.CONFIG, data.content, data.username, data.displayAvatarURL, data.release);
-					this.client.guilds.forEach(g => {
+					this.client.guilds.cache.forEach(g => {
 						let candidate = UTILS.preferredTextChannel(that.client, g.channels, "text", UTILS.defaultChannelNames(), ["VIEW_CHANNEL", "SEND_MESSAGES", "EMBED_LINKS"]);
 						if (UTILS.exists(candidate)) {
 							new Preferences(new LOLAPI(this.CONFIG, 0, this), g, preferences => {
@@ -148,16 +148,16 @@ module.exports = class WSAPI {
 					this.CONFIG.BANS.SERVERS = data.bans;
 					break;
 				case 18:
-					if (UTILS.exists(this.client.guilds.get(data.sid))) {
-						const notification = embedgenerator.serverBan(this.CONFIG, this.client.guilds.get(data.sid), data.reason, data.date, data.issuer_tag, data.issuer_avatarURL);
-						let candidate = UTILS.preferredTextChannel(this.client, this.client.guilds.get(data.sid).channels, "text", UTILS.defaultChannelNames(), ["VIEW_CHANNEL", "SEND_MESSAGES", "EMBED_LINKS"]);
+					if (UTILS.exists(this.client.guilds.cache.get(data.sid))) {
+						const notification = embedgenerator.serverBan(this.CONFIG, this.client.guilds.cache.get(data.sid), data.reason, data.date, data.issuer_tag, data.issuer_avatarURL);
+						let candidate = UTILS.preferredTextChannel(this.client, this.client.guilds.cache.get(data.sid).channels, "text", UTILS.defaultChannelNames(), ["VIEW_CHANNEL", "SEND_MESSAGES", "EMBED_LINKS"]);
 						if (UTILS.exists(candidate)) candidate.send("", { embed: notification }).then(() => {
 							that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":e_mail::no_entry: Server notified in channel " + candidate.name);
 						}).catch(e => {
 							console.error(e);
 							that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":x::no_entry: Server could not be notified");
 						});
-						this.client.guilds.get(data.sid).owner.send("", { embed: notification }).then(() => {
+						this.client.guilds.cache.get(data.sid).owner.send("", { embed: notification }).then(() => {
 							that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":e_mail::no_entry: Owner notified");
 						}).catch(e => {
 							console.error(e);
@@ -187,16 +187,16 @@ module.exports = class WSAPI {
 					});
 					break;
 				case 26:
-					if (UTILS.exists(this.client.guilds.get(data.sid))) {
-						const notification = embedgenerator.serverWarn(this.CONFIG, this.client.guilds.get(data.sid), data.reason, data.issuer_tag, data.issuer_avatarURL);
-						let candidate = UTILS.preferredTextChannel(this.client, this.client.guilds.get(data.sid).channels, "text", UTILS.defaultChannelNames(), ["VIEW_CHANNEL", "SEND_MESSAGES", "EMBED_LINKS"]);
+					if (UTILS.exists(this.client.guilds.cache.get(data.sid))) {
+						const notification = embedgenerator.serverWarn(this.CONFIG, this.client.guilds.cache.get(data.sid), data.reason, data.issuer_tag, data.issuer_avatarURL);
+						let candidate = UTILS.preferredTextChannel(this.client, this.client.guilds.cache.get(data.sid).channels, "text", UTILS.defaultChannelNames(), ["VIEW_CHANNEL", "SEND_MESSAGES", "EMBED_LINKS"]);
 						if (UTILS.exists(candidate)) candidate.send("", { embed: notification }).then(() => {
 							that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":e_mail::warning: Server notified in channel " + candidate.name);
 						}).catch(e => {
 							console.error(e);
 							that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":x::warning: Server could not be notified");
 						});
-						this.client.guilds.get(data.sid).owner.send("", { embed: notification }).then(() => {
+						this.client.guilds.cache.get(data.sid).owner.send("", { embed: notification }).then(() => {
 							that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":e_mail::warning: Owner notified");
 						}).catch(e => {
 							console.error(e);
@@ -213,16 +213,16 @@ module.exports = class WSAPI {
 					});
 					break;
 				case 30:
-					if (UTILS.exists(this.client.guilds.get(data.sid))) {
-						const notification = embedgenerator.serverUnban(this.CONFIG, this.client.guilds.get(data.sid), data.issuer_tag, data.issuer_avatarURL);
-						let candidate = UTILS.preferredTextChannel(this.client, this.client.guilds.get(data.sid).channels, "text", UTILS.defaultChannelNames(), ["VIEW_CHANNEL", "SEND_MESSAGES", "EMBED_LINKS"]);
+					if (UTILS.exists(this.client.guilds.cache.get(data.sid))) {
+						const notification = embedgenerator.serverUnban(this.CONFIG, this.client.guilds.cache.get(data.sid), data.issuer_tag, data.issuer_avatarURL);
+						let candidate = UTILS.preferredTextChannel(this.client, this.client.guilds.cache.get(data.sid).channels, "text", UTILS.defaultChannelNames(), ["VIEW_CHANNEL", "SEND_MESSAGES", "EMBED_LINKS"]);
 						if (UTILS.exists(candidate)) candidate.send("", { embed: notification }).then(() => {
 							that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":e_mail::no_entry_sign: Server notified in channel " + candidate.name);
 						}).catch(e => {
 							console.error(e);
 							that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":x::no_entry_sign: Server could not be notified");
 						});
-						this.client.guilds.get(data.sid).owner.send("", { embed: notification }).then(() => {
+						this.client.guilds.cache.get(data.sid).owner.send("", { embed: notification }).then(() => {
 							that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":e_mail::no_entry_sign: Owner notified");
 						}).catch(e => {
 							console.error(e);

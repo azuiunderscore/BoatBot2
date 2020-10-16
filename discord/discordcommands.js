@@ -319,9 +319,9 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      * **/
     command(usePrefix(["cs"]), false, CONFIG.CONSTANTS.BOTOWNERS, () => {
         lolapi.stats().then(iapi_stats => {
-            UTILS.aggregateClientEvals(client, [["this.guilds.size", r => r.reduce((prev, val) => prev + val, 0) + " (" + r.join(", ") + ")"],
-                ["this.users.size", r => r.reduce((prev, val) => prev + val, 0) + " (" + r.join(", ") + ")"],
-                ["this.guilds.map(g => g.memberCount).reduce((prev, val) => prev + val, 0)", r => r.reduce((prev, val) => prev + val, 0) + " (" + r.join(", ") + ")"]]).then(c_eval => {
+            UTILS.aggregateClientEvals(client, [["this.guilds.cache.size", r => r.reduce((prev, val) => prev + val, 0) + " (" + r.join(", ") + ")"],
+                ["this.users.cache.size", r => r.reduce((prev, val) => prev + val, 0) + " (" + r.join(", ") + ")"],
+                ["this.guilds.cache.map(g => g.memberCount).reduce((prev, val) => prev + val, 0)", r => r.reduce((prev, val) => prev + val, 0) + " (" + r.join(", ") + ")"]]).then(c_eval => {
                 replyEmbed(embedgenerator.debug(CONFIG, client, iapi_stats, c_eval));
             });
         }).catch(console.error);

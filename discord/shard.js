@@ -47,7 +47,7 @@ client.on("ready", function () {
     UTILS.output(initial_start ? "discord user login success" : "discord reconnected");
     client.user.setStatus("idle").catch(console.error);
     client.user.setActivity("Starting Up").catch(console.error);
-    sendToChannel(CONFIG.LOG_CHANNEL_ID, initial_start ? ":repeat:`$" + client.shard.ids[0] + "`Bot started in " + UTILS.round((new Date().getTime() - start_time) / 1000, 0) + "s: version: " + CONFIG.VERSION + " mode: " + mode + " servers: " + client.guilds.size : ":repeat:`$" + client.shard.ids[0] + "`Bot reconnected");
+    sendToChannel(CONFIG.LOG_CHANNEL_ID, initial_start ? ":repeat:`$" + client.shard.ids[0] + "`Bot started in " + UTILS.round((new Date().getTime() - start_time) / 1000, 0) + "s: version: " + CONFIG.VERSION + " mode: " + mode + " servers: " + client.guilds.cache.size : ":repeat:`$" + client.shard.ids[0] + "`Bot reconnected");
     wsapi.getUserBans();
     wsapi.getServerBans();
     UTILS.output("default champion emojis set");
