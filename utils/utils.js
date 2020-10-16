@@ -941,7 +941,7 @@ module.exports = class UTILS {
 			}
 		})
 		.replace(/<#[0-9]+>/g, input => {
-			const channel = msg.client.cache.channels.get(input.replace(/<|#|>/g, ''));
+			const channel = msg.client.channels.cache.get(input.replace(/<|#|>/g, ''));
 			if (channel) return `#${channel.name}`;
 			return input;
 		})

@@ -121,7 +121,7 @@ module.exports = class WSAPI {
 					break;
 				case 6://send message to channel
 					if (true) {//scope limiter
-						const candidate = this.client.cache.channels.get(data.cid);
+						const candidate = this.client.channels.cache.get(data.cid);
 						if (UTILS.exists(candidate)) {
 							candidate.send(data.content).catch(console.error);
 							UTILS.debug("message sent to " + data.cid);
@@ -240,7 +240,7 @@ module.exports = class WSAPI {
 					break;
 				case 34:
 					if (true) {//scope limiter
-						const candidate = this.client.cache.channels.get(data.cid);
+						const candidate = this.client.channels.cache.get(data.cid);
 						if (UTILS.exists(candidate)) {
 							candidate.send(embedgenerator.raw(data.embed)).then(msg => {
 								if (data.approvable) {
@@ -270,12 +270,12 @@ module.exports = class WSAPI {
 		this.send({ type: 5, emojis });
 	}
 	sendTextToChannel(cid, content) {
-		if (UTILS.exists(this.client.cache.channels.get(cid))) this.client.cache.channels.get(cid).send(content).catch(console.error);
+		if (UTILS.exists(this.client.channels.cache.get(cid))) this.client.channels.cache.get(cid).send(content).catch(console.error);
 		else this.send({ type: 7, content, cid });
 	}
 	sendEmbedToChannel(cid, embed, approvable = false) {
 		embed = UTILS.embedRaw(embed);
-		if (UTILS.exists(this.client.cache.channels.get(cid))) this.client.cache.channels.get(cid).send(embedgenerator.raw(embed)).then(msg => {
+		if (UTILS.exists(this.client.channels.cache.get(cid))) this.client.channels.cache.get(cid).send(embedgenerator.raw(embed)).then(msg => {
 			if (approvable) {
 				setTimeout(() => {
 					embed.fields[embed.fields.length - 1].value += "\nApprove: `" + this.CONFIG.DISCORD_COMMAND_PREFIX + "approve " + msg.id + "`";
