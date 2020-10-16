@@ -285,8 +285,8 @@ module.exports = class WSAPI {
 		}).catch(console.error);
 		else this.send({ type: 35, embed, cid, approvable });
 	}
-	lnotify(username, displayAvatarURL(), content, release) {
-		this.send({ type: 13, content, username, displayAvatarURL(), release });
+	lnotify(username, displayAvatarURL, content, release) {
+		this.send({ type: 13, content, username, displayAvatarURL, release });
 	}
 	getUserBans() {
 		this.send({ type: 15 });
