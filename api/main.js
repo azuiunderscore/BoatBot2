@@ -33,7 +33,7 @@ let routes = require("./routes.js");
 UTILS.assert(UTILS.exists(CONFIG.API_PORT), "API port does not exist in config.");
 UTILS.output("Modules loaded.");
 let apicache = require("mongoose");
-apicache.connect(CONFIG.MONGODB_ADDRESS, { useNewUrlParser: true });//cache of summoner object name lookups
+apicache.connect(CONFIG.MONGODB_ADDRESS, { useNewUrlParser: true, useUnifiedTopology: true });//cache of summoner object name lookups
 apicache.connection.on("error", function (e) { throw e; });
 
 let api_doc = new apicache.Schema({
