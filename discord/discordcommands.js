@@ -50,10 +50,10 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         command(usePrefix(["as "]), true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
             const target_uid = parameter.substring(0, parameter.indexOf(" "));
             //ensure user object exists within the server
-            const candidate_member = msg.guild.members.get(target_uid);
+            const candidate_member = msg.guild.members.cache.get(target_uid);
             if (!UTILS.exists(candidate_member)) {
                 reply("Unable to find UID " + target_uid + " in cache. Try running the command again shortly.");
-                client.fetchUser(target_uid).then(t_user => {
+                client.users.fetch(target_uid).then(t_user => {
                     msg.guild.fetchMember(t_user).then(() => {
                     }).catch(console.error);
                 }).catch(console.error);
@@ -109,7 +109,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         if (id == msg.author.id) return reply(":x: You cannot ban yourself.");
         if (id == client.user.id) return reply(":x: You cannot ban me.");
         if (isOwner(id, false)) return reply(":x: The id you are trying to ban has elevated permissions.");
-        lolapi.banUser(id, reason, end_date, msg.author.id, msg.author.tag, msg.author.displayAvatarURL, index === 0).then(result => {
+        lolapi.banUser(id, reason, end_date, msg.author.id, msg.author.tag, msg.author.displayAvatarURL(), index === 0).then(result => {
             sendToChannel(CONFIG.LOG_CHANNEL_ID, ":no_entry: User banned, id " + id + " by " + msg.author.tag + " for : " + reason);
             reply(":no_entry: User banned, id " + id + " by " + msg.author.tag + " for : " + reason);
         }).catch(console.error);
@@ -129,7 +129,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         if (isNaN(duration)) return reply(":x: The duration is invalid.");
         const end_date = duration == 0 ? 0 : new Date().getTime() + duration;
         if (id.length < 1 || reason.length < 1 || typeof (duration) != "number") return reply(":x: The id, duration, or reason could not be found.");
-        lolapi.banServer(id, reason, end_date, msg.author.id, msg.author.tag, msg.author.displayAvatarURL, index === 0).then(result => {
+        lolapi.banServer(id, reason, end_date, msg.author.id, msg.author.tag, msg.author.displayAvatarURL(), index === 0).then(result => {
             sendToChannel(CONFIG.LOG_CHANNEL_ID, ":no_entry: Server banned, id " + id + " by " + msg.author.tag + " for " + duration + ": " + reason);
             reply(":no_entry: Server banned, id " + id + " by " + msg.author.tag + " for " + duration + ": " + reason);
         }).catch(console.error);
@@ -146,7 +146,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         if (id.length < 1 || reason.length < 1) return reply(":x: The id or the reason could not be found.");
         if (id == msg.author.id) return reply(":x: You cannot warn yourself.");
         if (id == client.user.id) return reply(":x: You cannot warn me.");
-        lolapi.warnUser(id, reason, msg.author.id, msg.author.tag, msg.author.displayAvatarURL).then(result => {
+        lolapi.warnUser(id, reason, msg.author.id, msg.author.tag, msg.author.displayAvatarURL()).then(result => {
             sendToChannel(CONFIG.LOG_CHANNEL_ID, ":warning: User warned, id " + id + " by " + msg.author.tag + ": " + reason);
             reply(":warning: User warned, id " + id + " by " + msg.author.tag + ": " + reason);
         }).catch(console.error);
@@ -161,7 +161,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         const id = parameter.substring(0, parameter.indexOf(" "));
         const reason = parameter.substring(parameter.indexOf(" ") + 1);
         if (id.length < 1 || reason.length < 1) return reply(":x: The id or the reason could not be found.");
-        lolapi.warnServer(id, reason, msg.author.id, msg.author.tag, msg.author.displayAvatarURL).then(result => {
+        lolapi.warnServer(id, reason, msg.author.id, msg.author.tag, msg.author.displayAvatarURL()).then(result => {
             sendToChannel(CONFIG.LOG_CHANNEL_ID, ":warning: Server warned, id " + id + " by " + msg.author.tag + ": " + reason);
             reply(":warning: Server warned, id " + id + " by " + msg.author.tag + ": " + reason);
         }).catch(console.error);
@@ -226,7 +226,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @param <server id>
      * **/
     command(usePrefix(["unbanserver "]), true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
-        lolapi.unbanServer(parameter, msg.author.id, msg.author.tag, msg.author.displayAvatarURL).then(result => {
+        lolapi.unbanServer(parameter, msg.author.id, msg.author.tag, msg.author.displayAvatarURL()).then(result => {
             reply(":no_entry_sign: Server unbanned, id " + parameter + " by " + msg.author.tag);
             sendToChannel(CONFIG.LOG_CHANNEL_ID, ":no_entry_sign: Server unbanned, id " + parameter + " by " + msg.author.tag);
         }).catch(console.error);
@@ -238,7 +238,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @param <user id>
      * **/
     command(usePrefix(["unbanuser "]), true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
-        lolapi.unbanUser(parameter, msg.author.id, msg.author.tag, msg.author.displayAvatarURL).then(result => {
+        lolapi.unbanUser(parameter, msg.author.id, msg.author.tag, msg.author.displayAvatarURL()).then(result => {
             reply(":no_entry_sign: User unbanned, id " + parameter + " by " + msg.author.tag);
             sendToChannel(CONFIG.LOG_CHANNEL_ID, ":no_entry_sign: User unbanned, id " + parameter + " by " + msg.author.tag);
         }).catch(console.error);
@@ -384,7 +384,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @param {message}
      * **/
     command(usePrefix(["notify "]), true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
-        wsapi.lnotify(msg.author.username, msg.author.displayAvatarURL, parameter, false);
+        wsapi.lnotify(msg.author.username, msg.author.displayAvatarURL(), parameter, false);
     });
 
     /** @command releasenotify
@@ -393,7 +393,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      *  @pararm {message}
      * **/
     command(usePrefix(["releasenotify "]), true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
-        wsapi.lnotify(msg.author.username, msg.author.displayAvatarURL, parameter, true);
+        wsapi.lnotify(msg.author.username, msg.author.displayAvatarURL(), parameter, true);
     });
 
     command(usePrefix(["testembed"]), false, CONFIG.CONSTANTS.BOTOWNERS, () => {
@@ -2824,7 +2824,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
     function getUsernameFromUID(uid) {
         return new Promise((resolve, reject) => {
             if (UTILS.isInt(uid)) {
-                client.shard.broadcastEval("let candidate_user = this.users.get(\"" + uid + "\"); candidate_user != undefined ? candidate_user.tag : null;").then(possible_usernames => {
+                client.shard.broadcastEval("let candidate_user = this.users.cache.get(\"" + uid + "\"); candidate_user != undefined ? candidate_user.tag : null;").then(possible_usernames => {
                     for (let b in possible_usernames) if (UTILS.exists(possible_usernames[b])) return resolve(possible_usernames[b]);
                     resolve(uid);
                 }).catch(reject);

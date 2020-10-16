@@ -52,7 +52,7 @@ client.on("ready", function () {
     initial_start = false;
 });
 
-client.on("disconnect", function () {
+client.on("shardDisconnect", function () {
     UTILS.output("discord disconnected");
 });
 

@@ -294,7 +294,7 @@ module.exports = class EmbedGenerator {
 	constructor() { }
 
 	test(x = "") {
-		let newEmbed = new Discord.RichEmbed();
+		let newEmbed = new Discord.MessageEmbed();
 		newEmbed.setAuthor("Author \\🇺🇸");
 		newEmbed.setTitle("Test 🇺🇸: " + x);
 		newEmbed.setDescription("description 🇺🇸");
@@ -304,7 +304,7 @@ module.exports = class EmbedGenerator {
 	}
 
 	help(CONFIG) {
-		let newEmbed = new Discord.RichEmbed();
+		let newEmbed = new Discord.MessageEmbed();
 		newEmbed.setTitle("Discord Commands");
 		newEmbed.setDescription("Terms of Service:\n- Don't be a bot on a user account and use BoatBot.\n- Don't abuse bugs. If you find a bug, please report it to us.\n- Don't spam useless feedback\n- If you do not want to use BoatBot, let us know and we'll opt you out of our services.\n- We reserve the right to ban users and servers from using BoatBot at our discretion.\n- We collect data on BoatBot usage to improve user experience and to prevent abuse.\nFor additional help, please visit <" + CONFIG.HELP_SERVER_INVITE_LINK + ">\n\n<required parameter> [optional parameter]");
 		newEmbed.addField("`" + CONFIG.DISCORD_COMMAND_PREFIX + "help`", "Displays this information card.\n" + HORIZONTAL_SEPARATOR);
@@ -317,12 +317,12 @@ module.exports = class EmbedGenerator {
 		return newEmbed;
 	}
 
-	notify(CONFIG, content, username, displayAvatarURL, release) {
-		let newEmbed = new Discord.RichEmbed();
+	notify(CONFIG, content, username, displayAvatarURL(), release) {
+		let newEmbed = new Discord.MessageEmbed();
 		newEmbed.setColor([255, 255, 0]);
 		newEmbed.setTitle("Important message from BoatBot staff");
 		newEmbed.setURL(CONFIG.HELP_SERVER_INVITE_LINK);
-		newEmbed.setAuthor(username, displayAvatarURL);
+		newEmbed.setAuthor(username, displayAvatarURL());
 		newEmbed.setDescription(content);
 		if (release) newEmbed.addField("To disable this kind of release notif,", "Use the command `Lsetting release-notifications off`");
 		newEmbed.setTimestamp();
@@ -330,7 +330,7 @@ module.exports = class EmbedGenerator {
 		return newEmbed;
 	}
 	status(status_object) {
-		let newEmbed = new Discord.RichEmbed();
+		let newEmbed = new Discord.MessageEmbed();
 		newEmbed.setTitle(status_object.name);//region
 		newEmbed.setURL("http://status.leagueoflegends.com/#" + status_object.slug);
 		let status_color = [0, 255, 0];//green
@@ -359,7 +359,7 @@ module.exports = class EmbedGenerator {
 	}
 
 	serverBan(CONFIG, server, reason, date, issuer_tag, issuer_avatarURL) {
-		let newEmbed = new Discord.RichEmbed();
+		let newEmbed = new Discord.MessageEmbed();
 		if (date == 0) {
 			newEmbed.setTitle("This server (" + server.name + ") has been permanently banned from using BoatBot");
 			newEmbed.setColor([1, 1, 1]);
@@ -381,7 +381,7 @@ module.exports = class EmbedGenerator {
 	}
 
 	userBan(CONFIG, reason, date, issuer_tag, issuer_avatarURL) {
-		let newEmbed = new Discord.RichEmbed();
+		let newEmbed = new Discord.MessageEmbed();
 		if (date == 0) {
 			newEmbed.setTitle("You have been permanently banned from using BoatBot");
 			newEmbed.setColor([1, 1, 1]);
@@ -403,7 +403,7 @@ module.exports = class EmbedGenerator {
 	}
 
 	serverWarn(CONFIG, server, reason, issuer_tag, issuer_avatarURL) {
-		let newEmbed = new Discord.RichEmbed();
+		let newEmbed = new Discord.MessageEmbed();
 		newEmbed.setTitle("This is an official warning for your server (" + server.name + ")");
 		newEmbed.setTimestamp();
 		newEmbed.setColor([255, 255, 0]);
@@ -415,7 +415,7 @@ module.exports = class EmbedGenerator {
 	}
 
 	userWarn(CONFIG, reason, issuer_tag, issuer_avatarURL) {
-		let newEmbed = new Discord.RichEmbed();
+		let newEmbed = new Discord.MessageEmbed();
 		newEmbed.setTitle("This is an official warning");
 		newEmbed.setColor([255, 255, 0]);
 		newEmbed.setTimestamp();
@@ -427,7 +427,7 @@ module.exports = class EmbedGenerator {
 	}
 
 	serverUnban(CONFIG, server, issuer_tag, issuer_avatarURL) {
-		let newEmbed = new Discord.RichEmbed();
+		let newEmbed = new Discord.MessageEmbed();
 		newEmbed.setTitle("This server (" + server.name + ") has been unbanned");
 		newEmbed.setColor([0, 255, 0]);
 		newEmbed.setTimestamp();
@@ -437,7 +437,7 @@ module.exports = class EmbedGenerator {
 	}
 
 	userUnban(CONFIG, issuer_tag, issuer_avatarURL) {
-		let newEmbed = new Discord.RichEmbed();
+		let newEmbed = new Discord.MessageEmbed();
 		newEmbed.setTitle("You have been unbanned");
 		newEmbed.setColor([0, 255, 0]);
 		newEmbed.setTimestamp();
@@ -447,7 +447,7 @@ module.exports = class EmbedGenerator {
 	}
 
 	disciplinaryHistory(CONFIG, id, user, docs) {
-		let newEmbed = new Discord.RichEmbed();
+		let newEmbed = new Discord.MessageEmbed();
 		newEmbed.setTitle("Disciplinary History");
 		const status = UTILS.disciplinaryStatus(docs);
 		if (status.active_ban == 0) {
@@ -476,7 +476,7 @@ module.exports = class EmbedGenerator {
 	}
 
 	actionReport(CONFIG, id, docs) {
-		let newEmbed = new Discord.RichEmbed();
+		let newEmbed = new Discord.MessageEmbed();
 		newEmbed.setTitle("Administrative Actions Report");
 		newEmbed.setDescription("Showing 10 most recent events:");
 		newEmbed.setAuthor(CONFIG.OWNER_DISCORD_IDS[id].name + " (" + id + ")");
@@ -495,7 +495,7 @@ module.exports = class EmbedGenerator {
 	}
 
 	statsPlus(CONFIG, mode, user_stats, user_best, php_profile_leader, user_page, php_profile_general) {
-		let newEmbed = new Discord.RichEmbed();
+		let newEmbed = new Discord.MessageEmbed();
 		let totalHits = parseInt(user_stats.count300) + parseInt(user_stats.count100) + parseInt(user_stats.count50);
 		let efficiency = (parseInt(user_stats.ranked_score) / parseInt(user_stats.total_score)) * 100;
 		let bonusPP = 416.6667 * (1 - Math.pow(.9994, (parseInt(user_stats.count_rank_ss) + parseInt(user_stats.count_rank_s) + parseInt(user_stats.count_rank_a))));
@@ -543,7 +543,7 @@ module.exports = class EmbedGenerator {
 	}
 
 	signature(CONFIG, mode, user_stats) {
-		let newEmbed = new Discord.RichEmbed();
+		let newEmbed = new Discord.MessageEmbed();
 		let wordMode;
 		let modeCommand;
 		if (mode == 0) {
@@ -575,7 +575,7 @@ module.exports = class EmbedGenerator {
 	}
 
 	statsPlusMods(CONFIG, mode, user_stats, user_best) {
-		let newEmbed = new Discord.RichEmbed();
+		let newEmbed = new Discord.MessageEmbed();
 		let totalHits = parseInt(user_stats.count300) + parseInt(user_stats.count100) + parseInt(user_stats.count50);
 		let bonusPP = 416.6667 * (1 - Math.pow(.9994, (parseInt(user_stats.count_rank_ss) + parseInt(user_stats.count_rank_s) + parseInt(user_stats.count_rank_a))));
 		const aim_acc = UTILS.calcAimAcc(mathjs, user_best, user_stats.pp_raw);
@@ -618,8 +618,8 @@ module.exports = class EmbedGenerator {
 		(5, 0): management to user
 		(5, 1): management to user admin channel audit
 		*/
-		let newEmbed = new Discord.RichEmbed();
-		newEmbed.setAuthor(msg.author.tag + (msg.PM ? " via PM" : " from server " + msg.guild.name + "::" + msg.guild.id), msg.author.displayAvatarURL);
+		let newEmbed = new Discord.MessageEmbed();
+		newEmbed.setAuthor(msg.author.tag + (msg.PM ? " via PM" : " from server " + msg.guild.name + "::" + msg.guild.id), msg.author.displayAvatarURL());
 		newEmbed.setTimestamp();
 		newEmbed.setTitle("Message from a user");
 		newEmbed.setDescription(msg.cleanContent);
@@ -642,7 +642,7 @@ module.exports = class EmbedGenerator {
 			newEmbed.setColor("#ff00ff");//magenta (yellow reserved for warnings)
 		}
 		else if (type === 5) {
-			newEmbed.setAuthor(msg.author.username, msg.author.displayAvatarURL);
+			newEmbed.setAuthor(msg.author.username, msg.author.displayAvatarURL());
 			newEmbed.setTitle("Message from management to " + usertag);//reset title
 			if (destination === 0) {
 				newEmbed.setURL(CONFIG.HELP_SERVER_INVITE_LINK);
@@ -671,20 +671,20 @@ module.exports = class EmbedGenerator {
 		const c_location2 = msg.embeds[0].footer.text.indexOfInstance(":", 2);
 		if (c_location == -1 || c_location2 == -1) return 3;//not approvable
 		if (approved) {
-			let public_e = new Discord.RichEmbed(msg.embeds[0]);
-			let edit = new Discord.RichEmbed(msg.embeds[0]);
-			let user = new Discord.RichEmbed(msg.embeds[0]);
+			let public_e = new Discord.MessageEmbed(msg.embeds[0]);
+			let edit = new Discord.MessageEmbed(msg.embeds[0]);
+			let user = new Discord.MessageEmbed(msg.embeds[0]);
 			const cid = msg.embeds[0].footer.text.substring(0, c_location);
 			const uid = msg.embeds[0].footer.text.substring(c_location + 1, c_location2);
 			const username = msg.embeds[0].footer.text.substring(c_location2 + 1);
-			public_e.setFooter("Approved by " + approver.username, approver.displayAvatarURL);
+			public_e.setFooter("Approved by " + approver.username, approver.displayAvatarURL());
 			public_e.fields = [];
 			public_e.setAuthor(username, public_e.author.icon_url);
-			edit.setFooter("Approved by " + approver.username, approver.displayAvatarURL);
+			edit.setFooter("Approved by " + approver.username, approver.displayAvatarURL());
 			edit.fields = [];
 			edit.addField("Responses", "Send message response: `" + CONFIG.DISCORD_COMMAND_PREFIX + "mail " + uid + " <text>`\nNote: `" + CONFIG.DISCORD_COMMAND_PREFIX + "noteuser " + uid + " <reason>`");
 			user.setAuthor(username, msg.embeds[0].author.icon, msg.embeds[0].author.url);
-			user.setFooter("Approved by " + approver.username, approver.displayAvatarURL);
+			user.setFooter("Approved by " + approver.username, approver.displayAvatarURL());
 			user.fields = [];
 			user.setTitle("Your feedback was reviewed by our staff and approved for public viewing on our server- click to join");
 			user.setURL("https://discord.gg/57Z8Npg");
@@ -692,11 +692,11 @@ module.exports = class EmbedGenerator {
 			return { to_user: user, to_user_uid: uid, edit, to_public: public_e, to_public_cid: cid };
 		}
 		else {
-			let edit = new Discord.RichEmbed(msg.embeds[0]);
+			let edit = new Discord.MessageEmbed(msg.embeds[0]);
 			const cid = msg.embeds[0].footer.text.substring(0, c_location);
 			const uid = msg.embeds[0].footer.text.substring(c_location + 1, c_location2);
 			const username = msg.embeds[0].footer.text.substring(c_location2 + 1);
-			edit.setFooter("Denied by " + approver.username, approver.displayAvatarURL);
+			edit.setFooter("Denied by " + approver.username, approver.displayAvatarURL());
 			edit.fields = [];
 			edit.addField("Responses", "Send message response: `" + CONFIG.DISCORD_COMMAND_PREFIX + "mail " + uid + " <text>`\nNote: `" + CONFIG.DISCORD_COMMAND_PREFIX + "noteuser " + uid + " <reason>`");
 			edit.setColor("#010101");
@@ -705,11 +705,11 @@ module.exports = class EmbedGenerator {
 	}
 
 	raw(embed_object) {
-		return new Discord.RichEmbed(embed_object);
+		return new Discord.MessageEmbed(embed_object);
 	}
 
 	debug(CONFIG, client, iapi_stats, c_eval) {
-		let newEmbed = new Discord.RichEmbed();
+		let newEmbed = new Discord.MessageEmbed();
 		let serverbans = 0, userbans = 0;
 		newEmbed.setTimestamp();
 		const now = new Date().getTime();
@@ -761,7 +761,7 @@ module.exports = class EmbedGenerator {
 			}
 			else step2();
 			function step2(oo) {
-				let newEmbed = new Discord.RichEmbed();
+				let newEmbed = new Discord.MessageEmbed();
 				newEmbed.setAuthor(beatmap.creator, `https://a.ppy.sh/${beatmap.creator_id}?${UTILS.now()}`, "https://osu.ppy.sh/users/" + beatmap.creator_id);
 				newEmbed.setURL(UTILS.generateBeatmapLink(beatmap));
 				//newEmbed.setURL("https://osu.ppy.sh/b/" + beatmap.beatmap_id + "&m=" + beatmap.mode);//old link for compatibility
@@ -956,7 +956,7 @@ module.exports = class EmbedGenerator {
 			const mod_string = getMods(score.enabled_mods);
 			this.beatmap(CONFIG, beatmap, [beatmap], mod_string, beatmap.mode, true).then(beatmap_embed => {
 				beatmap_embed = UTILS.embedRaw(beatmap_embed);
-				let newEmbed = new Discord.RichEmbed();
+				let newEmbed = new Discord.MessageEmbed();
 				newEmbed.setURL(beatmap_embed.url);
 				newEmbed.setThumbnail(beatmap_embed.thumbnail.url);
 				let dpp = "";//delta pp
@@ -975,7 +975,7 @@ module.exports = class EmbedGenerator {
 				const pcl_str = `**${score.pp_valid ? `${score.pp.round(2)}pp` : `~~${score.pp.round(2)}pp~~`}**${score.max_pp_valid ? `/${score.max_pp.round(2)}PP` : `${score.max_pp === 0 ? TAB : `~~/${score.max_pp.round(2)}PP~~`}`}${HALF_TAB}**${score.maxcombo}x**${beatmap.max_combo !== 0 ? `/${beatmap.max_combo}X` : ""}${TAB}{${beatmap.mode === 3 ? ` ${score.countgeki}/${score.count300}/${score.countkatu}/${score.count100}/${score.count50}/${score.countmiss} ` : ` ${score.count300} / ${score.count100} / ${score.count50} / ${score.countmiss} `}}`;//pp combo line string
 
 				//compact scorecard
-				let compact = new Discord.RichEmbed(UTILS.embedRaw(newEmbed));
+				let compact = new Discord.MessageEmbed(UTILS.embedRaw(newEmbed));
 				compact.addField(`${UTILS.exists(beatmap.mod_dr) ? getStars(CONFIG, beatmap.mode, beatmap.mod_dr) : ""}${CONFIG.EMOJIS[score.rank]}${score.rank === "F" && score.progress !== -1 ? `${UTILS.pickCircle(score.progress)}` : ""} ${score.enabled_mods !== 0 ? getMods(score.enabled_mods) : ""}${score.leaderboard_index !== -1 ? ` **__r#${score.leaderboard_index + 1}__**` : TAB} ${UTILS.numberWithCommas(score.score)}${TAB}(${UTILS.calcAcc(beatmap.mode, score)}%)${TAB}${UTILS.ago(score.date)}`, pcl_str);
 
 				//full scorecard
@@ -991,7 +991,7 @@ module.exports = class EmbedGenerator {
 	}
 
 	slsd(CONFIG, user, mode, beatmaps, scores, start_index, end_index) {//[start_index, end_index)
-		let newEmbed = new Discord.RichEmbed();
+		let newEmbed = new Discord.MessageEmbed();
 		UTILS.assert(beatmaps.length === (end_index - start_index));
 		UTILS.assert(end_index <= scores.length);
 		if (mode == 0) newEmbed.setColor("#fefefe");
@@ -1070,7 +1070,7 @@ module.exports = class EmbedGenerator {
 	}
 
 	matchRequest(match_object, user_object, beatmap_object) {
-		let newEmbed = new Discord.RichEmbed();
+		let newEmbed = new Discord.MessageEmbed();
 		let game = match_object.games[match_object.games.length - 1];
 		newEmbed.setAuthor(match_object.match.name, "", "https://osu.ppy.sh/mp/" + match_object.match.match_id);
 		newEmbed.setTitle(UTILS.round(beatmap_object[0].difficultyrating, 2) + "★ " + beatmap_object[0].artist + " - " + beatmap_object[0].title + "[" + beatmap_object[0].version + "] by " + beatmap_object[0].creator);
@@ -1151,7 +1151,7 @@ module.exports = class EmbedGenerator {
 	}
 
 	whatif(CONFIG, user, mode, top, new_score, new_pp, beatmap) {//new_score (is this a new score?) new_pp (what is the new pp value?)
-		let newEmbed = new Discord.RichEmbed();
+		let newEmbed = new Discord.MessageEmbed();
 		newEmbed.setAuthor(`${user.username}: ${UTILS.numberWithCommas(user.pp_raw)}pp (#${UTILS.numberWithCommas(user.pp_rank)} ${user.country}${UTILS.numberWithCommas(user.pp_country_rank)})`, null, `https://osu.ppy.sh/users/${user.user_id}`);
 		newEmbed.setThumbnail(`https://a.ppy.sh/${user.user_id}?${UTILS.now()}`);
 		newEmbed.setFooter(["standard mode", "taiko", "catch the beat", "mania"][mode]);
