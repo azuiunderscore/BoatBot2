@@ -1056,7 +1056,7 @@ module.exports = class EmbedGenerator {
 			if (score.maxcombo === beatmap.max_combo) choke = "PC" + " ";
 			else if (score.maxcombo > .98 * beatmap.max_combo && score.countmiss === 0) choke = "FC" + " ";
 			else if (score.countmiss === 0) choke = (score.maxcombo - beatmap.max_combo) + "x" + " ";
-			else choke = score.countmiss + CONFIG.EMOJIS.miss;//default display (just misses)
+			else choke = score.countmiss + CONFIG.EMOJIS.miss;//"\\❌"; default display (just misses)
 		}
 		else choke = score.countmiss + CONFIG.EMOJIS.miss;//default display (just misses)
 		const beatmap_title = `[${beatmap.artist.limit(12)} - ${beatmap.title.limit(16)} \\[${beatmap.version.limit(12)}\\]](${UTILS.generateBeatmapLink(beatmap)})`;
