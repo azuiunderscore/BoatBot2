@@ -9,7 +9,7 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
-    "request": "^2.88.0",
-    "xregexp": "^4.2.4"
+    "request": "^2.88.2",
+    "xregexp": "^4.3.0"
   }
 }
