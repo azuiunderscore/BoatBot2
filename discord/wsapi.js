@@ -315,7 +315,7 @@ module.exports = class WSAPI {
 		this.send({ type: 33, uid, embed });
 	}
 	connect() {
-		this.connection = new ws(this.address + ":" + this.port + "/shard?k=" + encodeURIComponent(this.CONFIG.API_KEY) + "&id=" + client.shard.ids[0], agentOptions);
+		this.connection = new ws(this.address + ":" + this.port + "/shard?k=" + encodeURIComponent(this.CONFIG.API_KEY) + "&id=" + this.client.shard.ids[0], agentOptions);
 	}
 	connected() {
 		return this.connection.readyState == 1;
