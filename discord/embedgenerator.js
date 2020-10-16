@@ -317,7 +317,7 @@ module.exports = class EmbedGenerator {
 		return newEmbed;
 	}
 
-	notify(CONFIG, content, username, displayAvatarURL(), release) {
+	notify(CONFIG, content, username, displayAvatarURL, release) {
 		let newEmbed = new Discord.MessageEmbed();
 		newEmbed.setColor([255, 255, 0]);
 		newEmbed.setTitle("Important message from BoatBot staff");
