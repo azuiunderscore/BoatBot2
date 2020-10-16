@@ -184,7 +184,7 @@ module.exports = class LOLAPI {
 			}).catch(reject);
 		});
 	}
-	terminate(msg, plevel, response, embed) {
+	terminate(msg, plevel, response, embed, shard_id) {
 		const now = new Date().getTime();
 		let opts = {
 			mid: msg.id,
@@ -196,7 +196,7 @@ module.exports = class LOLAPI {
 			reply_time: now,
 			ttr: now - this.created,
 			permission: plevel,
-			shard: process.env.SHARD_ID
+			shard: shard_id
 		};
 		if (!msg.PM) {
 			opts.sid = msg.guild.id,

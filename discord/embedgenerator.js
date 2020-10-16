@@ -719,7 +719,7 @@ module.exports = class EmbedGenerator {
 		for (let b in CONFIG.BANS.SERVERS) {
 			if (CONFIG.BANS.SERVERS[b] == 0 || CONFIG.BANS.SERVERS[b] > now)++serverbans;
 		}
-		newEmbed.setAuthor("Shard $" + process.env.SHARD_ID);
+		newEmbed.setAuthor("Shard $" + client.shard.ids[0]);
 		newEmbed.setTitle("Diagnostic Information");
 		newEmbed.addField("System", "iAPI request rate: " + UTILS.round(iapi_stats["0"].total_rate, 1) + " req/min\niAPI total requests: " + iapi_stats["0"].total_count + "\nNode.js " + process.versions.node + "\nNODE_ENV: " + process.env.NODE_ENV + "\nSoftware Version: " + CONFIG.VERSION + "\nShards configured: " + CONFIG.SHARD_COUNT, true);
 		newEmbed.addField("Uptime Information", "Time since last disconnect: " + UTILS.round(client.uptime / 3600000.0, 2) + " hours\nTime since last restart: " + UTILS.round(process.uptime() / 3600.0, 2) + " hours\nIAPI time since last restart: " + UTILS.round(iapi_stats.uptime / 3600.0, 2) + " hours", true);

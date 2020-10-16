@@ -2599,7 +2599,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 
         if (Array.isArray(reply_text)) {//[{r: string, t: 0}, {}]
             printMessage("reply (" + (new Date().getTime() - msg_receive_time) + "ms): " + reply_text[0].r + "\n");
-            lolapi.terminate(msg, ACCESS_LEVEL, reply_text[0].r);
+            lolapi.terminate(msg, ACCESS_LEVEL, reply_text[0].r, null, client.shard.ids[0]);
             msg.channel.send(reply_text[0].r, {split: true}).then((nMsg) => {
                 if (UTILS.exists(callback)) callback(nMsg);
                 for (let i = 1; i < reply_text.length; ++i) {
@@ -2613,7 +2613,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
             });
         } else {//just a string
             printMessage("reply (" + (new Date().getTime() - msg_receive_time) + "ms): " + reply_text + "\n");
-            lolapi.terminate(msg, ACCESS_LEVEL, reply_text);
+            lolapi.terminate(msg, ACCESS_LEVEL, reply_text, null, client.shard.ids[0]);
             msg.channel.send(reply_text, {split: true}).then((nMsg) => {
                 if (UTILS.exists(callback)) callback(nMsg);
             }).catch((e) => {
@@ -2629,7 +2629,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 
         if (Array.isArray(reply_text)) {//[{r: string, t: 0}, {}]
             printMessage("reply to author (" + (new Date().getTime() - msg_receive_time) + "ms): " + reply_text[0].r + "\n");
-            lolapi.terminate(msg, ACCESS_LEVEL, reply_text[0].r);
+            lolapi.terminate(msg, ACCESS_LEVEL, reply_text[0].r, null, client.shard.ids[0]);
             msg.author.send(reply_text[0].r, {split: true}).then((nMsg) => {
                 if (UTILS.exists(callback)) callback(nMsg);
                 for (let i = 1; i < reply_text.length; ++i) {
@@ -2645,7 +2645,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         } else {
 
             printMessage("reply to author (" + (new Date().getTime() - msg_receive_time) + "ms): " + reply_text + "\n");
-            lolapi.terminate(msg, ACCESS_LEVEL, reply_text);
+            lolapi.terminate(msg, ACCESS_LEVEL, reply_text, null, client.shard.ids[0]);
 
             msg.author.send(reply_text, {split: true}).then((nMsg) => {
                 if (UTILS.exists(callback)) callback(nMsg);
@@ -2668,14 +2668,14 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         // Make sure the bot has EMBED_LINKS permission on the channel
         if (!msg.PM && !msg.channel.permissionsFor(client.user).has(["EMBED_LINKS"])) {
 
-            lolapi.terminate(msg, ACCESS_LEVEL, ":x: I cannot respond to your request without the \"embed links\" permission.");
+            lolapi.terminate(msg, ACCESS_LEVEL, ":x: I cannot respond to your request without the \"embed links\" permission.", null, client.shard.ids[0]);
             reply(":x: I cannot respond to your request without the \"embed links\" permission.");
 
         } else {//has permission to embed links, or is a DM/PM
 
             if (Array.isArray(reply_embed)) {//[{r: embed_object, t: 0, s: "string"}, {}]
                 printMessage("reply embedded (" + (new Date().getTime() - msg_receive_time) + "ms)\n");
-                lolapi.terminate(msg, ACCESS_LEVEL, undefined, reply_embed[0].r);
+                lolapi.terminate(msg, ACCESS_LEVEL, undefined, reply_embed[0].r, client.shard.ids[0]);
                 msg.channel.send(UTILS.exists(reply_embed[0].s) ? reply_embed[0].s : "", {embed: reply_embed[0].r}).then((nMsg) => {
                     if (UTILS.exists(callback)) callback(nMsg);
                     for (let i = 1; i < reply_embed.length; ++i) {
@@ -2690,7 +2690,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
 
             } else {
                 printMessage("reply embedded (" + (new Date().getTime() - msg_receive_time) + "ms)\n");
-                lolapi.terminate(msg, ACCESS_LEVEL, undefined, reply_embed);
+                lolapi.terminate(msg, ACCESS_LEVEL, undefined, reply_embed, client.shard.ids[0]);
                 msg.channel.send("", {embed: reply_embed}).then((nMsg) => {
                     if (UTILS.exists(callback)) callback(nMsg);
                 }).catch((e) => {
@@ -2705,7 +2705,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         if (!RL_activated && !processRateLimit()) return;
         if (Array.isArray(reply_embed)) {
             printMessage("reply embedded to author (" + (new Date().getTime() - msg_receive_time) + "ms)\n");
-            lolapi.terminate(msg, ACCESS_LEVEL, undefined, reply_embed[0].r);
+            lolapi.terminate(msg, ACCESS_LEVEL, undefined, reply_embed[0].r, client.shard.ids[0]);
             msg.author.send("", {embed: reply_embed[0].r}).then((nMsg) => {
                 if (UTILS.exists(callback)) callback(nMsg);
                 for (let i = 1; i < reply_embed.length; ++i) {
@@ -2719,7 +2719,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
             });
         } else {
             printMessage("reply embedded to author (" + (new Date().getTime() - msg_receive_time) + "ms)\n");
-            lolapi.terminate(msg, ACCESS_LEVEL, undefined, reply_embed);
+            lolapi.terminate(msg, ACCESS_LEVEL, undefined, reply_embed, client.shard.ids[0]);
             msg.author.send("", {embed: reply_embed}).then((nMsg) => {
                 if (UTILS.exists(callback)) callback(nMsg);
             }).catch((e) => {

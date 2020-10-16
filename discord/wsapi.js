@@ -89,7 +89,7 @@ module.exports = class WSAPI {
 		this.request = REQUEST;
 		this.address = "wss://" + this.CONFIG.API_ADDRESS;
 		this.port = this.CONFIG.API_PORT;
-		UTILS.debug("wss address attempted: " + this.address + ":" + this.port + "/shard?k=" + encodeURIComponent(this.CONFIG.API_KEY) + "&id=" + process.env.SHARD_ID);
+		UTILS.debug("wss address attempted: " + this.address + ":" + this.port + "/shard?k=" + encodeURIComponent(this.CONFIG.API_KEY) + "&id=" + this.client.shard.ids[0]);
 		this.connect();
 		setInterval(() => {
 			if (this.connection.readyState > 1) this.connect();
@@ -301,7 +301,7 @@ module.exports = class WSAPI {
 	}
 	send(raw_object) {
 		let that = this;
-		raw_object.id = parseInt(process.env.SHARD_ID);
+		raw_object.id = parseInt(this.client.shard.ids[0]);//
 		if (this.connection.readyState != 1) {
 			this.connect();
 			setTimeout(() => {
@@ -315,7 +315,7 @@ module.exports = class WSAPI {
 		this.send({ type: 33, uid, embed });
 	}
 	connect() {
-		this.connection = new ws(this.address + ":" + this.port + "/shard?k=" + encodeURIComponent(this.CONFIG.API_KEY) + "&id=" + process.env.SHARD_ID, agentOptions);
+		this.connection = new ws(this.address + ":" + this.port + "/shard?k=" + encodeURIComponent(this.CONFIG.API_KEY) + "&id=" + client.shard.ids[0], agentOptions);
 	}
 	connected() {
 		return this.connection.readyState == 1;

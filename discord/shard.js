@@ -30,10 +30,12 @@ try {
 }
 
 const mode = process.env.NODE_ENV === "production" ? "PRODUCTION:warning:" : process.env.NODE_ENV;
-const LOLAPI = new (require("../utils/lolapi.js"))(CONFIG, process.env.SHARD_ID);
+const LOLAPI = new (require("../utils/lolapi.js"))(CONFIG, client.shard.ids[0]);
 let STATUS = {};
 const wsapi = new (require("./wsapi.js"))(CONFIG, client, STATUS);
 const Preferences = require("./preferences.js");
+
+process.env.SHARD_ID = client.shard.ids[0];//legacy compatibility with UTILS.output()
 
 loadAllStaticResources(() => {
     UTILS.output(process.env.NODE_ENV === "production" ? "PRODUCTION LOGIN" : "DEVELOPMENT LOGIN");
@@ -45,7 +47,7 @@ client.on("ready", function () {
     UTILS.output(initial_start ? "discord user login success" : "discord reconnected");
     client.user.setStatus("idle").catch(console.error);
     client.user.setActivity("Starting Up").catch(console.error);
-    sendToChannel(CONFIG.LOG_CHANNEL_ID, initial_start ? ":repeat:`$" + process.env.SHARD_ID + "`Bot started in " + UTILS.round((new Date().getTime() - start_time) / 1000, 0) + "s: version: " + CONFIG.VERSION + " mode: " + mode + " servers: " + client.guilds.size : ":repeat:`$" + process.env.SHARD_ID + "`Bot reconnected");
+    sendToChannel(CONFIG.LOG_CHANNEL_ID, initial_start ? ":repeat:`$" + client.shard.ids[0] + "`Bot started in " + UTILS.round((new Date().getTime() - start_time) / 1000, 0) + "s: version: " + CONFIG.VERSION + " mode: " + mode + " servers: " + client.guilds.size : ":repeat:`$" + client.shard.ids[0] + "`Bot reconnected");
     wsapi.getUserBans();
     wsapi.getServerBans();
     UTILS.output("default champion emojis set");
@@ -93,13 +95,13 @@ client.on("guildCreate", function (guild) {
     LOLAPI.checkPreferences(guild.id).then(ans => {
         if (false) {
             UTILS.output("Server Joined: " + guild.id + " :: " + guild.name + " :: " + guild.region + " :: Population=" + guild.memberCount + " :: " + guild.owner.user.tag);
-            sendToChannel(CONFIG.LOG_CHANNEL_ID, ":white_check_mark:`$" + process.env.SHARD_ID + "`Server Joined: `" + guild.id + "` :: " + guild.region + " :: " + guild.name + " :: :busts_in_silhouette:" + guild.memberCount + " :: " + guild.owner.user.tag);
+            sendToChannel(CONFIG.LOG_CHANNEL_ID, ":white_check_mark:`$" + client.shard.ids[0] + "`Server Joined: `" + guild.id + "` :: " + guild.region + " :: " + guild.name + " :: :busts_in_silhouette:" + guild.memberCount + " :: " + guild.owner.user.tag);
             guild.owner.send("BoatBot has joined your server: " + guild.name + "\nUse `" + CONFIG.DISCORD_COMMAND_PREFIX + "help` for information on how to use BoatBot.\nAdd BoatBot to other servers using this link: <" + CONFIG.BOT_ADD_LINK + ">\nBoatBot is a work in progress! Help us improve BoatBot by sending us your feedback at " + CONFIG.HELP_SERVER_INVITE_LINK + "\nBoatBot is made free and possible by the work of many. See `" + CONFIG.DISCORD_COMMAND_PREFIX + "credits` for special acknowledgements.").catch(e => console.error(e));
             let candidate = UTILS.preferredTextChannel(client, guild.channels, "text", UTILS.defaultChannelNames(), ["VIEW_CHANNEL", "SEND_MESSAGES"]);
             if (UTILS.exists(candidate)) candidate.send("Use `" + CONFIG.DISCORD_COMMAND_PREFIX + "help` for information on how to use BoatBot.\nAdd BoatBot to other servers using this link: <" + CONFIG.BOT_ADD_LINK + ">\nBoatBot is a work in progress! Help us improve BoatBot by sending us your feedback at " + CONFIG.HELP_SERVER_INVITE_LINK + "\nBoatBot is made free and possible by the work of many. See `" + CONFIG.DISCORD_COMMAND_PREFIX + "credits` for special acknowledgements.").catch();
         } else {
             UTILS.output("Server Rejoined: " + guild.id + " :: " + guild.name + " :: " + guild.region + " :: Population=" + guild.memberCount + " :: " + guild.owner.user.tag);
-            sendToChannel(CONFIG.LOG_CHANNEL_ID, ":white_check_mark::repeat:`$" + process.env.SHARD_ID + "`Server Rejoined: `" + guild.id + "` :: " + guild.region + " :: " + guild.name + " :: :busts_in_silhouette:" + guild.memberCount + " :: " + guild.owner.user.tag);
+            sendToChannel(CONFIG.LOG_CHANNEL_ID, ":white_check_mark::repeat:`$" + client.shard.ids[0] + "`Server Rejoined: `" + guild.id + "` :: " + guild.region + " :: " + guild.name + " :: :busts_in_silhouette:" + guild.memberCount + " :: " + guild.owner.user.tag);
         }
     }).catch(console.error);
 
@@ -108,7 +110,7 @@ client.on("guildCreate", function (guild) {
 // Send log message when the bot is removed from a guild
 client.on("guildDelete", function (guild) {
     UTILS.output("Server Left: " + guild.id + " :: " + guild.region + " :: " + guild.name + " :: Population=" + guild.memberCount);
-    sendToChannel(CONFIG.LOG_CHANNEL_ID, ":x:`$" + process.env.SHARD_ID + "`Server Left: `" + guild.id + "` :: " + guild.region + " :: " + guild.name + " :: :busts_in_silhouette:" + guild.memberCount);
+    sendToChannel(CONFIG.LOG_CHANNEL_ID, ":x:`$" + client.shard.ids[0] + "`Server Left: `" + guild.id + "` :: " + guild.region + " :: " + guild.name + " :: :busts_in_silhouette:" + guild.memberCount);
 });
 
 let server_rate_limiters = {};
