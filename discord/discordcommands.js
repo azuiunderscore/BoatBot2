@@ -1649,6 +1649,19 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                 reply(":x: I need the \"read message history\" permission to process this request.");
             });
         });
+        command(usePrefix(["beatmap", "map"]), true, cPL("beatmap"), (original, index, parameter) => {
+            if (parameter.indexOf("https://osu.ppy.sh/beatmapsets/") === 0) return newLink(msgs[i].embeds[0].url + parameter);
+            else if (parameter.indexOf("https://osu.ppy.sh/b/") === 0) return oldLink(msgs[i].embeds[0].url.substring(21) + parameter);
+            else if (parameter.indexOf("https://old.ppy.sh/b/") === 0) return oldLink(msgs[i].embeds[0].url.substring(21) + parameter);
+            else {
+                if (parseInt(UTILS.arbitraryLengthInt(parameter)) === NaN) {
+                    reply(":x: Not a valid beatmap ID");
+                }
+                else {
+                    oldLink(parameter);
+                }
+            }
+        });
 
         function newLink(url) {// handles https://osu.ppy.sh/beatmapsets/ type links (include URL and mod string)
             let parameter = url.substring(url.indexOfInstance("/", 4) + 1);
