@@ -1652,9 +1652,9 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         command(usePrefix(["beatmap", "map"]), true, cPL("beatmap"), (original, index, parameter) => {
             if (parameter == "") return;
             parameter = parameter.trim();
-            if (parameter.indexOf("https://osu.ppy.sh/beatmapsets/") === 0) return newLink(msgs[i].embeds[0].url + parameter);
-            else if (parameter.indexOf("https://osu.ppy.sh/b/") === 0) return oldLink(msgs[i].embeds[0].url.substring(21) + parameter);
-            else if (parameter.indexOf("https://old.ppy.sh/b/") === 0) return oldLink(msgs[i].embeds[0].url.substring(21) + parameter);
+            if (parameter.indexOf("https://osu.ppy.sh/beatmapsets/") === 0) return newLink(parameter);
+            else if (parameter.indexOf("https://osu.ppy.sh/b/") === 0) return oldLink(parameter);
+            else if (parameter.indexOf("https://old.ppy.sh/b/") === 0) return oldLink(parameter);
             else {
                 if (parseInt(UTILS.arbitraryLengthInt(parameter)) === NaN) {
                     reply(":x: Not a valid beatmap ID");
