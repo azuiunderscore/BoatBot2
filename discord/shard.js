@@ -66,13 +66,13 @@ client.on("message", function (msg) {
             msg.guild.members.fetch(msg.author).then(() => {
                 step2();
             }).catch((e) => {
-                step2();
+                step2(false);
             });
         }
         else {
             step2();
         }
-        function step2() {
+        function step2(valid_member = true) {
             const ACCESS_LEVEL = UTILS.accessLevel(CONFIG, msg);
             const SERVER_RL = msg.PM ? null : getServerRateLimiter(msg.guild.id);
             if (!msg.PM) {
@@ -83,7 +83,7 @@ client.on("message", function (msg) {
                     }
                 }
             }
-            new Preferences(LOLAPI, msg.guild, server_preferences => discordcommands(CONFIG, client, msg, wsapi, sendToChannel, sendEmbedToChannel, server_preferences, ACCESS_LEVEL, SERVER_RL, getUserRateLimiter(msg.author.id)));
+            new Preferences(LOLAPI, msg.guild, server_preferences => discordcommands(CONFIG, client, msg, wsapi, sendToChannel, sendEmbedToChannel, server_preferences, ACCESS_LEVEL, SERVER_RL, getUserRateLimiter(msg.author.id), valid_member));
         }
     } catch (e) {
         console.error(e);

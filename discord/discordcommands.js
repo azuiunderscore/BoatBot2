@@ -8,7 +8,7 @@ let Profiler = require("../utils/timeprofiler.js");
 let ctable = require("console.table");
 const crypto = require("crypto");
 
-module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedToChannel, preferences, ACCESS_LEVEL, server_RL, user_RL) {
+module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedToChannel, preferences, ACCESS_LEVEL, server_RL, user_RL, valid_member) {
 
     if (msg.author.bot || msg.author.id === client.user.id) return; //Ignore all messages from bot accounts
 
@@ -2737,14 +2737,14 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
             ctt = [{
                 content: msg.id,
                 author: msg.author.id,
-                P: ACCESS_LEVEL,
+                P: `${ACCESS_LEVEL}${valid_member ? "" : "*"}`,
                 channel: msg.channel.id,
                 guild: msg.guild.id,
                 size_region: msg.guild.memberCount
             }, {
                 content: msg.cleanContent.substring(0, MSG_LEN),
                 author: msg.author.tag,
-                P: CONFIG.CONSTANTS.PERMISSION_LEVEL_REVERSE[ACCESS_LEVEL],
+                P: `${CONFIG.CONSTANTS.PERMISSION_LEVEL_REVERSE[ACCESS_LEVEL]}${valid_member ? "" : "*"}`,
                 channel: msg.channel.name,
                 guild: msg.guild.name,
                 size_region: msg.guild.region
