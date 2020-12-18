@@ -65,7 +65,9 @@ client.on("message", function (msg) {
         if (!msg.PM && !UTILS.exists(msg.guild.members.cache.get(msg.author.id))) {
             msg.guild.members.fetch(msg.author).then(() => {
                 step2();
-            }).catch(console.error);
+            }).catch((e) => {
+                step2();
+            }));
         }
         else {
             step2();
