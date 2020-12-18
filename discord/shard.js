@@ -101,7 +101,7 @@ client.on("guildCreate", function (guild) {
             if (UTILS.exists(candidate)) candidate.send("Use `" + CONFIG.DISCORD_COMMAND_PREFIX + "help` for information on how to use BoatBot.\nAdd BoatBot to other servers using this link: <" + CONFIG.BOT_ADD_LINK + ">\nBoatBot is a work in progress! Help us improve BoatBot by sending us your feedback at " + CONFIG.HELP_SERVER_INVITE_LINK + "\nBoatBot is made free and possible by the work of many. See `" + CONFIG.DISCORD_COMMAND_PREFIX + "credits` for special acknowledgements.").catch();
         } else {
             UTILS.output(`Server Rejoined: ${guild.id} :: ${guild.name} :: ${guild.region} :: Population=${guild.memberCount} :: ownerID=${guild.ownerID}`);
-            sendToChannel(CONFIG.LOG_CHANNEL_ID, ":white_check_mark::repeat:`$" + client.shard.ids[0] + "`Server Rejoined: `" + guild.id + "` :: " + guild.region + " :: " + guild.name + " :: :busts_in_silhouette:" + guild.memberCount + " :: " + guild.owner.user.tag);
+            sendToChannel(CONFIG.LOG_CHANNEL_ID, `:white_check_mark::repeat:\`$${client.shard.ids[0]}\` Server Rejoined: \`${guild.id}\` :: ${guild.region} :: ${guild.name} :: :busts_in_silhouette:${guild.memberCount} :: ownerID=\`${guild.ownerID}\``);
         }
     }).catch(console.error);
 
