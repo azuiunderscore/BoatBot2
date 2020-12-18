@@ -67,7 +67,7 @@ client.on("message", function (msg) {
                 step2();
             }).catch((e) => {
                 step2();
-            }));
+            });
         }
         else {
             step2();
