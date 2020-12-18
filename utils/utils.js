@@ -550,7 +550,7 @@ module.exports = class UTILS {
 			return CONFIG.CONSTANTS.NORMALMEMBERS;//PM
 		}
 		else {
-			this.output(`msg.member is valid for message ${msg.id}`);
+			//this.output(`msg.member is valid for message ${msg.id}`);
 		}
 		if (MEMBER.id === msg.guild.ownerID) return CONFIG.CONSTANTS.SERVEROWNERS;
 		else if (MEMBER.hasPermission(["BAN_MEMBERS", "KICK_MEMBERS", "MANAGE_MESSAGES", "MANAGE_ROLES", "MANAGE_CHANNELS"])) return CONFIG.CONSTANTS.ADMINISTRATORS;
