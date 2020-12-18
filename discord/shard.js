@@ -62,11 +62,9 @@ client.on("message", function (msg) {
     msg.PM = !UTILS.exists(msg.guild);
     try {
         //const server_preferences = new Preferences(CONFIG, LOLAPI, msg.guild);
-        if (!UTILS.exists(msg.guild.members.get(msg.author.id))) {
-            client.fetchUser(msg.author.id).then(t_user => {
-                msg.guild.fetchMember(t_user).then(() => {
-                    step2();
-                }).catch(console.error);
+        if (false) {//!UTILS.exists(msg.guild.members.get(msg.author.id))) {
+            msg.guild.fetchMember(msg.author).then(() => {
+                step2();
             }).catch(console.error);
         }
         else {

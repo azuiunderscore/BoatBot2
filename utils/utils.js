@@ -545,7 +545,10 @@ module.exports = class UTILS {
 		if (!this.exists(uid)) uid = msg.author.id;
 		if (this.exists(CONFIG.OWNER_DISCORD_IDS[uid]) && CONFIG.OWNER_DISCORD_IDS[uid].active) return CONFIG.CONSTANTS.BOTOWNERS;//if it's an owner id
 		const MEMBER = uid === msg.author.id ? msg.member : msg.guild.members.get(uid);
-		if (!this.exists(MEMBER)) return CONFIG.CONSTANTS.NORMALMEMBERS;//PM
+		if (!this.exists(MEMBER)) {
+			this.output(`unable to read msg.member for message ${msg.id}`);
+			return CONFIG.CONSTANTS.NORMALMEMBERS;//PM
+		}
 		else if (MEMBER.id === msg.guild.ownerID) return CONFIG.CONSTANTS.SERVEROWNERS;
 		else if (MEMBER.hasPermission(["BAN_MEMBERS", "KICK_MEMBERS", "MANAGE_MESSAGES", "MANAGE_ROLES", "MANAGE_CHANNELS"])) return CONFIG.CONSTANTS.ADMINISTRATORS;
 		else if (MEMBER.hasPermission(["KICK_MEMBERS", "MANAGE_MESSAGES"])) return CONFIG.CONSTANTS.MODERATORS;
