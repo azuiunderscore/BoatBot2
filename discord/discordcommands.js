@@ -62,7 +62,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                 reply("Running command as " + candidate_member.user.tag);
                 cancel = true;
                 msg.author = candidate_member.user;
-                msg.member = candidate_member;
+                //msg.member = candidate_member;//TODO
                 msg.content = parameter.substring(parameter.indexOf(" ") + 1);
                 ACCESS_LEVEL = UTILS.accessLevel(CONFIG, msg);//recalculate access level
                 cancel = false;
