@@ -816,7 +816,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
      * **/
     command(usePrefix(["oppai"]), true, cPL("beatmap"), (original, index, parameter) => {
         parameter = parameter.trim();
-        msg.channel.fetchMessages({limit: 50}).then(msgs => {
+        msg.channel.messages.fetch({limit: 50}).then(msgs => {
             msgs = msgs.array();
             let id;
             for (let i = 0; i < msgs.length; ++i) {
@@ -1434,7 +1434,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                     replyEmbed(embedgenerator.whatif(CONFIG, user, mode, top, new_score, new_pp, null));
                 } else {
                     let id, type, beatmap;
-                    msg.channel.fetchMessages({limit: 50}).then(msgs => {
+                    msg.channel.messages.fetch({limit: 50}).then(msgs => {
                         msgs = msgs.array();
                         for (let i = 0; i < msgs.length; ++i) {
                             if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url)) {
@@ -1492,7 +1492,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
             //UTILS.inspect("username", user);
             //UTILS.inspect("ending_parameter", ending_parameter);
             let beatmap_id, type, beatmap, mode;
-            msg.channel.fetchMessages({limit: 50}).then(msgs => {
+            msg.channel.messages.fetch({limit: 50}).then(msgs => {
                 msgs = msgs.array();
                 for (let i = 0; i < msgs.length; ++i) {
                     if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url)) {
@@ -1634,7 +1634,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
             });
         }
         command(usePrefix(["beatmapinfo", "binfo"]), true, cPL("beatmap"), (original, index, parameter) => {
-            msg.channel.fetchMessages({limit: 50}).then(msgs => {
+            msg.channel.messages.fetch({limit: 50}).then(msgs => {
                 msgs = msgs.array();
                 for (let i = 0; i < msgs.length; ++i) {
                     if (msgs[i].author.id === client.user.id && msgs[i].embeds.length === 1 && UTILS.exists(msgs[i].embeds[0].url)) {
@@ -1746,7 +1746,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
             });
             command(["<@" + client.user.id + ">", "<@!" + client.user.id + ">"], false, false, (original, index) => {
                 msg.channel.startTyping();
-                msg.channel.fetchMessages().then((msgs) => {
+                msg.channel.messages.fetch().then((msgs) => {
                     textgenerator.markov(msgs, msg).then(reply).catch(console.error);
                 }).catch(e => {
                     console.error(e);
@@ -2160,7 +2160,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                             if (e) reply(":x: An error has occurred. The shortcut may not exist.");
                         });
                     } else if (parameter.substring(0, 2) === " ^") {//refers to the last command sent in the channel
-                        msg.channel.fetchMessages({before: msg.id, limit: 30}).then(msgs => {
+                        msg.channel.messages.fetch({before: msg.id, limit: 30}).then(msgs => {
                             msgs = msgs.array();
                             let user_id;
                             for (let i = 0; i < msgs.length; ++i) {
@@ -2303,7 +2303,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                             if (e) reply(":x: An error has occurred. The shortcut may not exist.");
                         });
                     } else if (parameter.substring(parameter.indexOf(" ") + 1) == "^") {//pull from recent command
-                        msg.channel.fetchMessages({before: msg.id, limit: 30}).then(msgs => {
+                        msg.channel.messages.fetch({before: msg.id, limit: 30}).then(msgs => {
                             msgs = msgs.array();
                             let user_id;
                             for (let i = 0; i < msgs.length; ++i) {
@@ -2502,7 +2502,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
                             if (e) reply(":x: An error has occurred. The shortcut may not exist.");
                         });
                     } else if (parameter.substring(parameter.indexOf(" ") + 1) == "^") {//pull from recent command
-                        msg.channel.fetchMessages({ before: msg.id, limit: 30 }).then(msgs => {
+                        msg.channel.messages.fetch({ before: msg.id, limit: 30 }).then(msgs => {
                             msgs = msgs.array();
                             let user_id;
                             for (let i = 0; i < msgs.length; ++i) {
