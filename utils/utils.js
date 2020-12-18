@@ -546,7 +546,7 @@ module.exports = class UTILS {
 		if (this.exists(CONFIG.OWNER_DISCORD_IDS[uid]) && CONFIG.OWNER_DISCORD_IDS[uid].active) return CONFIG.CONSTANTS.BOTOWNERS;//if it's an owner id
 		const MEMBER = uid === msg.author.id ? msg.member : msg.guild.members.get(uid);
 		if (!this.exists(MEMBER)) {
-			UTILS.output(`unable to read msg.member for message ${msg.id}`);
+			this.output(`unable to read msg.member for message ${msg.id}`);
 			return CONFIG.CONSTANTS.NORMALMEMBERS;//PM
 		}
 		else if (MEMBER.id === msg.guild.ownerID) return CONFIG.CONSTANTS.SERVEROWNERS;
