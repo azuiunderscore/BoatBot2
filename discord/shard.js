@@ -60,17 +60,29 @@ client.on("message", function (msg) {
     msg.PM = !UTILS.exists(msg.guild);
     try {
         //const server_preferences = new Preferences(CONFIG, LOLAPI, msg.guild);
-        const ACCESS_LEVEL = UTILS.accessLevel(CONFIG, msg);
-        const SERVER_RL = msg.PM ? null : getServerRateLimiter(msg.guild.id);
-        if (!msg.PM) {
-            for (let i = CONFIG.RATE_LIMIT.SERVERS.length - 1; i >= 0; --i) {
-                if (msg.guild.memberCount >= CONFIG.RATE_LIMIT.SERVERS[i].MEMBER_COUNT) {
-                    SERVER_RL.setMode(CONFIG.RATE_LIMIT.SERVERS[i].MESSAGES, CONFIG.RATE_LIMIT.SERVERS[i].TIME_S);
-                    break;
+        if (!UTILS.exists(msg.guild.members.get(msg.author.id))) {
+            client.fetchUser(msg.author.id).then(t_user => {
+                msg.guild.fetchMember(t_user).then(() => {
+                    step2();
+                }).catch(console.error);
+            }).catch(console.error);
+        }
+        else {
+            step2();
+        }
+        function step2() {
+            const ACCESS_LEVEL = UTILS.accessLevel(CONFIG, msg);
+            const SERVER_RL = msg.PM ? null : getServerRateLimiter(msg.guild.id);
+            if (!msg.PM) {
+                for (let i = CONFIG.RATE_LIMIT.SERVERS.length - 1; i >= 0; --i) {
+                    if (msg.guild.memberCount >= CONFIG.RATE_LIMIT.SERVERS[i].MEMBER_COUNT) {
+                        SERVER_RL.setMode(CONFIG.RATE_LIMIT.SERVERS[i].MESSAGES, CONFIG.RATE_LIMIT.SERVERS[i].TIME_S);
+                        break;
+                    }
                 }
             }
+            new Preferences(LOLAPI, msg.guild, server_preferences => discordcommands(CONFIG, client, msg, wsapi, sendToChannel, sendEmbedToChannel, server_preferences, ACCESS_LEVEL, SERVER_RL, getUserRateLimiter(msg.author.id)));
         }
-        new Preferences(LOLAPI, msg.guild, server_preferences => discordcommands(CONFIG, client, msg, wsapi, sendToChannel, sendEmbedToChannel, server_preferences, ACCESS_LEVEL, SERVER_RL, getUserRateLimiter(msg.author.id)));
     } catch (e) {
         console.error(e);
     }
