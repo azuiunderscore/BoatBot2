@@ -2001,7 +2001,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         command(usePrefix(["approve "]), true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
             const mid = parameter;
             if (!UTILS.isInt(mid)) return reply(":x: Message ID not recognizable.");
-            msg.channel.fetchMessage(mid).then(approvable => {
+            msg.channel.messages.fetch(mid).then(approvable => {
                 if (approvable.author.id != client.user.id) return reply(":x: Cannot approve messages not sent from this account.");
                 const candidate = embedgenerator.reviewFeedback(CONFIG, approvable, msg.author, true);
                 if (typeof (candidate) == "number") {
@@ -2018,7 +2018,7 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         command(usePrefix(["deny "]), true, CONFIG.CONSTANTS.BOTOWNERS, (original, index, parameter) => {
             const mid = parameter;
             if (!UTILS.isInt(mid)) return reply(":x: Message ID not recognizable.");
-            msg.channel.fetchMessage(mid).then(approvable => {
+            msg.channel.messages.fetch(mid).then(approvable => {
                 if (approvable.author.id != client.user.id) return reply(":x: Cannot approve messages not sent from this account.");
                 const candidate = embedgenerator.reviewFeedback(CONFIG, approvable, msg.author, false);
                 if (typeof (candidate) == "number") {
