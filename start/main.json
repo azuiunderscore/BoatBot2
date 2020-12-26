@@ -10,7 +10,7 @@
 			"restart_delay": 2500,
 			"env": {
 				"NODE_ENV": "production",
-				"DEBUG": true
+				"DEBUG": false
 			},
 			"node_args": "--trace-deprecation",
 			"args": "--config=config.json5"
@@ -25,7 +25,7 @@
 			"restart_delay": 2500,
 			"env": {
 				"NODE_ENV": "production",
-				"DEBUG": true
+				"DEBUG": false
 			},
 			"node_args": "--trace-deprecation",
 			"args": "--config=config.json5"
