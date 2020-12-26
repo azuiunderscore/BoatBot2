@@ -179,7 +179,7 @@ module.exports = class WSAPI {
 					break;
 				case 22:
 					this.client.users.fetch(data.uid).then(user => {
-						user.send(embedgenerator.userBan(this.CONFIG, data.reason, data.date, data.issuer_tag, data.issuer_avatarURL)).then(() => {
+						user.send("", { embed: embedgenerator.userBan(this.CONFIG, data.reason, data.date, data.issuer_tag, data.issuer_avatarURL) }).then(() => {
 							that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":e_mail::no_entry: User notified");
 						}).catch(e => {
 							console.error(e);
@@ -189,7 +189,7 @@ module.exports = class WSAPI {
 					break;
 				case 24:
 					this.client.users.fetch(data.uid).then(user => {
-						user.send(embedgenerator.userWarn(this.CONFIG, data.reason, data.issuer_tag, data.issuer_avatarURL)).then(() => {
+						user.send("", { embed: embedgenerator.userWarn(this.CONFIG, data.reason, data.issuer_tag, data.issuer_avatarURL) }).then(() => {
 							that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":e_mail::warning: User notified");
 						}).catch(e => {
 							console.error(e);
@@ -245,7 +245,7 @@ module.exports = class WSAPI {
 					break;
 				case 32:
 					this.client.users.fetch(data.uid).then(user => {
-						user.send(embedgenerator.raw(data.embed)).then(() => {
+						user.send("", { embed: embedgenerator.raw(data.embed) }).then(() => {
 							that.sendTextToChannel(that.CONFIG.FEEDBACK.EXTERNAL_CID, ":e_mail: User notified");
 						}).catch(e => {
 							console.error(e);
@@ -257,7 +257,7 @@ module.exports = class WSAPI {
 					if (true) {//scope limiter
 						const candidate = this.client.channels.cache.get(data.cid);
 						if (UTILS.exists(candidate)) {
-							candidate.send(embedgenerator.raw(data.embed)).then(msg => {
+							candidate.send("", { embed: embedgenerator.raw(data.embed) }).then(msg => {
 								if (data.approvable) {
 									setTimeout(() => {
 										embed.fields[embed.fields.length - 1].value += "\nApprove: `" + this.CONFIG.DISCORD_COMMAND_PREFIX + "approve " + msg.id + "`";
