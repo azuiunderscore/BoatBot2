@@ -2817,8 +2817,8 @@ module.exports = function (CONFIG, client, msg, wsapi, sendToChannel, sendEmbedT
         return valid === 0;
     }
 
-    /** Gets an osu username from their discord UserID
-     *  @param uid  {number}    The UserID to find the osu username for
+    /** Gets an discord username from their discord UserID
+     *  @param uid  {number}    The UserID to find the discord username for
      *  @return     {string}    The most likely username for the inputted UserID
      * **/
     function getUsernameFromUID(uid) {
