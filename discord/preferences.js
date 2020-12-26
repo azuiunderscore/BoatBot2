@@ -142,11 +142,11 @@ module.exports = class Preferences {
 			this.server_message = true;
 			if (!UTILS.exists(cache[this.sid])) {//doesn't exist in cache
 				let that = this;
-				UTILS.debug(this.sid + " preferences: cache miss");
+				UTILS.debug(this.sid + " preferences: cache miss", false);
 				if (fs.existsSync(this.path)) {//check if db entry exists
 					try {//read
 						cache[this.sid] = JSON.parse(fs.readFileSync(this.path));
-						UTILS.debug(this.sid + " preferences: loaded into cache");
+						UTILS.debug(this.sid + " preferences: loaded into cache", false);
 					}
 					catch (e) {
 						console.error(e);
@@ -165,7 +165,7 @@ module.exports = class Preferences {
 					});
 				}
 			}
-			else UTILS.debug(this.sid + " preferences: cache hit");//exists in cache and nothing needs to be done
+			else UTILS.debug(this.sid + " preferences: cache hit", false);//exists in cache and nothing needs to be done
 		}
 		else this.server_message = false;//PM
 		callback(this);
