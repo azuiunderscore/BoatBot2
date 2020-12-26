@@ -166,25 +166,36 @@ module.exports = class WSAPI {
 					}
 					break;
 				case 20:
-					data.connected = UTILS.exists(this.client.users.get(data.uid)) ? true : false;
-					data.type = 21;
-					this.send(data);
+					this.client.users.fetch(u => {
+						data.connected = UTILS.exists(u) ? true : false;
+						data.type = 21;
+						this.send(data);
+					}).catch(e => {
+						data.connected = false;
+						data.type = 21;
+						this.send(data);
+					});
+
 					break;
 				case 22:
-					this.client.users.get(data.uid).send(embedgenerator.userBan(this.CONFIG, data.reason, data.date, data.issuer_tag, data.issuer_avatarURL)).then(() => {
-						that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":e_mail::no_entry: User notified");
-					}).catch(e => {
-						console.error(e);
-						that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":x::no_entry: User could not be notified");
-					});
+					this.client.users.fetch(data.uid).then(user => {
+						user.send(embedgenerator.userBan(this.CONFIG, data.reason, data.date, data.issuer_tag, data.issuer_avatarURL)).then(() => {
+							that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":e_mail::no_entry: User notified");
+						}).catch(e => {
+							console.error(e);
+							that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":x::no_entry: User could not be notified");
+						});
+					}).catch(console.error);
 					break;
 				case 24:
-					this.client.users.get(data.uid).send(embedgenerator.userWarn(this.CONFIG, data.reason, data.issuer_tag, data.issuer_avatarURL)).then(() => {
-						that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":e_mail::warning: User notified");
-					}).catch(e => {
-						console.error(e);
-						that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":x::warning: User could not be notified");
-					});
+					this.client.users.fetch(data.uid).then(user => {
+						user.send(embedgenerator.userWarn(this.CONFIG, data.reason, data.issuer_tag, data.issuer_avatarURL)).then(() => {
+							that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":e_mail::warning: User notified");
+						}).catch(e => {
+							console.error(e);
+							that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":x::warning: User could not be notified");
+						});
+					}).catch(console.error);
 					break;
 				case 26:
 					if (UTILS.exists(this.client.guilds.cache.get(data.sid))) {
@@ -205,12 +216,14 @@ module.exports = class WSAPI {
 					}
 					break;
 				case 28:
-					this.client.users.get(data.uid).send(embedgenerator.userUnban(this.CONFIG, data.issuer_tag, data.issuer_avatarURL)).then(() => {
-						that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":e_mail::no_entry_sign: User notified");
-					}).catch(e => {
-						console.error(e);
-						that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":x::no_entry_sign: User could not be notified");
-					});
+					this.client.users.fetch(data.uid).then(user => {
+						user.send(embedgenerator.userUnban(this.CONFIG, data.issuer_tag, data.issuer_avatarURL)).then(() => {
+							that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":e_mail::no_entry_sign: User notified");
+						}).catch(e => {
+							console.error(e);
+							that.sendTextToChannel(that.CONFIG.LOG_CHANNEL_ID, ":x::no_entry_sign: User could not be notified");
+						});
+					}).catch(console.error);
 					break;
 				case 30:
 					if (UTILS.exists(this.client.guilds.cache.get(data.sid))) {
@@ -231,12 +244,14 @@ module.exports = class WSAPI {
 					}
 					break;
 				case 32:
-					this.client.users.get(data.uid).send(embedgenerator.raw(data.embed)).then(() => {
-						that.sendTextToChannel(that.CONFIG.FEEDBACK.EXTERNAL_CID, ":e_mail: User notified");
-					}).catch(e => {
-						console.error(e);
-						that.sendTextToChannel(that.CONFIG.FEEDBACK.EXTERNAL_CID, ":x::warning: User could not be notified");
-					});
+					this.client.users.fetch(data.uid).then(user => {
+						user.send(embedgenerator.raw(data.embed)).then(() => {
+							that.sendTextToChannel(that.CONFIG.FEEDBACK.EXTERNAL_CID, ":e_mail: User notified");
+						}).catch(e => {
+							console.error(e);
+							that.sendTextToChannel(that.CONFIG.FEEDBACK.EXTERNAL_CID, ":x::warning: User could not be notified");
+						});
+					}).catch(console.error);
 					break;
 				case 34:
 					if (true) {//scope limiter

@@ -933,7 +933,7 @@ module.exports = class UTILS {
 		.replace(/<@!?[0-9]+>/g, input => {
 			const id = input.replace(/<|!|>|@/g, '');
 			if (msg.channel.type === 'dm' || msg.channel.type === 'group') {
-				return msg.client.users.has(id) ? `@${msg.client.users.get(id).username}` : input;
+				return msg.client.users.has(id) ? `@${msg.client.users.cache.get(id).username}` : input;
 			}
 
 			const member = msg.channel.guild.members.get(id);
@@ -941,7 +941,7 @@ module.exports = class UTILS {
 				if (member.nickname) return `@${member.nickname}`;
 				return `@${member.user.username}`;
 			} else {
-				const user = msg.client.users.get(id);
+				const user = msg.client.users.cache.get(id);
 				if (user) return `@${user.username}`;
 				return input;
 			}
