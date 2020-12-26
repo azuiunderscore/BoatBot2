@@ -166,7 +166,7 @@ module.exports = class WSAPI {
 					}
 					break;
 				case 20:
-					this.client.users.fetch(u => {
+					this.client.users.fetch(data.uid).then(u => {
 						data.connected = UTILS.exists(u) ? true : false;
 						data.type = 21;
 						this.send(data);
