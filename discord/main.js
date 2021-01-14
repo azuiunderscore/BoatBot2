@@ -26,17 +26,17 @@ try {
 const manager = new ShardingManager("./shard.js",
 	{ token: CONFIG.DISCORD_API_KEY,
 	totalShards: CONFIG.SHARD_COUNT,
-	respawn: false,
+	respawn: true,
 	shardArgs: process.argv.slice(2) });
 
 manager.on("launch", shard => {
 	const shard_id = shard.id;
 	UTILS.output("Launched shard " + shard.id);
-	shard.on("death", () => {
+	/*shard.on("death", () => {
 		setTimeout(() => {
 			manager.createShard(shard_id);
 		}, 5000);
-	});
+	});*/
 });
 
 manager.spawn(undefined, 2000);
