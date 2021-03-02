@@ -25,13 +25,13 @@ module.exports = class TextGenerator {
 		let num;
 		if (isNaN(step1)) {
 			num = 100;
-			return author + " rolls " + (Math.floor(Math.random() * num) + 1) + " point(s)";
+			return author.toString() + " rolls " + (Math.floor(Math.random() * num) + 1) + " point(s)";
 		}
 		else if (step1 < 0) {}
 		else if (step1 == 0) return author + " rolls " + 1 + " point(s)";
 		else {
 			num = step1;
-			return author + " rolls " + (Math.floor(Math.random() * num) + 1) + " point(s)";
+			return author.toString() + " rolls " + (Math.floor(Math.random() * num) + 1) + " point(s)";
 		}
 	}
 	coin() {
