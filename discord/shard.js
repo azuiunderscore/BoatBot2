@@ -40,9 +40,6 @@ process.env.SHARD_ID = client.shard.ids[0];//legacy compatibility with UTILS.out
 loadAllStaticResources(() => {
     UTILS.output(process.env.NODE_ENV === "production" ? "PRODUCTION LOGIN" : "DEVELOPMENT LOGIN");
     client.login(CONFIG.DISCORD_API_KEY).catch(console.error);
-    setTimeout(() => {
-        client.ws.connection.triggerReady()
-    },30000)
 });
 
 let initial_start = true;
