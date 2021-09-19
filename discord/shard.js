@@ -39,7 +39,7 @@ process.env.SHARD_ID = client.shard.ids[0];//legacy compatibility with UTILS.out
 
 loadAllStaticResources(() => {
     UTILS.output(process.env.NODE_ENV === "production" ? "PRODUCTION LOGIN" : "DEVELOPMENT LOGIN");
-    client.login().catch(console.error);
+    client.login(CONFIG.DISCORD_API_KEY).catch(console.error);
 });
 
 let initial_start = true;
