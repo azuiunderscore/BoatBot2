@@ -10,7 +10,7 @@
   "dependencies": {
     "bufferutil": "^4.0.2",
     "console.table": "^0.10.0",
-    "discord.js": "^12.5.1",
+    "discord.js": "^12.5.3",
     "erlpack": "github:discord/erlpack",
     "getopts": "^2.2.5",
     "json5": "^2.1.3",
