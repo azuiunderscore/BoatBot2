@@ -39,5 +39,5 @@ manager.on("launch", shard => {
 	});*/
 });
 
-manager.spawn(undefined, 2000);
+manager.spawn(undefined, 2000, -1);
 UTILS.output("Sharding Manager started");
