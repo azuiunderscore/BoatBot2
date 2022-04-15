@@ -1,1 +1,2 @@
-worker: node wordfrequency
+worker: node index.json
+
