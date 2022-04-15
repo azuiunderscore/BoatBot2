@@ -12,3 +12,5 @@ client.on('message', msg => {
     msg.reply('hey there!');
   }
 });
+
+client.login('thesecrettoken');
