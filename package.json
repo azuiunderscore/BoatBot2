@@ -1,13 +1,23 @@
 {
-  "name": "example-app",
-  "description": "a really cool app",
+  "name": "beanbot",
   "version": "1.0.0",
-  "engines": {
-    "node": "16.x"
+  "description": "boatbot fork",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
   },
-  
-"scripts": {
-  "start": "node index.js",
-  "test": "echo \"Error: no test specified\" && exit 1"
-}
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/azuiunderscore/BoatBot2.git"
+  },
+  "author": "not me",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/azuiunderscore/BoatBot2/issues"
+  },
+  "homepage": "https://github.com/azuiunderscore/BoatBot2#readme"
 }
