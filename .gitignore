@@ -9,6 +9,7 @@ config.json
 !data/beatmap-cache/.gitkeep
 /data/keys/*
 !data/keys/.gitkeep
+.env node_modules/
 *.bat
 devconfig.json
 releasenotes/boatbot 2 release announcement.md
