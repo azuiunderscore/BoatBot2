@@ -1,2 +1,2 @@
-worker: node index.json
+worker: node index.js
 
