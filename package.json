@@ -6,6 +6,9 @@
   "directories": {
     "test": "tests"
   },
+  "engines": {
+    "node": ">=16"
+},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
@@ -14,13 +17,14 @@
     "type": "git",
     "url": "git+https://github.com/azuiunderscore/BoatBot2.git"
   },
-    "dependencies": {
-    "module": "discord.js": "^12.3.0"
-},
+
   "author": "not me",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/azuiunderscore/BoatBot2/issues"
   },
-  "homepage": "https://github.com/azuiunderscore/BoatBot2#readme"
+  "homepage": "https://github.com/azuiunderscore/BoatBot2#readme",
+  "dependencies": {
+    "discord.js": "^13.6.0"
+  }
 }
