@@ -15,7 +15,7 @@
     "url": "git+https://github.com/azuiunderscore/BoatBot2.git"
   },
     "dependencies": {
-    "module": "discord.js"
+    "module": "discord.js": "^12.3.0"
 },
   "author": "not me",
   "license": "ISC",
