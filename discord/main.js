@@ -23,6 +23,11 @@ try {
 	process.exit(1);
 }
 
+const { Client, Intents } = require('discord.js');
+
+const myIntents = new Intents();
+myIntents.add(Intents.FLAGS.GUILD_PRESENCES, Intents.FLAGS.GUILD_MEMBERS);
+
 const manager = new ShardingManager("./shard.js",
 	{ token: CONFIG.DISCORD_API_KEY,
 	totalShards: CONFIG.SHARD_COUNT,
