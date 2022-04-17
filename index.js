@@ -1,16 +1,13 @@
-const Discord = require('discord.js');
-const client = new Discord.Client();
+// Require the necessary discord.js classes
+const { Client, Intents } = require('discord.js');
 
-// log when the bot is ready
-client.on('ready', () => {
-  console.log(`Logged in as ${client.user.tag}!`);
+
+// Create a new client instance
+const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+
+// When the client is ready, run this code (only once)
+client.once('ready', () => {
+	console.log('Ready!');
 });
 
-// listen to messages and reply
-client.on('message', msg => {
-  if (msg.content === 'hello') {
-    msg.reply('hey there!');
-  }
-});
-
-client.login('thesecrettoken');
+client.login(thesecrettoken);
